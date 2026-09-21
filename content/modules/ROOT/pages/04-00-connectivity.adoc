@@ -31,8 +31,9 @@ oc patch subscription rhcl-operator -n openshift-operators --type merge -p '{
   }
 }'
 
-oc rollout restart deployment -n openshift-operators \
-  $(oc get deploy -n openshift-operators -o name | grep -i kuadrant-operator)
+oc get deploy -n openshift-operators -o name | grep -i kuadrant
+oc rollout restart -n openshift-operators \
+  $(oc get deploy -n openshift-operators -o name | grep -i kuadrant)
 ----
 
 Espera a que el pod del operator vuelva a `Running`.
