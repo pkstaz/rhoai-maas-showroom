@@ -10,10 +10,11 @@ El Operator de Connectivity Link ya está instalado (módulo 2). Aquí solo se c
 ----
 oc apply -f examples/gatewayclass.yaml
 oc get gatewayclass openshift-default
-oc get istio -A
 ----
 
-Espera a que `openshift-default` esté `Accepted` y que el `Istio` esté `Healthy` / `Ready` (1–3 min).
+`ACCEPTED` debe ser `True`. Eso basta.
+
+`oc get istio` suele fallar (`the server doesn't have a resource type "istio"`): el Ingress Operator gestiona el data plane y ese CRD no siempre existe. No lo instales a mano.
 
 == 2. Instancia Kuadrant
 
@@ -37,11 +38,11 @@ oc get pods -A | grep -i -E 'authorino|kuadrant'
 
 Pods de Authorino / Kuadrant en `Running`. El CR no debe quedar en `MissingDependency`.
 
-Si ves `[Gateway API provider (istio / envoy gateway)] is not installed`: espera el Istio y reinicia el operator:
+Si ves `[Gateway API provider (istio / envoy gateway)] is not installed`: el `GatewayClass` ya está `Accepted`; reinicia el operator de Kuadrant:
 
 [source,bash]
 ----
-oc get istio -A
+oc get gatewayclass openshift-default
 oc get deploy -A | grep -i kuadrant
 oc rollout restart deployment -n openshift-operators \
   $(oc get deploy -n openshift-operators -o name | grep -i kuadrant)
