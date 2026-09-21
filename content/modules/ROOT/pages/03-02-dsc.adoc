@@ -1,30 +1,86 @@
 = DataScienceCluster
 
-Activa solo lo que usa este lab. `kueue` queda `Unmanaged` porque ya instalaste el Operator de Kueue.
+Activa solo lo que usa este lab. En la pestaña *YAML* del create, reemplaza todo el manifiesto por el de abajo.
 
-*No* pongas todavía `aigateway.modelsAsAService: Managed`. Eso va *después* de Connectivity Link, el gateway y Postgres.
+Cambios respecto al default de la UI:
 
-== UI
+* `Managed`: `dashboard`, `workbenches`, `kserve`, `aipipelines`, `modelregistry`, `aigateway`
+* `Unmanaged`: `kueue` (el Operator de Kueue ya está instalado)
+* `Removed`: el resto (`ogx`, `sparkoperator`, `feastoperator`, `trustyai`, `ray`, `mlflowoperator`, `trainer`, `nim`, `llamastackoperator`, `trainingoperator`, …)
+* `aigateway.modelsAsAService` se queda en `Removed` hasta Connectivity Link + gateway + Postgres
+* Un solo bloque `trustyai` (el default a veces lo duplica)
 
-. *Ecosystem* → *Installed Operators* → *Red Hat OpenShift AI*
-. Pestaña *DataScienceCluster* → *Create DataScienceCluster*
-. Nombre: `default-dsc`
-. Pestaña *YAML* y deja `Managed` en:
+== YAML final
 
-* `dashboard`
-* `workbenches`
-* `kserve`
-* `aipipelines`
-* `modelregistry`
-* `aigateway` (el componente; *no* enciendas aún `modelsAsAService`)
+Pestaña *YAML* → pega esto → *Create*:
 
-`kueue.managementState`: `Unmanaged`
-
-El resto: `Removed`.
-
-. *Create*
-
-Si el formulario no muestra `aigateway`, crea el DSC con el YAML de este módulo.
+[source,yaml]
+----
+apiVersion: datasciencecluster.opendatahub.io/v2
+kind: DataScienceCluster
+metadata:
+  name: default-dsc
+  labels:
+    app.kubernetes.io/name: datasciencecluster
+spec:
+  components:
+    ogx:
+      managementState: Removed
+    sparkoperator:
+      managementState: Removed
+    kserve:
+      wva:
+        managementState: Removed
+      rawDeploymentServiceConfig: Headless
+      nim:
+        airGapped: false
+        managementState: Removed
+      modelCache:
+        managementState: Removed
+      modelsAsService:
+        managementState: Removed
+      managementState: Managed
+    modelregistry:
+      registriesNamespace: rhoai-model-registries
+      managementState: Managed
+    feastoperator:
+      managementState: Removed
+    trustyai:
+      eval:
+        lmeval:
+          permitCodeExecution: deny
+          permitOnline: deny
+      mcpGuardrailsMode: false
+      managementState: Removed
+    aipipelines:
+      argoWorkflowsControllers:
+        managementState: Managed
+      managementState: Managed
+    ray:
+      managementState: Removed
+    kueue:
+      autoCreateQueues: false
+      defaultClusterQueueName: default
+      defaultLocalQueueName: default
+      managementState: Unmanaged
+    workbenches:
+      workbenchNamespace: rhods-notebooks
+      managementState: Managed
+    mlflowoperator:
+      managementState: Removed
+    dashboard:
+      managementState: Managed
+    trainer:
+      managementState: Removed
+    llamastackoperator:
+      managementState: Removed
+    aigateway:
+      managementState: Managed
+      modelsAsAService:
+        managementState: Removed
+    trainingoperator:
+      managementState: Removed
+----
 
 == Verificar
 

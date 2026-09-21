@@ -2,39 +2,63 @@ apiVersion: datasciencecluster.opendatahub.io/v2
 kind: DataScienceCluster
 metadata:
   name: default-dsc
+  labels:
+    app.kubernetes.io/name: datasciencecluster
 spec:
   components:
+    ogx:
+      managementState: Removed
+    sparkoperator:
+      managementState: Removed
+    kserve:
+      wva:
+        managementState: Removed
+      rawDeploymentServiceConfig: Headless
+      nim:
+        airGapped: false
+        managementState: Removed
+      modelCache:
+        managementState: Removed
+      modelsAsService:
+        managementState: Removed
+      managementState: Managed
+    modelregistry:
+      registriesNamespace: rhoai-model-registries
+      managementState: Managed
+    feastoperator:
+      managementState: Removed
+    trustyai:
+      eval:
+        lmeval:
+          permitCodeExecution: deny
+          permitOnline: deny
+      mcpGuardrailsMode: false
+      managementState: Removed
+    aipipelines:
+      argoWorkflowsControllers:
+        managementState: Managed
+      managementState: Managed
+    ray:
+      managementState: Removed
+    kueue:
+      autoCreateQueues: false
+      defaultClusterQueueName: default
+      defaultLocalQueueName: default
+      managementState: Unmanaged
+    workbenches:
+      workbenchNamespace: rhods-notebooks
+      managementState: Managed
+    mlflowoperator:
+      managementState: Removed
+    dashboard:
+      managementState: Managed
+    trainer:
+      managementState: Removed
+    llamastackoperator:
+      managementState: Removed
     aigateway:
       managementState: Managed
       modelsAsAService:
         managementState: Removed
-    aipipelines:
-      managementState: Managed
-    dashboard:
-      managementState: Managed
-    feastoperator:
-      managementState: Removed
-    kserve:
-      managementState: Managed
-    kueue:
-      managementState: Unmanaged
-      defaultClusterQueueName: default
-      defaultLocalQueueName: default
-    llamastackoperator:
-      managementState: Removed
-    mlflowoperator:
-      managementState: Removed
-    modelregistry:
-      managementState: Managed
-      registriesNamespace: rhoai-model-registries
-    ogx:
-      managementState: Removed
-    ray:
-      managementState: Removed
     trainingoperator:
       managementState: Removed
-    trustyai:
-      managementState: Removed
-    workbenches:
-      managementState: Managed
-      workbenchNamespace: rhods-notebooks
