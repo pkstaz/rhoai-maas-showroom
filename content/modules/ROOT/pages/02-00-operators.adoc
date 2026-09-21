@@ -12,17 +12,17 @@ Instala uno, espera *Succeeded*, sigue al siguiente:
 
 . *cert-manager Operator for Red Hat OpenShift*
 . *Red Hat OpenShift Pipelines* (el DSC usará `aipipelines`)
-. *Red Hat Connectivity Link* (Kuadrant / Authorino). Solo el Operator; *no* crees todavía la instancia Kuadrant.
+. *Red Hat Connectivity Link* (Kuadrant / Authorino). Solo el Operator, namespace `openshift-operators` (All namespaces). *No* crees todavía la instancia Kuadrant.
 . *Red Hat Leader Worker Set Operator* (llm-d)
 . *Red Hat build of Kueue* (GPU Booking)
 
 == Connectivity Link
 
 . *Ecosystem* → *OperatorHub* → busca `Red Hat Connectivity Link`
-. Instala (All namespaces / namespace recomendado)
+. Instala (All namespaces; namespace del Operator: `openshift-operators` está bien)
 . Espera *Succeeded*
 
-No crees la instancia *Kuadrant* ni el `GatewayClass` en este paso.
+No crees la instancia *Kuadrant* aquí. Esa va en `kuadrant-system` (módulo 4).
 
 == Verificar
 

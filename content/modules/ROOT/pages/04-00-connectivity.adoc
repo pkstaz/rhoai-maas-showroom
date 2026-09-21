@@ -1,8 +1,8 @@
 = GatewayClass y Kuadrant
 
-El Operator de Connectivity Link ya está instalado (módulo 2). Aquí solo se configura: `GatewayClass` e instancia `kuadrant`.
+El Operator de Connectivity Link ya está en `openshift-operators` (módulo 2). Eso coincide con la doc de OpenShift AI 3.5.
 
-*No* instales Service Mesh *2* ni el Operator de Mesh 3 a mano. El Ingress Operator instala Mesh 3 al crear el `GatewayClass`.
+La instancia *Kuadrant* no va ahí: va en **`kuadrant-system`**. Authorino y Limitador se despliegan en ese namespace.
 
 == 1. GatewayClass
 
@@ -12,42 +12,55 @@ oc apply -f examples/gatewayclass.yaml
 oc get gatewayclass openshift-default
 ----
 
-`GatewayClass` es un recurso de *cluster*: no tiene namespace. `oc get gatewayclass openshift-default` (sin `-n`) es correcto.
+`GatewayClass` es de *cluster* (sin namespace). `ACCEPTED` = `True` basta.
 
-`ACCEPTED` debe ser `True`. Eso basta.
+== 2. Controller name (OpenShift)
 
-`oc get istio` suele fallar (`the server doesn't have a resource type "istio"`): el Ingress Operator gestiona el data plane y ese CRD no siempre existe. No lo instales a mano.
-
-== 2. Instancia Kuadrant
-
-. *Ecosystem* → *Installed Operators* → *Red Hat Connectivity Link*
-. Crea una instancia *Kuadrant* en el namespace del operator (`kuadrant-system` u `openshift-operators`) con valores por defecto. Nombre: `kuadrant` (la UI propone `kuadrant-sample`; cámbialo).
-
-Si usas el YAML, el `namespace` tiene que coincidir con el del Operator:
+Kuadrant busca Istio/Envoy por defecto. En este lab el controller es `openshift.io/gateway-controller/v1`. Sin este env, el CR queda en `MissingDependency`:
 
 [source,bash]
 ----
-oc apply -f examples/kuadrant.yaml
+oc patch subscription rhcl-operator -n openshift-operators --type merge -p '{
+  "spec": {
+    "config": {
+      "env": [{
+        "name": "ISTIO_GATEWAY_CONTROLLER_NAMES",
+        "value": "openshift.io/gateway-controller/v1"
+      }]
+    }
+  }
+}'
+
+oc rollout restart deployment -n openshift-operators \
+  $(oc get deploy -n openshift-operators -o name | grep -i kuadrant-operator)
 ----
+
+Espera a que el pod del operator vuelva a `Running`.
+
+== 3. Instancia Kuadrant en kuadrant-system
+
+Si creaste el CR en `openshift-operators`, bórralo y recréalo aquí:
+
+[source,bash]
+----
+oc create namespace kuadrant-system --dry-run=client -o yaml | oc apply -f -
+oc delete kuadrant --all -n openshift-operators --ignore-not-found
+oc apply -f examples/kuadrant.yaml
+oc wait kuadrant/kuadrant -n kuadrant-system --for=condition=Ready --timeout=5m
+----
+
+Desde la UI:
+
+. Cambia el proyecto a `kuadrant-system` (créalo si no existe)
+. *Installed Operators* → *Red Hat Connectivity Link* (project: `kuadrant-system`)
+. Crea *Kuadrant*. Nombre: `kuadrant` (no `kuadrant-sample`)
 
 == Verificar
 
 [source,bash]
 ----
-oc get kuadrant -A
-oc get pods -A | grep -i -E 'authorino|kuadrant'
+oc get kuadrant -n kuadrant-system
+oc get pods -n kuadrant-system
 ----
 
-Pods de Authorino / Kuadrant en `Running`. El CR no debe quedar en `MissingDependency`.
-
-Si ves `[Gateway API provider (istio / envoy gateway)] is not installed`: el `GatewayClass` ya está `Accepted`; reinicia el operator de Kuadrant:
-
-[source,bash]
-----
-oc get gatewayclass openshift-default
-oc get deploy -A | grep -i kuadrant
-oc rollout restart deployment -n openshift-operators \
-  $(oc get deploy -n openshift-operators -o name | grep -i kuadrant)
-----
-
-Si el operator está en `kuadrant-system`, usa ese namespace en el `rollout restart`.
+`Ready` y pods de Authorino / Limitador `Running`.
