@@ -1,0 +1,78 @@
+= Desplegar Qwen3-0.6B (llm-d, CPU, MaaS)
+
+Despliega *desde el catálogo* con llm-d, perfil CPU, y publícalo en MaaS.
+
+No elijas el hardware profile `fake-t4`. Fake GPU no sirve CUDA: el runtime GPU revienta.
+
+== Proyecto
+
+. Dashboard → *Data Science Projects* → *Create*
+. Name: `llm`
+. Si no hay checkbox de dashboard, etiqueta el namespace:
+
+[source,bash]
+----
+oc label namespace llm \
+  opendatahub.io/dashboard=true \
+  opendatahub.io/generated-namespace=true \
+  maas.opendatahub.io/gateway-access=true \
+  --overwrite
+----
+
+El label `maas.opendatahub.io/gateway-access=true` es obligatorio para que el gateway enrute.
+
+== UI (preferido)
+
+. Catalog → abre *Qwen3-0.6B*
+. *Deploy*
+. Project: `llm`
+. Serving: *Distributed Inference* / *llm-d* (no vLLM NVIDIA)
+. Hardware profile: `cpu-workshop`
+. Replicas: `1`
+. Activa la opción de publicar en *Models as a Service* si aparece
+. *Deploy*
+
+Si el wizard pide URI a mano: `hf://Qwen/Qwen3-0.6B`
+
+== Parche CPU (necesario)
+
+El template llm-d trae imagen CUDA. Cámbiala a vLLM CPU y quita `nvidia.com/gpu`.
+
+[source,bash]
+----
+oc apply -f examples/llminferenceservice-qwen3-06b.yaml
+----
+
+Ese manifiesto es el de referencia de este lab: imagen `registry.redhat.io/rhaiis/vllm-cpu-rhel9`, 4–8 CPU, 16 Gi, `--max-model-len=2048`, gateway `maas-default-gateway`, `router.scheduler: {}` (llm-d).
+
+Si el wizard ya creó el servicio, borra el que falló y aplica el YAML, o edita el `LLMInferenceService` a mano.
+
+Si el pod se queda en `Init:0/1` más de 5 minutos (Hugging Face Xet):
+
+[source,bash]
+----
+oc get pods -n llm
+oc patch llminferenceservice qwen3-06b -n llm --type=merge -p '{
+  "spec": {
+    "template": {
+      "containers": [{
+        "name": "main",
+        "env": [{"name":"HF_HUB_DISABLE_XET","value":"1"}]
+      }]
+    }
+  }
+}'
+----
+
+== Verificar
+
+[source,bash]
+----
+oc get llminferenceservice -n llm
+oc get pods -n llm
+oc get maasmodelref -n llm -o wide
+----
+
+`LLMInferenceService` `Ready`. Pod `Running` (2–5 min de pull + load).
+
+Si `MaaSModelRef` queda `Pending` con *No active subscription and auth policy pairing found*, sigue al módulo de suscripción: hace falta *subscription + auth policy*.

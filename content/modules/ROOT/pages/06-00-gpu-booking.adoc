@@ -1,0 +1,40 @@
+= GPU Booking Plugin
+
+Plugin de consola para reservar GPUs. Descubre capacidad desde `nvidia.com/gpu` (por eso el fake GPU va antes). Requiere Kueue.
+
+Repo: https://github.com/rhai-code/gpu-booking-app-plugin
+
+== Instalar
+
+[source,bash]
+----
+git clone https://github.com/rhai-code/gpu-booking-app-plugin.git
+cd gpu-booking-app-plugin
+
+helm upgrade -i gpu-booking-plugin chart/ \
+  -n gpu-booking-app-plugin \
+  --create-namespace
+----
+
+Si Helm no parchea la consola:
+
+[source,bash]
+----
+oc get consoleplugin
+oc patch consoles.operator.openshift.io cluster --type=json \
+  -p '[{"op":"add","path":"/spec/plugins/-","value":"gpu-booking-plugin"}]'
+----
+
+Si `plugins` ya existe y el add falla, edita el YAML de `consoles.operator.openshift.io/cluster` y añade `gpu-booking-plugin` al array `spec.plugins`.
+
+== Verificar
+
+[source,bash]
+----
+oc get pods -n gpu-booking-app-plugin
+oc get consoleplugin gpu-booking-plugin
+----
+
+Hard refresh de la consola OpenShift. En perspectiva Administrator debe aparecer *GPU Booking*.
+
+Abre el calendario, dispara *Discover* si hay botón de admin, y confirma que ves las T4 simuladas.

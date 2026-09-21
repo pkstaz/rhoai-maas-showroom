@@ -1,0 +1,8 @@
+= Instalar OpenShift AI {rhoai-version}
+
+Dos pasos: Operator + `DataScienceCluster`.
+
+* Canal: `stable-3.5`
+* Versión: `{rhoai-version}`
+
+Siguiente: xref:03-01-operator.adoc[Operator] y después xref:03-02-dsc.adoc[DataScienceCluster].

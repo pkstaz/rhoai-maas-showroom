@@ -1,0 +1,54 @@
+= DataScienceCluster
+
+Activa solo lo que usa este lab. `kueue` queda `Unmanaged` porque ya instalaste el Operator de Kueue.
+
+*No* pongas todavía `aigateway.modelsAsAService: Managed`. Eso va *después* del gateway y Postgres (módulo MaaS).
+
+== UI
+
+. *Ecosystem* → *Installed Operators* → *Red Hat OpenShift AI*
+. Pestaña *DataScienceCluster* → *Create DataScienceCluster*
+. Nombre: `default-dsc`
+. Pestaña *YAML* y deja `Managed` en:
+
+* `dashboard`
+* `workbenches`
+* `kserve`
+* `aipipelines`
+* `modelregistry`
+* `aigateway` (el componente; *no* enciendas aún `modelsAsAService`)
+
+`kueue.managementState`: `Unmanaged`
+
+El resto: `Removed`.
+
+. *Create*
+
+Si el formulario no muestra `aigateway`, crea el DSC con el YAML de este módulo.
+
+== Verificar
+
+[source,bash]
+----
+oc get dsc
+oc get pods -n redhat-ods-applications
+----
+
+Espera a que `default-dsc` esté `Ready` (5–15 min). Debe existir el dashboard:
+
+[source,bash]
+----
+oc get route -n redhat-ods-applications
+----
+
+Abre la ruta `rhods-dashboard` / `rhoai`.
+
+.Alternativa YAML
+[%collapsible]
+====
+[source,bash]
+----
+oc apply -f examples/default-dsc.yaml
+oc get dsc default-dsc -w
+----
+====

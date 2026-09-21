@@ -1,0 +1,20 @@
+# Hugging Face catalog source with a single model.
+# If model-catalog-sources already exists, MERGE this catalogs entry
+# instead of replacing the ConfigMap.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: model-catalog-sources
+  namespace: rhoai-model-registries
+data:
+  sources.yaml: |
+    catalogs:
+      - name: Qwen
+        id: qwen-hf
+        type: hf
+        enabled: true
+        includedModels:
+          - Qwen/Qwen3-0.6B
+        labels:
+          - Qwen
+          - Hugging Face

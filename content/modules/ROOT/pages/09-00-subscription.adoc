@@ -1,0 +1,43 @@
+= Suscripción MaaS
+
+Una `MaaSModelRef` solo queda `Ready` si hay *MaaSSubscription* y *MaaSAuthPolicy* que la referencian (governance pairing).
+
+== UI (preferido)
+
+. Dashboard OpenShift AI → *Models as a Service* / *AI Hub* → *Subscriptions* (o *Governance*)
+. *Create subscription*
+. Name: `qwen-authenticated`
+. Subjects / groups: `system:authenticated`
+. Model: el `MaaSModelRef` de `qwen3-06b` (namespace `llm`)
+. Rate limit: `100` tokens / `1m` (free)
+. *Create*
+
+Si hay pantalla aparte de *Authorization policies*:
+
+. *Create policy*
+. Name: `qwen-authenticated-access`
+. Group: `system:authenticated`
+. Mismos model refs
+
+Si la UI crea solo la subscription, añade la auth policy con el YAML.
+
+== Verificar
+
+[source,bash]
+----
+oc get maassubscription -n models-as-a-service
+oc get maasauthpolicy -n models-as-a-service
+oc get maasmodelref -n llm -o wide
+----
+
+`MaaSModelRef` en fase `Ready`.
+
+.Alternativa YAML
+[%collapsible]
+====
+[source,bash]
+----
+oc apply -f examples/maas-subscription.yaml
+oc get maasmodelref -n llm -o wide
+----
+====

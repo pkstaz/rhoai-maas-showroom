@@ -1,0 +1,11 @@
+---
+type: showroom
+tabs:
+  - name: Documentación RHOAI 3.5
+    url: https://docs.redhat.com/en/documentation/red_hat_openshift_ai_self-managed/3.5
+  - name: Qwen3-0.6B
+    url: https://huggingface.co/Qwen/Qwen3-0.6B
+  - name: Fake GPU Operator
+    url: https://github.com/run-ai/fake-gpu-operator
+  - name: GPU Booking Plugin
+    url: https://github.com/rhai-code/gpu-booking-app-plugin

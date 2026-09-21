@@ -1,0 +1,59 @@
+= Probar inferencia
+
+El modelo en MaaS se llama con API key, no con el token de OpenShift en `/v1/chat/completions`.
+
+== API key
+
+[source,bash]
+----
+CLUSTER_DOMAIN=$(oc get ingresses.config/cluster -o jsonpath='{.spec.domain}')
+MAAS_URL="maas.${CLUSTER_DOMAIN}"
+echo "https://${MAAS_URL}"
+
+API_KEY=$(curl -sk -X POST "https://${MAAS_URL}/maas-api/v1/api-keys" \
+  -H "Authorization: Bearer $(oc whoami -t)" \
+  -H "Content-Type: application/json" \
+  -d '{"name":"workshop","subscription":"qwen-authenticated","expiresIn":"8h"}' \
+  | jq -r '.key')
+
+echo "$API_KEY"
+----
+
+Si el POST falla, lista suscripciones en la UI y usa el *nombre exacto* de la subscription.
+
+== Listar modelos y chatear
+
+[source,bash]
+----
+curl -sk "https://${MAAS_URL}/v1/models" \
+  -H "Authorization: Bearer ${API_KEY}" | jq
+
+MODEL_ID=$(curl -sk "https://${MAAS_URL}/v1/models" \
+  -H "Authorization: Bearer ${API_KEY}" \
+  | jq -r '.data[0].id')
+
+curl -sk "https://${MAAS_URL}/v1/chat/completions" \
+  -H "Authorization: Bearer ${API_KEY}" \
+  -H "Content-Type: application/json" \
+  -d "{
+    \"model\": \"${MODEL_ID}\",
+    \"messages\": [{\"role\":\"user\",\"content\":\"Say hello in one sentence. /no_think\"}],
+    \"max_tokens\": 64
+  }" | jq
+----
+
+El `id` local suele ser `publishers/llm/models/qwen3-06b` (no el short name).
+
+== UI
+
+En el dashboard, *Models as a Service* → el modelo → *Playground* / *Try it*, si está disponible. Desactiva thinking / usa `/no_think` y `max_tokens` bajo: Qwen3 piensa por defecto y en CPU se eterniza.
+
+== Listo
+
+Tienes:
+
+* OpenShift AI {rhoai-version}
+* Fake GPU + GPU Booking
+* {qwen-model} en catalog
+* llm-d CPU detrás de MaaS
+* Suscripción para usuarios autenticados

@@ -1,0 +1,83 @@
+= Habilitar MaaS
+
+Orden obligatorio:
+
+. Postgres + secret `maas-db-config`
+. Gateway `maas-default-gateway`
+. `aigateway.modelsAsAService: Managed` en el DSC
+
+== 1. Base de datos
+
+[source,bash]
+----
+oc apply -f examples/maas-postgres.yaml
+oc get pods -n redhat-ai-gateway-infra
+----
+
+Espera el pod de Postgres `Running`. El YAML crea también el Secret `maas-db-config`.
+
+Si el namespace no existe:
+
+[source,bash]
+----
+oc create namespace redhat-ai-gateway-infra
+oc apply -f examples/maas-postgres.yaml
+----
+
+== 2. Gateway
+
+[source,bash]
+----
+bash examples/apply-maas-gateway.sh
+oc get gateway maas-default-gateway -n openshift-ingress
+----
+
+== 3. Encender MaaS en el DSC
+
+=== UI
+
+. *Installed Operators* → *Red Hat OpenShift AI* → *DataScienceCluster* → `default-dsc` → *YAML*
+. En `spec.components.aigateway`:
+
+[source,yaml]
+----
+aigateway:
+  managementState: Managed
+  modelsAsAService:
+    managementState: Managed
+----
+
+. *Save*
+
+=== YAML
+
+[source,bash]
+----
+oc patch dsc default-dsc --type merge -p '{
+  "spec": {
+    "components": {
+      "aigateway": {
+        "managementState": "Managed",
+        "modelsAsAService": { "managementState": "Managed" }
+      }
+    }
+  }
+}'
+----
+
+== Verificar
+
+En 3.5 los pods de MaaS suelen estar en `redhat-ai-gateway-infra` (si no, `redhat-ods-applications`):
+
+[source,bash]
+----
+oc get dsc default-dsc
+oc get pods -n redhat-ai-gateway-infra
+oc get pods -n redhat-ods-applications | grep -i maas
+oc get aitenant -A
+oc get maastenantconfig -A
+----
+
+`maas-api` / `maas-controller` en `Running`.
+
+Si el CRD del DSC no tiene `aigateway`, usa el campo equivalente en `kserve.modelsAsService` (3.4) *después* de Postgres + Gateway.

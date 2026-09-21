@@ -1,0 +1,49 @@
+= Introducción
+
+Este workshop instala *OpenShift AI {rhoai-version}* en un cluster vacío y deja un modelo *{qwen-model}* publicado en *Models as a Service* (MaaS), servido con *llm-d* en CPU.
+
+El fake GPU no ejecuta CUDA. Sirve para que el cluster anuncie `nvidia.com/gpu` (perfiles, GPU Booking). La inferencia de Qwen corre en CPU.
+
+== Tiempo
+
+* Modo rápido (seguir los clics): *~2 horas*
+* Modo explicativo (preguntas, waits, troubleshooting): *~4 horas*
+
+Los waits largos son el Operator de OpenShift AI y la carga del modelo.
+
+== Qué vas a dejar funcionando
+
+. Web Terminal en la consola
+. OpenShift AI {rhoai-version} + dashboard
+. MaaS (gateway, API keys, cuotas)
+. Fake GPU Operator
+. GPU Booking Console Plugin
+. {qwen-model} en el Model Catalog
+. Inferencia CPU con llm-d, publicada en MaaS
+. Suscripción para `system:authenticated`
+
+Clona este repo para los YAML de `examples/`:
+
+[source,bash]
+----
+git clone https://github.com/pkstaz/rhoai-maas-showroom.git
+cd rhoai-maas-showroom
+----
+
+== Qué necesitas
+
+* Cluster OpenShift *4.20+* (llm-d requiere 4.20)
+* Usuario `cluster-admin` (no uses `kubeadmin`)
+* Storage class por defecto
+* Helm 3 y `oc` (el Web Terminal cubre `oc`)
+* Salida a `registry.redhat.io`, `ghcr.io`, `huggingface.co`, `quay.io`
+
+== Regla del lab
+
+En cada módulo: *UI primero*. El YAML está al final, colapsado, por si la UI falla o quieres dejarlo como código.
+
+No instales NVIDIA GPU Operator ni OpenShift Serverless / Service Mesh 2. Este lab usa Gateway API + llm-d RawDeployment.
+
+== Orden
+
+Sigue el menú de la izquierda, de arriba hacia abajo. No saltes MaaS antes del DSC: el gateway y la base de datos tienen que existir *antes* de poner `modelsAsAService: Managed`.

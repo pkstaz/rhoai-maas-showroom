@@ -1,0 +1,28 @@
+= OpenShift AI 3.5 — Models as a Service
+
+Workshop Showroom: instala OpenShift AI 3.5.1, MaaS, fake GPU, GPU Booking y publica Qwen3-0.6B en CPU con llm-d.
+
+* Lab (GitHub Pages): https://pkstaz.github.io/rhoai-maas-showroom/modules/00-00-intro.html
+* ~2 h modo rápido / ~4 h explicativo
+
+== Desarrollo local
+
+[source,sh]
+----
+podman run --rm --name antora -v $PWD:/antora -p 8080:8080 -i -t ghcr.io/juliaaano/antora-viewer
+----
+
+O:
+
+[source,sh]
+----
+npm install --global @antora/cli@3.1 @antora/site-generator@3.1
+antora generate default-site.yml
+----
+
+El contenido está en `content/modules/ROOT/pages/`.
+Los manifiestos de apoyo en `content/modules/ROOT/examples/`.
+
+== Licencia
+
+Apache License 2.0 para los ejemplos. El workshop describe productos Red Hat; sigue las suscripciones de tu cluster.

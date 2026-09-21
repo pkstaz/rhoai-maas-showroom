@@ -1,0 +1,58 @@
+= Operadores previos
+
+Instala estas dependencias *antes* de OpenShift AI. Canal/namespace: los que recomienda OperatorHub.
+
+*No* instales OpenShift Serverless ni Service Mesh 2. En 3.x, MaaS y llm-d usan Gateway API. Service Mesh 2 rompe llm-d.
+
+== Orden (UI → OperatorHub)
+
+Instala uno, espera *Succeeded*, sigue al siguiente:
+
+. *cert-manager Operator for Red Hat OpenShift*
+. *Red Hat OpenShift Pipelines* (el DSC usará `aipipelines`)
+. *Red Hat Connectivity Link* (Kuadrant / Authorino)
+. *Red Hat Leader Worker Set Operator* (llm-d)
+. *Red Hat build of Kueue* (GPU Booking)
+
+== Connectivity Link
+
+Tras el CSV *Succeeded*:
+
+. *Ecosystem* → *Installed Operators* → *Red Hat Connectivity Link*
+. Crea una instancia *Kuadrant* en el namespace del operator (suele ser `kuadrant-system`) con valores por defecto.
+
+O:
+
+[source,bash]
+----
+oc apply -f examples/kuadrant.yaml
+----
+
+[source,bash]
+----
+oc get kuadrant -A
+oc get pods -n kuadrant-system
+----
+
+Pods de Authorino / Kuadrant en `Running`.
+
+== Verificar
+
+[source,bash]
+----
+oc get csv -A | grep -i -E 'cert-manager|pipelines|connectivity|leaderworker|kueue'
+----
+
+Todos `Succeeded`.
+
+.Alternativa YAML
+[%collapsible]
+====
+[source,bash]
+----
+oc apply -f examples/subscriptions.yaml
+oc apply -f examples/kuadrant.yaml
+----
+
+Si un `Subscription` falla por nombre de paquete o canal, instala ese Operator desde OperatorHub y sigue.
+====

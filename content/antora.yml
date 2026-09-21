@@ -1,0 +1,20 @@
+name: modules
+title: OpenShift AI 3.5 — Models as a Service
+version: master
+nav:
+  - modules/ROOT/nav.adoc
+
+asciidoc:
+  attributes:
+    lab_name: "OpenShift AI 3.5 — Models as a Service"
+    release-version: master
+    page-pagination: true
+    rhoai-version: "3.5.1"
+    qwen-model: "Qwen/Qwen3-0.6B"
+    page-links:
+      - url: https://docs.redhat.com/en/documentation/red_hat_openshift_ai_self-managed/3.5
+        text: Docs RHOAI 3.5
+      - url: https://huggingface.co/Qwen/Qwen3-0.6B
+        text: Qwen3-0.6B
+      - url: https://github.com/run-ai/fake-gpu-operator
+        text: Fake GPU

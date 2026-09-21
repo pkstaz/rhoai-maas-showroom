@@ -1,0 +1,40 @@
+= Instalar Web Terminal
+
+Abre una terminal dentro de la consola. El resto del lab se puede hacer desde ahí.
+
+== UI
+
+. Consola OpenShift → *Ecosystem* (o *Operators*) → *OperatorHub*
+. Busca `Web Terminal`
+. Instala *Web Terminal* (incluye DevWorkspace). Deja *All namespaces* y el namespace recomendado.
+. Espera *Succeeded*
+
+== Abrir la terminal
+
+. En la barra superior de la consola, icono de terminal
+. *Start Terminal* / *Open Terminal*
+. Comprueba:
+
+[source,bash]
+----
+oc whoami
+oc version
+helm version
+----
+
+Si `helm` no está en el Web Terminal, instálalo en esa sesión:
+
+[source,bash]
+----
+curl -fsSL https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+helm version
+----
+
+== Verificar
+
+[source,bash]
+----
+oc get csv -A | grep -i -E 'webterminal|devworkspace'
+----
+
+Debe aparecer al menos un CSV `Succeeded`.

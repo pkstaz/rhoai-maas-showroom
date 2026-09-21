@@ -1,0 +1,6 @@
+= Dashboard y MaaS
+
+Primero flags del dashboard. Después Postgres + Gateway + `modelsAsAService`.
+
+* xref:04-01-odh-dashboard.adoc[ODHDashboardConfig]
+* xref:04-02-maas.adoc[Habilitar MaaS]

@@ -1,0 +1,58 @@
+= ODHDashboardConfig
+
+Enciende Model Catalog, MaaS en la UI y Kueue. *No* actives `vLLMDeploymentOnMaaS`: este lab despliega con *llm-d*.
+
+== UI
+
+. Consola OpenShift → *Ecosystem* → *Installed Operators* → *Red Hat OpenShift AI*
+. Pestaña *OdhDashboardConfig*
+. Abre `odh-dashboard-config` (namespace `redhat-ods-applications`)
+. Pestaña *YAML*
+. En `spec.dashboardConfig` deja (o añade) esto:
+
+[source,yaml]
+----
+disableModelCatalog: false
+disableModelRegistry: false
+disableKueue: false
+modelAsService: true
+----
+
+. *Save*
+
+Hard refresh del dashboard de OpenShift AI (`Cmd+Shift+R` / `Ctrl+Shift+R`).
+
+== Verificar
+
+[source,bash]
+----
+oc get odhdashboardconfig odh-dashboard-config -n redhat-ods-applications \
+  -o jsonpath='{.spec.dashboardConfig}' | jq
+----
+
+En el dashboard deben verse *Catalog* / *Models as a Service* (el nombre exacto depende de la build).
+
+.Alternativa YAML
+[%collapsible]
+====
+[source,bash]
+----
+oc apply -f examples/odh-dashboard-config-patch.yaml
+----
+
+O el patch:
+
+[source,bash]
+----
+oc patch odhdashboardconfig odh-dashboard-config -n redhat-ods-applications --type merge -p '{
+  "spec": {
+    "dashboardConfig": {
+      "disableModelCatalog": false,
+      "disableModelRegistry": false,
+      "disableKueue": false,
+      "modelAsService": true
+    }
+  }
+}'
+----
+====

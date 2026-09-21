@@ -1,0 +1,58 @@
+= Fake GPU Operator
+
+Simula `nvidia.com/gpu` en workers CPU. Úsalo para perfiles y GPU Booking. *No* instales el NVIDIA GPU Operator.
+
+== Instalar
+
+Etiqueta workers (ajusta el selector si tus nodos GPU reales no deben simularse):
+
+[source,bash]
+----
+oc get nodes -l node-role.kubernetes.io/worker
+oc get nodes -l node-role.kubernetes.io/worker -o name | \
+  xargs -I{} oc label {} run.ai/simulated-gpu-node-pool=default --overwrite
+----
+
+[source,bash]
+----
+helm upgrade -i gpu-operator \
+  oci://ghcr.io/run-ai/fake-gpu-operator/fake-gpu-operator \
+  --namespace gpu-operator \
+  --create-namespace \
+  --version 0.2.0 \
+  --set environment.openshift=true \
+  --set topology.nodePools.default.gpuCount=2 \
+  --set topology.nodePools.default.gpuProduct=Tesla-T4 \
+  --set topology.nodePools.default.gpuMemory=16384
+
+oc label ns gpu-operator \
+  pod-security.kubernetes.io/enforce=privileged \
+  pod-security.kubernetes.io/audit=privileged \
+  pod-security.kubernetes.io/warn=privileged \
+  --overwrite
+----
+
+== Verificar
+
+[source,bash]
+----
+oc get pods -n gpu-operator
+oc get nodes -o json | jq -r '
+  .items[] | select(.status.allocatable["nvidia.com/gpu"] != null) |
+  "\(.metadata.name)\t\(.status.allocatable["nvidia.com/gpu"]) GPU"
+'
+----
+
+Cada worker etiquetado debe mostrar GPUs allocatable.
+
+== Hardware profile (UI)
+
+En el dashboard de OpenShift AI:
+
+. *Settings* → *Hardware profiles* → *Create*
+. Crea *dos* perfiles:
+
+* `cpu-workshop`: 4–8 CPU, 16 Gi memory, *sin* GPU
+* `fake-t4`: 1× `nvidia.com/gpu` (para Booking / demos de acelerador)
+
+El modelo Qwen usará *solo* `cpu-workshop`.
