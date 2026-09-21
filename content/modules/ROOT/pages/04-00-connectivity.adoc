@@ -12,6 +12,8 @@ oc apply -f examples/gatewayclass.yaml
 oc get gatewayclass openshift-default
 ----
 
+`GatewayClass` es un recurso de *cluster*: no tiene namespace. `oc get gatewayclass openshift-default` (sin `-n`) es correcto.
+
 `ACCEPTED` debe ser `True`. Eso basta.
 
 `oc get istio` suele fallar (`the server doesn't have a resource type "istio"`): el Ingress Operator gestiona el data plane y ese CRD no siempre existe. No lo instales a mano.
