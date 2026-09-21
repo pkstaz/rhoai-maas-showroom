@@ -19,18 +19,9 @@ Abre una terminal dentro de la consola. El resto del lab se puede hacer desde ah
 ----
 oc whoami
 oc version
-helm version
 ----
 
-Si `helm` no está en el Web Terminal, instálalo en esa sesión:
-
-[source,bash]
-----
-curl -fsSL https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
-helm version
-----
-
-`oc whoami` debe devolver `kubeadmin`.
+`oc whoami` debe devolver `kubeadmin`. El Web Terminal no tiene `sudo`: Helm se instala más abajo, ya como `admin`.
 
 == Usuario admin
 
@@ -66,6 +57,18 @@ oc whoami
 ----
 
 Debe devolver `admin`. El resto del lab se hace con este usuario.
+
+Si `helm version` falla, instálalo en tu `$HOME` (no hay `sudo` en el Web Terminal):
+
+[source,bash]
+----
+mkdir -p "$HOME/bin"
+export PATH="$HOME/bin:$PATH"
+curl -fsSL https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | \
+  USE_SUDO=false HELM_INSTALL_DIR="$HOME/bin" bash
+grep -q 'HOME/bin' "$HOME/.bashrc" 2>/dev/null || echo 'export PATH="$HOME/bin:$PATH"' >> "$HOME/.bashrc"
+helm version
+----
 
 == Verificar
 
