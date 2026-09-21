@@ -27,11 +27,11 @@ oc version
 
 `kubeadmin` vale para Operators. El dashboard de OpenShift AI *no* lo acepta.
 
-Desde esta terminal (cambia `PASS`):
+Desde esta terminal:
 
 [source,bash]
 ----
-PASS='CambiaEstaClave'
+PASS='rhoai'
 echo "admin:$(openssl passwd -apr1 "$PASS")" > /tmp/htpasswd
 
 oc create secret generic htpasswd-secret \
@@ -47,7 +47,7 @@ oc adm policy add-cluster-role-to-user cluster-admin admin
 Espera ~1 minuto (pods de `openshift-authentication`).
 
 . Cierra sesión (esquina superior derecha)
-. Entra como `admin` con la clave de `PASS`
+. Entra como `admin` / `rhoai`
 . Abre otra vez el Web Terminal
 . Comprueba:
 
