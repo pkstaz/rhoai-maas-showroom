@@ -22,6 +22,22 @@ modelAsService: true
 
 . *Save*
 
+O, más rápido, desde el Web Terminal:
+
+[source,bash]
+----
+oc patch odhdashboardconfig odh-dashboard-config -n redhat-ods-applications --type merge -p '{
+  "spec": {
+    "dashboardConfig": {
+      "disableModelCatalog": false,
+      "disableModelRegistry": false,
+      "disableKueue": false,
+      "modelAsService": true
+    }
+  }
+}'
+----
+
 Hard refresh del dashboard de OpenShift AI (`Cmd+Shift+R` / `Ctrl+Shift+R`).
 
 == Verificar
@@ -40,21 +56,5 @@ En el dashboard deben verse *Catalog* / *Models as a Service* (el nombre exacto 
 [source,bash]
 ----
 oc apply -f examples/odh-dashboard-config-patch.yaml
-----
-
-O el patch:
-
-[source,bash]
-----
-oc patch odhdashboardconfig odh-dashboard-config -n redhat-ods-applications --type merge -p '{
-  "spec": {
-    "dashboardConfig": {
-      "disableModelCatalog": false,
-      "disableModelRegistry": false,
-      "disableKueue": false,
-      "modelAsService": true
-    }
-  }
-}'
 ----
 ====
