@@ -2,18 +2,16 @@
   var BASH_LANGS = { bash: true, sh: true, shell: true, console: true }
 
   function isBashBlock (block) {
-    var el = block.querySelector('code') || block.querySelector('pre')
+    var el = block.querySelector('code')
     if (!el) return false
-    var lang = ((el.getAttribute('data-lang') || '') + ' ' + (el.className || '')).toLowerCase()
     if (BASH_LANGS[el.getAttribute('data-lang')]) return true
-    return /(^|\s)language-(bash|sh|shell|console)(\s|$)/.test(el.className || '') ||
-      /\b(bash|sh|shell|console)\b/.test(lang)
+    return /(^|\s)language-(bash|sh|shell|console)(\s|$)/.test(el.className || '')
   }
 
   function sourceText (block) {
-    var pre = block.querySelector('pre')
-    if (!pre) return ''
-    return (pre.innerText || pre.textContent || '').replace(/\n$/, '')
+    var code = block.querySelector('code')
+    if (!code) return ''
+    return (code.innerText || code.textContent || '').replace(/\n$/, '')
   }
 
   function setCopied (btn) {
@@ -52,14 +50,15 @@
   function addButtons () {
     document.querySelectorAll('.listingblock').forEach(function (block) {
       if (!isBashBlock(block)) return
-      if (block.querySelector('.copy-button')) return
+      if (block.querySelector('.lab-copy-btn')) return
 
-      var host = block.querySelector('pre') || block.querySelector('.content') || block
+      var host = block.querySelector('pre')
+      if (!host) return
       host.classList.add('has-copy-button')
 
       var btn = document.createElement('button')
       btn.type = 'button'
-      btn.className = 'copy-button'
+      btn.className = 'lab-copy-btn'
       btn.setAttribute('data-label', 'Copiar')
       btn.setAttribute('aria-label', 'Copiar comando')
       btn.textContent = 'Copiar'
