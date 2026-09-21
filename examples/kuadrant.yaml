@@ -2,5 +2,6 @@ apiVersion: kuadrant.io/v1beta1
 kind: Kuadrant
 metadata:
   name: kuadrant
+  # Si Connectivity Link quedó en openshift-operators, cambia este namespace.
   namespace: kuadrant-system
 spec: {}

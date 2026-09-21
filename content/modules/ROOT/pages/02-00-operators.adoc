@@ -19,7 +19,9 @@ Instala uno, espera *Succeeded*, sigue al siguiente:
 Tras el CSV *Succeeded*:
 
 . *Ecosystem* → *Installed Operators* → *Red Hat Connectivity Link*
-. Crea una instancia *Kuadrant* en el namespace del operator (suele ser `kuadrant-system`) con valores por defecto.
+. Crea una instancia *Kuadrant* en el namespace del operator (suele ser `kuadrant-system` u `openshift-operators`) con valores por defecto.
+
+Si usas el YAML, el `namespace` tiene que coincidir con el del Operator.
 
 O:
 
@@ -31,7 +33,7 @@ oc apply -f examples/kuadrant.yaml
 [source,bash]
 ----
 oc get kuadrant -A
-oc get pods -n kuadrant-system
+oc get pods -A | grep -i -E 'authorino|kuadrant'
 ----
 
 Pods de Authorino / Kuadrant en `Running`.
