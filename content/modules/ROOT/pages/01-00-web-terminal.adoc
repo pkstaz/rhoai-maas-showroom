@@ -58,6 +58,16 @@ oc whoami
 
 Debe devolver `admin`. El resto del lab se hace con este usuario.
 
+Clona el repo en esta terminal (el `$HOME` de `kubeadmin` no se comparte):
+
+[source,bash]
+----
+git clone https://github.com/pkstaz/rhoai-maas-showroom.git
+cd rhoai-maas-showroom
+----
+
+Los `oc apply -f examples/...` de los módulos siguientes se ejecutan desde ese directorio.
+
 Si `helm version` falla, instálalo en tu `$HOME` (no hay `sudo` en el Web Terminal):
 
 [source,bash]
