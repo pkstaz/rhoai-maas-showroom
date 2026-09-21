@@ -41,7 +41,7 @@ Espera a que `default-dsc` esté `Ready` (5–15 min). Debe existir el dashboard
 oc get route -n redhat-ods-applications
 ----
 
-Abre la ruta `rhods-dashboard` / `rhoai`.
+Abre la ruta `rhods-dashboard` / `rhoai` como `admin` (no `kubeadmin`).
 
 .Alternativa YAML
 [%collapsible]

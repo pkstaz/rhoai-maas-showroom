@@ -33,7 +33,8 @@ cd rhoai-maas-showroom
 == Qué necesitas
 
 * Cluster OpenShift *4.20+* (llm-d requiere 4.20)
-* Usuario `cluster-admin` (no uses `kubeadmin`)
+* Entras como `kubeadmin` (así arranca el cluster)
+* Después del Web Terminal, usuario `admin` con `cluster-admin`: OpenShift AI no acepta `kubeadmin` en el dashboard
 * Storage class por defecto
 * Helm 3 y `oc` (el Web Terminal cubre `oc`)
 * Salida a `registry.redhat.io`, `ghcr.io`, `huggingface.co`, `quay.io`

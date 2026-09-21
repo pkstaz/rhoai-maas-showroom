@@ -4,6 +4,7 @@ Ejecuta los `oc apply` desde la raíz del repo.
 
 | Archivo | Módulo |
 |---|---|
+| `oauth-htpasswd.yaml` | Patch OAuth htpasswd (opcional; el lab usa `oc patch`) |
 | `subscriptions.yaml` | Operadores previos |
 | `kuadrant.yaml` | Connectivity Link |
 | `rhoai-operator.yaml` | Operator RHOAI |

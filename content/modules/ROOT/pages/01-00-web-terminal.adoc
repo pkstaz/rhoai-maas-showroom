@@ -30,6 +30,43 @@ curl -fsSL https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 |
 helm version
 ----
 
+`oc whoami` debe devolver `kubeadmin`.
+
+== Usuario admin
+
+`kubeadmin` vale para Operators. El dashboard de OpenShift AI *no* lo acepta.
+
+Desde esta terminal (cambia `PASS`):
+
+[source,bash]
+----
+PASS='CambiaEstaClave'
+echo "admin:$(openssl passwd -apr1 "$PASS")" > /tmp/htpasswd
+
+oc create secret generic htpasswd-secret \
+  --from-file=htpasswd=/tmp/htpasswd \
+  -n openshift-config \
+  --dry-run=client -o yaml | oc apply -f -
+
+oc patch oauth cluster --type merge -p '{"spec":{"identityProviders":[{"name":"htpasswd","mappingMethod":"claim","type":"HTPasswd","htpasswd":{"fileData":{"name":"htpasswd-secret"}}}]}}'
+
+oc adm policy add-cluster-role-to-user cluster-admin admin
+----
+
+Espera ~1 minuto (pods de `openshift-authentication`).
+
+. Cierra sesión (esquina superior derecha)
+. Entra como `admin` con la clave de `PASS`
+. Abre otra vez el Web Terminal
+. Comprueba:
+
+[source,bash]
+----
+oc whoami
+----
+
+Debe devolver `admin`. El resto del lab se hace con este usuario.
+
 == Verificar
 
 [source,bash]
