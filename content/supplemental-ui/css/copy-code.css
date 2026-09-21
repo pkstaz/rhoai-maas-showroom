@@ -1,16 +1,13 @@
-.listingblock .content.has-copy-button {
-  position: relative;
+.doc .listingblock pre.has-copy-button,
+.listingblock pre.has-copy-button {
+  position: relative !important;
+  padding-top: 2.6rem;
 }
 
-.listingblock .content.has-copy-button pre {
-  padding-top: 2.4rem;
-  padding-right: 1rem;
-}
-
-.listingblock .copy-button {
+.listingblock pre .copy-button {
   position: absolute;
-  top: 0.4rem;
-  right: 0.4rem;
+  top: 0.45rem;
+  right: 0.45rem;
   z-index: 5;
   appearance: none;
   border: 0;
@@ -22,16 +19,17 @@
   font-weight: 700;
   letter-spacing: 0.02em;
   line-height: 1;
-  padding: 0.45rem 0.7rem;
+  padding: 0.45rem 0.75rem;
   cursor: pointer;
+  white-space: nowrap;
 }
 
-.listingblock .copy-button:hover,
-.listingblock .copy-button:focus {
+.listingblock pre .copy-button:hover,
+.listingblock pre .copy-button:focus {
   background: #a30000;
 }
 
-.listingblock .copy-button.is-copied {
+.listingblock pre .copy-button.is-copied {
   background: #3e8635;
 }
 

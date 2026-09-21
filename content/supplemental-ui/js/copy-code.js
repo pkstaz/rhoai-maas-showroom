@@ -54,7 +54,7 @@
       if (!isBashBlock(block)) return
       if (block.querySelector('.copy-button')) return
 
-      var host = block.querySelector('.content') || block
+      var host = block.querySelector('pre') || block.querySelector('.content') || block
       host.classList.add('has-copy-button')
 
       var btn = document.createElement('button')
