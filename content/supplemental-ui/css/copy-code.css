@@ -1,39 +1,42 @@
-.listingblock {
+.listingblock .content.has-copy-button {
   position: relative;
 }
 
-.listingblock .content pre {
-  padding-right: 5.5rem;
+.listingblock .content.has-copy-button pre {
+  padding-top: 2.4rem;
+  padding-right: 1rem;
 }
 
 .listingblock .copy-button {
   position: absolute;
-  top: 0.5rem;
-  right: 0.5rem;
-  z-index: 2;
+  top: 0.4rem;
+  right: 0.4rem;
+  z-index: 5;
   appearance: none;
-  border: 1px solid #8a8d90;
+  border: 0;
   border-radius: 4px;
-  background: #fff;
-  color: #151515;
+  background: #ee0000;
+  color: #fff;
   font-family: RedHatText, Overpass, overpass, helvetica, arial, sans-serif;
-  font-size: 0.75rem;
-  font-weight: 500;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
   line-height: 1;
-  padding: 0.35rem 0.55rem;
+  padding: 0.45rem 0.7rem;
   cursor: pointer;
-  opacity: 1;
-  transition: background-color 0.15s ease, border-color 0.15s ease;
 }
 
 .listingblock .copy-button:hover,
 .listingblock .copy-button:focus {
-  background: #f0f0f0;
-  border-color: #151515;
+  background: #a30000;
 }
 
 .listingblock .copy-button.is-copied {
-  border-color: #3e8635;
-  background: #f3faf2;
-  color: #1e4f18;
+  background: #3e8635;
+}
+
+.doc .listingblock pre.highlight::after,
+.doc .listingblock pre.highlightjs::after,
+.doc .listingblock code[data-lang]::after {
+  display: none !important;
 }

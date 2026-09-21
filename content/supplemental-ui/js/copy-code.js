@@ -2,12 +2,12 @@
   var BASH_LANGS = { bash: true, sh: true, shell: true, console: true }
 
   function isBashBlock (block) {
-    var code = block.querySelector('pre code, pre')
-    if (!code) return false
-    var lang = (code.getAttribute('data-lang') || '').toLowerCase()
-    if (BASH_LANGS[lang]) return true
-    var cls = code.className || ''
-    return /(^|\s)language-(bash|sh|shell|console)(\s|$)/.test(cls)
+    var el = block.querySelector('code[data-lang], code, pre')
+    if (!el) return false
+    var lang = ((el.getAttribute('data-lang') || '') + ' ' + (el.className || '')).toLowerCase()
+    if (BASH_LANGS[el.getAttribute('data-lang')]) return true
+    return /(^|\s)language-(bash|sh|shell|console)(\s|$)/.test(el.className || '') ||
+      /\b(bash|sh|shell|console)\b/.test(lang)
   }
 
   function sourceText (block) {
@@ -34,7 +34,7 @@
       var area = document.createElement('textarea')
       area.value = text
       area.setAttribute('readonly', '')
-      area.style.position = 'absolute'
+      area.style.position = 'fixed'
       area.style.left = '-9999px'
       document.body.appendChild(area)
       area.select()
@@ -49,10 +49,13 @@
     })
   }
 
-  document.addEventListener('DOMContentLoaded', function () {
+  function addButtons () {
     document.querySelectorAll('.listingblock').forEach(function (block) {
       if (!isBashBlock(block)) return
       if (block.querySelector('.copy-button')) return
+
+      var host = block.querySelector('.content') || block
+      host.classList.add('has-copy-button')
 
       var btn = document.createElement('button')
       btn.type = 'button'
@@ -60,9 +63,10 @@
       btn.setAttribute('data-label', 'Copiar')
       btn.setAttribute('aria-label', 'Copiar comando')
       btn.textContent = 'Copiar'
-      block.appendChild(btn)
+      host.appendChild(btn)
 
-      btn.addEventListener('click', function () {
+      btn.addEventListener('click', function (event) {
+        event.preventDefault()
         copyText(sourceText(block)).then(function () {
           setCopied(btn)
         }).catch(function () {
@@ -70,5 +74,11 @@
         })
       })
     })
-  })
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', addButtons)
+  } else {
+    addButtons()
+  }
 })()
