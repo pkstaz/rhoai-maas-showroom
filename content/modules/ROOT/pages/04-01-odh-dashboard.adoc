@@ -4,9 +4,11 @@ Enciende Model Catalog, MaaS en la UI y Kueue. *No* actives `vLLMDeploymentOnMaa
 
 == UI
 
-. Consola OpenShift → *Ecosystem* → *Installed Operators* → *Red Hat OpenShift AI*
-. Pestaña *OdhDashboardConfig*
-. Abre `odh-dashboard-config` (namespace `redhat-ods-applications`)
+La pestaña *OdhDashboardConfig* no aparece en el Operator de OpenShift AI. Ábrelo así:
+
+. Consola OpenShift → *Home* → *Search*
+. En *Resources*, busca `OdhDashboardConfig` (con `OdhDash` alcanza)
+. Abre `odh-dashboard-config` en el namespace `redhat-ods-applications`
 . Pestaña *YAML*
 . En `spec.dashboardConfig` deja (o añade) esto:
 
