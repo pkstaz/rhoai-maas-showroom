@@ -41,4 +41,4 @@ No instales NVIDIA GPU Operator ni OpenShift Serverless / Service Mesh *2*. Este
 
 == Orden
 
-Sigue el menú de la izquierda, de arriba hacia abajo. Instala OpenShift AI *antes* de Connectivity Link / Kuadrant. No enciendas `modelsAsAService` hasta tener gateway y base de datos.
+Sigue el menú de la izquierda, de arriba hacia abajo. El Operator de Connectivity Link se instala con los operadores previos; el `GatewayClass` y la instancia Kuadrant van *después* de OpenShift AI. No enciendas `modelsAsAService` hasta tener gateway y base de datos.

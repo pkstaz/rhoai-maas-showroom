@@ -1,10 +1,10 @@
 = Operadores previos
 
-Lo que OpenShift AI necesita *antes* del Operator. Canal/namespace: los que recomienda OperatorHub.
-
-*Connectivity Link / Kuadrant no van aquí.* Se configuran *después* de instalar OpenShift AI, en el módulo de MaaS.
+Instala estas dependencias *antes* de OpenShift AI. Canal/namespace: los que recomienda OperatorHub.
 
 *No* instales OpenShift Serverless ni Service Mesh *2* (rompe llm-d y choca con Mesh 3).
+
+El Operator de Connectivity Link va aquí. La instancia *Kuadrant* y el `GatewayClass` se crean *después* de OpenShift AI (módulo 4).
 
 == Orden (UI → OperatorHub)
 
@@ -12,14 +12,23 @@ Instala uno, espera *Succeeded*, sigue al siguiente:
 
 . *cert-manager Operator for Red Hat OpenShift*
 . *Red Hat OpenShift Pipelines* (el DSC usará `aipipelines`)
+. *Red Hat Connectivity Link* (Kuadrant / Authorino). Solo el Operator; *no* crees todavía la instancia Kuadrant.
 . *Red Hat Leader Worker Set Operator* (llm-d)
 . *Red Hat build of Kueue* (GPU Booking)
+
+== Connectivity Link
+
+. *Ecosystem* → *OperatorHub* → busca `Red Hat Connectivity Link`
+. Instala (All namespaces / namespace recomendado)
+. Espera *Succeeded*
+
+No crees la instancia *Kuadrant* ni el `GatewayClass` en este paso.
 
 == Verificar
 
 [source,bash]
 ----
-oc get csv -A | grep -i -E 'cert-manager|pipelines|leaderworker|kueue'
+oc get csv -A | grep -i -E 'cert-manager|pipelines|connectivity|leaderworker|kueue'
 ----
 
 Todos `Succeeded`.

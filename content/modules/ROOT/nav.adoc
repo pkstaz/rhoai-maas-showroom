@@ -5,7 +5,7 @@
 ** xref:03-01-operator.adoc[Operator]
 ** xref:03-02-dsc.adoc[DataScienceCluster]
 * xref:04-00-dashboard.adoc[4. Dashboard y MaaS]
-** xref:04-00-connectivity.adoc[Connectivity Link]
+** xref:04-00-connectivity.adoc[GatewayClass y Kuadrant]
 ** xref:04-01-odh-dashboard.adoc[ODHDashboardConfig]
 ** xref:04-02-maas.adoc[Habilitar MaaS]
 * xref:05-00-fake-gpu.adoc[5. Fake GPU Operator]

@@ -1,7 +1,7 @@
 = Dashboard y MaaS
 
-Después de OpenShift AI: Connectivity Link, flags del dashboard, luego Postgres + Gateway + `modelsAsAService`.
+Después de OpenShift AI: GatewayClass + instancia Kuadrant, flags del dashboard, luego Postgres + Gateway + `modelsAsAService`.
 
-* xref:04-00-connectivity.adoc[Connectivity Link]
+* xref:04-00-connectivity.adoc[GatewayClass y Kuadrant]
 * xref:04-01-odh-dashboard.adoc[ODHDashboardConfig]
 * xref:04-02-maas.adoc[Habilitar MaaS]

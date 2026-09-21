@@ -1,6 +1,6 @@
-= Connectivity Link y Gateway API
+= GatewayClass y Kuadrant
 
-Kuadrant / Authorino son para MaaS (API keys, políticas). Van *después* de OpenShift AI, *antes* de encender `modelsAsAService`.
+El Operator de Connectivity Link ya está instalado (módulo 2). Aquí solo se configura: `GatewayClass` e instancia `kuadrant`.
 
 *No* instales Service Mesh *2* ni el Operator de Mesh 3 a mano. El Ingress Operator instala Mesh 3 al crear el `GatewayClass`.
 
@@ -15,24 +15,9 @@ oc get istio -A
 
 Espera a que `openshift-default` esté `Accepted` y que el `Istio` esté `Healthy` / `Ready` (1–3 min).
 
-== 2. Operator
+== 2. Instancia Kuadrant
 
-. *Ecosystem* → *OperatorHub* → *Red Hat Connectivity Link*
-. Instala (All namespaces / namespace recomendado). Espera *Succeeded*.
-
-.Alternativa YAML
-[%collapsible]
-====
-[source,bash]
-----
-oc apply -f examples/rhcl-operator.yaml
-oc get csv -A | grep -i connectivity
-----
-====
-
-== 3. Instancia Kuadrant
-
-. *Installed Operators* → *Red Hat Connectivity Link*
+. *Ecosystem* → *Installed Operators* → *Red Hat Connectivity Link*
 . Crea una instancia *Kuadrant* en el namespace del operator (`kuadrant-system` u `openshift-operators`) con valores por defecto. Nombre: `kuadrant` (la UI propone `kuadrant-sample`; cámbialo).
 
 Si usas el YAML, el `namespace` tiene que coincidir con el del Operator:
