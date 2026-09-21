@@ -8,7 +8,6 @@ Cambios respecto al default de la UI:
 * `Unmanaged`: `kueue` (el Operator de Kueue ya está instalado)
 * `Removed`: el resto (`ogx`, `sparkoperator`, `feastoperator`, `trustyai`, `ray`, `mlflowoperator`, `trainer`, `nim`, `llamastackoperator`, `trainingoperator`, …)
 * `aigateway.modelsAsAService` se queda en `Removed` hasta Connectivity Link + gateway + Postgres
-* Un solo bloque `trustyai` (el default a veces lo duplica)
 
 == YAML final
 
