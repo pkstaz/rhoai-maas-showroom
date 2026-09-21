@@ -2,7 +2,7 @@
 
 Instala estas dependencias *antes* de OpenShift AI. Canal/namespace: los que recomienda OperatorHub.
 
-*No* instales OpenShift Serverless ni Service Mesh 2. En 3.x, MaaS y llm-d usan Gateway API. Service Mesh 2 rompe llm-d.
+*No* instales OpenShift Serverless ni Service Mesh *2*. En 3.x, MaaS y llm-d usan Gateway API. Service Mesh 2 rompe llm-d y choca con el Mesh 3 que instala el Ingress Operator.
 
 == Orden (UI → OperatorHub)
 
@@ -10,13 +10,27 @@ Instala uno, espera *Succeeded*, sigue al siguiente:
 
 . *cert-manager Operator for Red Hat OpenShift*
 . *Red Hat OpenShift Pipelines* (el DSC usará `aipipelines`)
+. *GatewayClass* `openshift-default` (abajo). Esto arranca Service Mesh 3; Kuadrant lo necesita.
 . *Red Hat Connectivity Link* (Kuadrant / Authorino)
 . *Red Hat Leader Worker Set Operator* (llm-d)
 . *Red Hat build of Kueue* (GPU Booking)
 
+== Gateway API
+
+Antes de crear la instancia Kuadrant. El Ingress Operator instala OSSM 3 en `openshift-ingress`. *No* instales Service Mesh 2 ni el Operator de Mesh 3 a mano.
+
+[source,bash]
+----
+oc apply -f examples/gatewayclass.yaml
+oc get gatewayclass openshift-default
+oc get istio -A
+----
+
+Espera a que `openshift-default` esté `Accepted` y que aparezca un `Istio` `Healthy` / `Ready` (1–3 min).
+
 == Connectivity Link
 
-Tras el CSV *Succeeded*:
+Tras el CSV *Succeeded* y el `GatewayClass` listo:
 
 . *Ecosystem* → *Installed Operators* → *Red Hat Connectivity Link*
 . Crea una instancia *Kuadrant* en el namespace del operator (suele ser `kuadrant-system` u `openshift-operators`) con valores por defecto. Nombre: `kuadrant` (la UI propone `kuadrant-sample`; cámbialo).
@@ -36,7 +50,20 @@ oc get kuadrant -A
 oc get pods -A | grep -i -E 'authorino|kuadrant'
 ----
 
-Pods de Authorino / Kuadrant en `Running`.
+Pods de Authorino / Kuadrant en `Running`. El CR `kuadrant` no debe quedar en `MissingDependency`.
+
+Si ya lo creaste y ves `[Gateway API provider (istio / envoy gateway)] is not installed`: aplica el `GatewayClass`, espera el Istio, y reinicia el operator:
+
+[source,bash]
+----
+oc apply -f examples/gatewayclass.yaml
+oc get istio -A
+oc get deploy -A | grep -i kuadrant
+oc rollout restart deployment -n openshift-operators \
+  $(oc get deploy -n openshift-operators -o name | grep -i kuadrant)
+----
+
+Si el operator está en `kuadrant-system`, usa ese namespace en el `rollout restart`.
 
 == Verificar
 
@@ -53,6 +80,7 @@ Todos `Succeeded`.
 [source,bash]
 ----
 oc apply -f examples/subscriptions.yaml
+oc apply -f examples/gatewayclass.yaml
 oc apply -f examples/kuadrant.yaml
 ----
 

@@ -43,7 +43,7 @@ cd rhoai-maas-showroom
 
 En cada módulo: *UI primero*. El YAML está al final, colapsado, por si la UI falla o quieres dejarlo como código.
 
-No instales NVIDIA GPU Operator ni OpenShift Serverless / Service Mesh 2. Este lab usa Gateway API + llm-d RawDeployment.
+No instales NVIDIA GPU Operator ni OpenShift Serverless / Service Mesh *2*. Este lab usa Gateway API; el Ingress Operator instala solo Service Mesh *3* al crear el `GatewayClass`.
 
 == Orden
 
