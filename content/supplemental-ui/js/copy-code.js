@@ -2,7 +2,7 @@
   var BASH_LANGS = { bash: true, sh: true, shell: true, console: true }
 
   function isBashBlock (block) {
-    var el = block.querySelector('code[data-lang], code, pre')
+    var el = block.querySelector('code') || block.querySelector('pre')
     if (!el) return false
     var lang = ((el.getAttribute('data-lang') || '') + ' ' + (el.className || '')).toLowerCase()
     if (BASH_LANGS[el.getAttribute('data-lang')]) return true
