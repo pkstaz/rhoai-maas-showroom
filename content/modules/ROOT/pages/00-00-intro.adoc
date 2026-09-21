@@ -47,4 +47,4 @@ No instales NVIDIA GPU Operator ni OpenShift Serverless / Service Mesh *2*. Este
 
 == Orden
 
-Sigue el menú de la izquierda, de arriba hacia abajo. No saltes MaaS antes del DSC: el gateway y la base de datos tienen que existir *antes* de poner `modelsAsAService: Managed`.
+Sigue el menú de la izquierda, de arriba hacia abajo. Instala OpenShift AI *antes* de Connectivity Link / Kuadrant. No enciendas `modelsAsAService` hasta tener gateway y base de datos.

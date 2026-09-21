@@ -5,9 +5,10 @@ Ejecuta los `oc apply` desde la raíz del repo.
 | Archivo | Módulo |
 |---|---|
 | `oauth-htpasswd.yaml` | Patch OAuth htpasswd (opcional; el lab usa `oc patch`) |
-| `subscriptions.yaml` | Operadores previos |
+| `subscriptions.yaml` | Operadores previos (sin RHCL) |
+| `rhcl-operator.yaml` | Connectivity Link (después de RHOAI) |
 | `gatewayclass.yaml` | Gateway API (antes de Kuadrant) |
-| `kuadrant.yaml` | Connectivity Link |
+| `kuadrant.yaml` | Instancia Kuadrant |
 | `rhoai-operator.yaml` | Operator RHOAI |
 | `default-dsc.yaml` | DataScienceCluster |
 | `odh-dashboard-config-patch.yaml` | Flags del dashboard (mejor usar `oc patch`) |

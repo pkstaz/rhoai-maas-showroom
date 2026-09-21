@@ -1,0 +1,65 @@
+= Connectivity Link y Gateway API
+
+Kuadrant / Authorino son para MaaS (API keys, políticas). Van *después* de OpenShift AI, *antes* de encender `modelsAsAService`.
+
+*No* instales Service Mesh *2* ni el Operator de Mesh 3 a mano. El Ingress Operator instala Mesh 3 al crear el `GatewayClass`.
+
+== 1. GatewayClass
+
+[source,bash]
+----
+oc apply -f examples/gatewayclass.yaml
+oc get gatewayclass openshift-default
+oc get istio -A
+----
+
+Espera a que `openshift-default` esté `Accepted` y que el `Istio` esté `Healthy` / `Ready` (1–3 min).
+
+== 2. Operator
+
+. *Ecosystem* → *OperatorHub* → *Red Hat Connectivity Link*
+. Instala (All namespaces / namespace recomendado). Espera *Succeeded*.
+
+.Alternativa YAML
+[%collapsible]
+====
+[source,bash]
+----
+oc apply -f examples/rhcl-operator.yaml
+oc get csv -A | grep -i connectivity
+----
+====
+
+== 3. Instancia Kuadrant
+
+. *Installed Operators* → *Red Hat Connectivity Link*
+. Crea una instancia *Kuadrant* en el namespace del operator (`kuadrant-system` u `openshift-operators`) con valores por defecto. Nombre: `kuadrant` (la UI propone `kuadrant-sample`; cámbialo).
+
+Si usas el YAML, el `namespace` tiene que coincidir con el del Operator:
+
+[source,bash]
+----
+oc apply -f examples/kuadrant.yaml
+----
+
+== Verificar
+
+[source,bash]
+----
+oc get kuadrant -A
+oc get pods -A | grep -i -E 'authorino|kuadrant'
+----
+
+Pods de Authorino / Kuadrant en `Running`. El CR no debe quedar en `MissingDependency`.
+
+Si ves `[Gateway API provider (istio / envoy gateway)] is not installed`: espera el Istio y reinicia el operator:
+
+[source,bash]
+----
+oc get istio -A
+oc get deploy -A | grep -i kuadrant
+oc rollout restart deployment -n openshift-operators \
+  $(oc get deploy -n openshift-operators -o name | grep -i kuadrant)
+----
+
+Si el operator está en `kuadrant-system`, usa ese namespace en el `rollout restart`.

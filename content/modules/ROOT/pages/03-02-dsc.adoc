@@ -2,7 +2,7 @@
 
 Activa solo lo que usa este lab. `kueue` queda `Unmanaged` porque ya instalaste el Operator de Kueue.
 
-*No* pongas todavía `aigateway.modelsAsAService: Managed`. Eso va *después* del gateway y Postgres (módulo MaaS).
+*No* pongas todavía `aigateway.modelsAsAService: Managed`. Eso va *después* de Connectivity Link, el gateway y Postgres.
 
 == UI
 

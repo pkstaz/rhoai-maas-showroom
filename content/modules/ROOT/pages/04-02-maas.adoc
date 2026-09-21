@@ -26,7 +26,7 @@ oc apply -f examples/maas-postgres.yaml
 
 == 2. Gateway
 
-El `GatewayClass` `openshift-default` ya debería existir (módulo de operadores). El script es idempotente.
+El `GatewayClass` `openshift-default` ya debería existir (Connectivity Link). El script es idempotente.
 
 [source,bash]
 ----
