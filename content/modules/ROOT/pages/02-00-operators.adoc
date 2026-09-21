@@ -19,7 +19,7 @@ Instala uno, espera *Succeeded*, sigue al siguiente:
 Tras el CSV *Succeeded*:
 
 . *Ecosystem* → *Installed Operators* → *Red Hat Connectivity Link*
-. Crea una instancia *Kuadrant* en el namespace del operator (suele ser `kuadrant-system` u `openshift-operators`) con valores por defecto.
+. Crea una instancia *Kuadrant* en el namespace del operator (suele ser `kuadrant-system` u `openshift-operators`) con valores por defecto. Nombre: `kuadrant` (la UI propone `kuadrant-sample`; cámbialo).
 
 Si usas el YAML, el `namespace` tiene que coincidir con el del Operator.
 
