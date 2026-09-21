@@ -14,9 +14,16 @@ ui:
     url: https://github.com/rhpds/rhdp_showroom_theme/releases/download/v0.0.1/ui-bundle.zip
     snapshot: true
   supplemental_files:
-  - path: ./content/supplemental-ui
-  - path: ./content/lib
+  - path: partials/footer-scripts.hbs
+    contents: ./content/supplemental-ui/partials/footer-scripts.hbs
+  - path: partials/head-styles.hbs
+    contents: ./content/supplemental-ui/partials/head-styles.hbs
+  - path: js/copy-code.js
+    contents: ./content/supplemental-ui/js/copy-code.js
+  - path: css/copy-code.css
+    contents: ./content/supplemental-ui/css/copy-code.css
   - path: .nojekyll
+    contents: ""
   - path: ui.yml
     contents: "static_files: [ .nojekyll ]"
 
