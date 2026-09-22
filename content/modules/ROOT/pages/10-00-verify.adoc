@@ -55,3 +55,7 @@ Tienes:
 * {qwen-model} en catalog
 * llm-d CPU detrás de MaaS
 * Suscripción para usuarios autenticados
+
+== Siguiente
+
+xref:11-00-observabilidad.adoc[Observabilidad MaaS]: gateway, serving, rate limits y FinOps básico.

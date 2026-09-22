@@ -1,0 +1,204 @@
+= Lab → Prd, RACI y GAPs
+
+Este workshop no reemplaza una capacitación completa de MLOps/LLMOps. Sirve para salir con un *primer mapa*: qué resuelve la plataforma, qué hay que integrar y qué responsabilidades repartir entre equipos.
+
+== Ciclo de vida objetivo
+
+Flujo típico desde experimentación hasta operación:
+
+[cols="1,2,1"]
+|===
+| Fase | Actividad | Owner habitual
+
+| 1. Descubrir
+| Buscar modelos en catalog/registry, leer fichas y licencias
+| Data / Arquitectura
+
+| 2. Evaluar
+| Pruebas funcionales, seguridad, LLMOps y rendimiento de negocio
+| Data + Seguridad
+
+| 3. Preparar
+| Quantización, destilación, empaquetado, firma, lineage
+| Data + Seguridad + Arquitectura
+
+| 4. Desplegar
+| Serving (llm-d, vLLM, NIM…), hardware profiles, namespaces
+| Infra + Data
+
+| 5. Publicar
+| MaaS, API keys, subscriptions, auth policies, rate limits
+| Infra + Seguridad
+
+| 6. Operar
+| Observabilidad, guardrails, FinOps, incidentes, capacity
+| Infra + FinOps + Seguridad
+|===
+
+En *Lab* usamos un cluster efímero y un modelo pequeño en CPU. En *Prd* el mismo camino exige entornos separados, GitOps, controles más estrictos y GPU real cuando el caso lo pide.
+
+== Qué cubre este lab (vertical slice)
+
+[cols="2,3"]
+|===
+| Capa | En el workshop
+
+| Plataforma
+| OpenShift AI {rhoai-version}, monitoring, Kueue, operadores previos
+
+| Catálogo
+| Model Catalog + {qwen-model}
+
+| Serving
+| `LLMInferenceService` con llm-d en CPU
+
+| AI Gateway / MaaS
+| GatewayClass, Kuadrant, Postgres, gateway, subscriptions, auth policies
+
+| Gobierno de capacidad (demo)
+| Fake GPU H200 + MIG + GPU Booking
+
+| Observabilidad (intro)
+| xref:11-00-observabilidad.adoc[Módulo 11]
+
+| Evaluación automatizada
+| *No* — ver GAPs
+
+| Registry + firma
+| *No* — ver GAPs
+
+| Guardrails de contenido
+| *No* — ver GAPs
+|===
+
+== Lab vs Prd
+
+[cols="2,2,2"]
+|===
+| Tema | Lab (hoy) | Prd (objetivo)
+
+| Cluster
+| OpenTLC / sandbox efímero
+| Clusters dedicados dev / staging / prod
+
+| Modelo
+| HF directo, Qwen 0.6B CPU
+| Modelos validados, versionados, firmados
+
+| Credenciales
+| `maas-workshop`, API keys de lab
+| Secrets gestionados, rotación, vault
+
+| GPU
+| Fake GPU + booking simulado
+| GPU real, MIG, quotas Kueue productivas
+
+| Despliegue
+| UI + YAML manual
+| GitOps, pipelines, promotion controlada
+
+| Observabilidad
+| Monitoring base + vista manual
+| SLOs, alertas, dashboards FinOps
+
+| Seguridad
+| Auth policy + rate limits MaaS
+| Guardrails, logging, auditoría, red team
+|===
+
+== RACI (borrador para vuestros proyectos)
+
+.R = Responsible, A = Accountable, C = Consulted, I = Informed
+[cols="2,1,1,1,1,1"]
+|===
+| Actividad | Data | Infra | Seguridad | Arquitectura | FinOps
+
+| Elegir modelos candidatos
+| R/A | I | C | C | I
+
+| Evaluar calidad y riesgo
+| R | I | A | C | I
+
+| Quantizar / destilar / firmar
+| R | C | A | C | I
+
+| Instalar RHOAI y operadores
+| I | R/A | C | C | I
+
+| Configurar gateway y MaaS
+| C | R/A | C | C | I
+
+| Subscriptions y cuotas
+| C | R | A | C | R
+
+| Observabilidad y alertas
+| C | R/A | C | I | C
+
+| Showback / chargeback
+| C | C | I | I | R/A
+
+| Roadmap Lab → Prd
+| C | C | C | R/A | C
+|===
+
+Ajustad las celdas a vuestra organización. El objetivo del workshop es *discutir* esta matriz, no cerrarla.
+
+== GAPs típicos (salida del lab)
+
+[cols="2,2,2,1"]
+|===
+| Área | Lab hoy | Prd objetivo | Prioridad Gantt
+
+| Evaluación
+| Prueba manual en Playground
+| Suite automatizada + gates de promotion
+| Alta
+
+| Model Registry / firma
+| Deploy desde catalog/HF
+| Registry, cosign, promotion firmada
+| Alta
+
+| Guardrails de contenido
+| Auth + rate limit perimetral
+| Filtros de prompt/respuesta, políticas
+| Media–Alta
+
+| FinOps
+| Rate limits por subscription
+| Dashboards de tokens, coste por equipo
+| Media
+
+| Observabilidad LLM
+| Pods + métricas base
+| Trazas, latencia p95, tokens in/out
+| Media
+
+| GPU productiva
+| Fake H200 + booking
+| GPU real + MIG + Kueue prod
+| Según caso de uso
+
+| GitOps / entornos
+| Un cluster, apply manual
+| dev → staging → prod automatizado
+| Alta
+|===
+
+== Actividades para el Gantt (primeros 90 días)
+
+. Inventario de casos de uso y criterios mínimos de evaluación por caso
+. RACI acordado entre Data, Infra, Seguridad y Arquitectura
+. PoC observabilidad MaaS (xref:11-00-observabilidad.adoc[módulo 11] como punto de partida)
+. PoC gobierno de acceso: subscriptions, auth policies, cuotas (módulos 9–10)
+. Decisión registry + firma de modelos (¿Model Registry RHOAI? ¿pipeline Cosign?)
+. Mapa GPU: fake → real, booking → quotas productivas
+. Segunda capacitación: eval automatizada, AIPipelines, guardrails avanzados
+
+== Qué sigue en el lab hands-on
+
+. xref:01-00-web-terminal.adoc[Web Terminal] — entrar como `admin` y clonar el repo
+. Módulos 2–10 — instalar la plataforma y dejar Qwen publicado en MaaS
+. xref:11-00-observabilidad.adoc[Observabilidad MaaS] — después de probar inferencia
+
+Tiempo orientativo de este módulo: *20–30 min* de lectura y discusión en sala.

@@ -1,4 +1,5 @@
-* xref:00-00-intro.adoc[Introducción]
+* xref:00-00-intro.adoc[0. Introducción]
+** xref:00-01-lab-a-prd.adoc[Lab → Prd, RACI y GAPs]
 * xref:01-00-web-terminal.adoc[1. Web Terminal]
 * xref:02-00-operators.adoc[2. Operadores previos]
 * xref:03-00-rhoai.adoc[3. Instalar OpenShift AI 3.5.1]
@@ -15,3 +16,4 @@
 * xref:08-00-deploy.adoc[8. Desplegar Qwen3-0.6B]
 * xref:09-00-subscription.adoc[9. Suscripción MaaS]
 * xref:10-00-verify.adoc[10. Probar inferencia]
+* xref:11-00-observabilidad.adoc[11. Observabilidad MaaS]

@@ -1,0 +1,160 @@
+= Observabilidad MaaS
+
+Después de xref:10-00-verify.adoc[probar inferencia], revisa salud del gateway, MaaS y el serving. Todo en CPU; las mismas vistas aplican cuando el modelo corre en GPU.
+
+Requisito: user-workload monitoring activo (xref:03-00-monitoring.adoc[módulo 3]) y Kuadrant con `observability.enable: true` (xref:04-00-connectivity.adoc[módulo 4]).
+
+== Qué mirar
+
+[cols="2,3"]
+|===
+| Capa | Señales útiles
+
+| Gateway (`maas-default-gateway`)
+| Listeners `Programmed`, pods istio-proxy, errores TLS/routing
+
+| MaaS (`redhat-ai-gateway-infra`)
+| `maas-api`, `maas-controller`, Postgres `Running`
+
+| Gobierno (Kuadrant)
+| Authorino, Limitador; rechazos por auth o rate limit
+
+| Serving (`llm`)
+| Pod del `LLMInferenceService`, restarts, CPU/mem, tiempo de respuesta
+
+| Consumo
+| Tokens por subscription; HTTP 429 cuando se agota la cuota
+|===
+
+== UI — Observe
+
+. Consola OpenShift → perspectiva *Administrator*
+. *Observe* → *Metrics*
+. Namespace: `openshift-user-workload-monitoring` (stack de user workloads) o el namespace del workload (`llm`, `openshift-ingress`, `redhat-ai-gateway-infra`)
+
+Consultas útiles en la UI (adapta el nombre del pod):
+
+* Uso de CPU/memoria del pod de inferencia en `llm`
+* Pods del gateway en `openshift-ingress` asociados a `maas-default-gateway`
+
+== Salud por CLI
+
+[source,bash]
+----
+# Gateway y mesh ligero
+oc get gateway maas-default-gateway -n openshift-ingress -o wide
+oc get pods -n openshift-ingress -l gateway.networking.k8s.io/gateway-name=maas-default-gateway
+
+# MaaS
+oc get pods -n redhat-ai-gateway-infra
+oc get deploy maas-api -n redhat-ai-gateway-infra
+
+# Serving
+oc get llminferenceservice,pods -n llm
+oc get maasmodelref -n llm -o wide
+
+# Kuadrant
+oc get kuadrant -n kuadrant-system
+oc get pods -n kuadrant-system
+----
+
+Todos `Running` / `Ready` antes de profundizar en métricas.
+
+== Logs rápidos
+
+[source,bash]
+----
+oc logs -n llm -l serving.kserve.io/inferenceservice=qwen3-06b --tail=30
+oc logs -n redhat-ai-gateway-infra deploy/maas-api --tail=30
+oc logs -n kuadrant-system deploy/limitador --tail=30 2>/dev/null || \
+  oc logs -n kuadrant-system -l app=limitador --tail=30
+----
+
+== Métricas Prometheus (user workload)
+
+Desde el Web Terminal, port-forward al querier de user workloads:
+
+[source,bash]
+----
+oc get route -n openshift-user-workload-monitoring thanos-querier -o jsonpath='{.spec.host}{"\n"}' 2>/dev/null || \
+  oc get svc -n openshift-user-workload-monitoring | grep querier
+----
+
+En *Observe → Metrics*, prueba consultas como:
+
+[source,promql]
+----
+# Pods del serving en llm
+kube_pod_status_phase{namespace="llm"}
+
+# CPU del namespace llm (rate por pod)
+sum by (pod) (rate(container_cpu_usage_seconds_total{namespace="llm", container!=""}[5m]))
+
+# Memoria working set
+sum by (pod) (container_memory_working_set_bytes{namespace="llm", container!=""})
+----
+
+Kuadrant/Limitador puede exponer métricas de límites en `kuadrant-system`. Tras varias llamadas al endpoint MaaS, busca series con `limitador` o `ratelimit` en *Observe → Metrics*.
+
+== FinOps básico (lab)
+
+Lo que ya tenéis sin GPU:
+
+* *Subscriptions* con `tokenRateLimits` (xref:09-00-subscription.adoc[módulo 9]): cuota por ventana (`30s`, `5m`)
+* *Auth policies*: quién puede consumir
+* *API keys* ligadas a subscription
+
+Para ver el control de cuota en acción, repite llamadas hasta recibir HTTP `429`:
+
+[source,bash]
+----
+CLUSTER_DOMAIN=$(oc get ingresses.config/cluster -o jsonpath='{.spec.domain}')
+MAAS_URL="maas.${CLUSTER_DOMAIN}"
+
+# Reutiliza API_KEY del módulo 10
+for i in $(seq 1 20); do
+  CODE=$(curl -sk -o /dev/null -w '%{http_code}' \
+    "https://${MAAS_URL}/v1/chat/completions" \
+    -H "Authorization: Bearer ${API_KEY}" \
+    -H "Content-Type: application/json" \
+    -d '{"model":"'"${MODEL_ID}"'","messages":[{"role":"user","content":"/no_think ping"}],"max_tokens":200}')
+  echo "request $i -> HTTP $CODE"
+  [ "$CODE" = "429" ] && break
+done
+----
+
+`429` confirma que Limitador/Kuadrant aplica la subscription. En Prd conectaríais eso a dashboards de consumo por equipo.
+
+== GAPs de observabilidad (discusión)
+
+[cols="2,2"]
+|===
+| Hoy en el lab | Prd objetivo
+
+| Métricas de infra (CPU, mem, pods)
+| SLOs de latencia p95/p99 por modelo
+
+| Rate limit reactivo (429)
+| Alertas antes de agotar cuota
+
+| Logs manuales con `oc logs`
+| Correlación traza gateway → serving
+
+| Sin coste por token en dashboard
+| Showback/chargeback FinOps
+|===
+
+== Checklist de cierre
+
+[source,bash]
+----
+oc get gateway maas-default-gateway -n openshift-ingress \
+  -o jsonpath='{.status.conditions[?(@.type=="Programmed")].status}{"\n"}'
+oc get maasmodelref -n llm -o jsonpath='{.items[0].status.phase}{"\n"}'
+oc get pods -n llm --field-selector=status.phase=Running --no-headers | wc -l
+oc get pods -n openshift-user-workload-monitoring --no-headers | head -3
+----
+
+Gateway `True`, model ref `Ready`, pod de inferencia `Running`, stack de user monitoring activo.
+
+Tiempo orientativo: *20–30 min*.
