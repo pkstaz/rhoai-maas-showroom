@@ -16,12 +16,6 @@ Instala uno, espera *Succeeded*, sigue al siguiente:
 . *Red Hat Leader Worker Set Operator* (llm-d). Namespace `openshift-lws-operator`, canal `stable-v1.0`.
 . *Red Hat build of Kueue* (GPU Booking)
 
-== Connectivity Link
-
-. *Ecosystem* → *OperatorHub* → busca `Red Hat Connectivity Link`
-. Instala (All namespaces; namespace del Operator: `openshift-operators`)
-. Espera *Succeeded*
-
 == Verificar
 
 [source,bash]

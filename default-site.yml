@@ -22,6 +22,8 @@ ui:
     contents: ./content/supplemental-ui/js/copy-code.js
   - path: css/copy-code.css
     contents: ./content/supplemental-ui/css/copy-code.css
+  - path: css/dark-theme.css
+    contents: ./content/supplemental-ui/css/dark-theme.css
   - path: .nojekyll
     contents: ""
   - path: ui.yml
