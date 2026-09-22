@@ -1,8 +1,6 @@
 = GatewayClass y Kuadrant
 
-El Operator de Connectivity Link ya está en `openshift-operators` (módulo 2). Eso coincide con la doc de OpenShift AI 3.5.
-
-La instancia *Kuadrant* no va ahí: va en **`kuadrant-system`**. Authorino y Limitador se despliegan en ese namespace.
+El Operator de Connectivity Link quedó en `openshift-operators` (módulo 2). La instancia *Kuadrant* se crea en **`kuadrant-system`**: ahí corren Authorino y Limitador.
 
 == 1. GatewayClass
 
@@ -16,7 +14,7 @@ oc get gatewayclass openshift-default
 
 == 2. Controller name (OpenShift)
 
-Kuadrant busca Istio/Envoy por defecto. En este lab el controller es `openshift.io/gateway-controller/v1`. Sin este env, el CR queda en `MissingDependency`:
+Kuadrant espera el controller de Istio/Envoy. En este lab hay que apuntarlo al de OpenShift:
 
 [source,bash]
 ----
@@ -38,23 +36,25 @@ oc rollout restart -n openshift-operators \
 
 Espera a que el pod del operator vuelva a `Running`.
 
-== 3. Instancia Kuadrant en kuadrant-system
+== 3. Instancia Kuadrant
 
-Si creaste el CR en `openshift-operators`, bórralo y recréalo aquí:
+=== UI
+
+. *Home* → *Projects* → *Create Project* → `kuadrant-system`
+. Cambia el proyecto de la consola a `kuadrant-system`
+. *Ecosystem* → *Installed Operators* → *Red Hat Connectivity Link*
+. Pestaña *Kuadrant* → *Create Kuadrant*
+. Nombre: `kuadrant` (la UI propone `kuadrant-sample`; cámbialo)
+. *Create*
+
+=== YAML
 
 [source,bash]
 ----
-oc create namespace kuadrant-system --dry-run=client -o yaml | oc apply -f -
-oc delete kuadrant --all -n openshift-operators --ignore-not-found
+oc create namespace kuadrant-system
 oc apply -f examples/kuadrant.yaml
 oc wait kuadrant/kuadrant -n kuadrant-system --for=condition=Ready --timeout=5m
 ----
-
-Desde la UI:
-
-. Cambia el proyecto a `kuadrant-system` (créalo si no existe)
-. *Installed Operators* → *Red Hat Connectivity Link* (project: `kuadrant-system`)
-. Crea *Kuadrant*. Nombre: `kuadrant` (no `kuadrant-sample`)
 
 == Verificar
 
