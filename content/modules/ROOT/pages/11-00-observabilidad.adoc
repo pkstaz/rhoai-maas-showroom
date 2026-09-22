@@ -157,6 +157,24 @@ IMPORTANT: *GPU utilization* = *No data* es normal en este lab. El `{qwen-model}
 
 Si desplegaras el mismo modelo con imagen CUDA + request de GPU (real o fake), ahí sí aparecerían series DCGM.
 
+=== Token consumption = 0 (Usage)
+
+El panel *Usage → Token consumption* consulta Prometheus con filtro `user!=""`. En RHOAI {rhoai-version} las series de Limitador (`authorized_hits_total`) traen `subscription` y `model`, **pero no** `user`, así que la UI muestra 0 aunque haya tráfico.
+
+Verifica el consumo real (sin filtro `user`):
+
+[source,bash]
+----
+oc port-forward -n redhat-ods-monitoring \
+  svc/thanos-querier-data-science-thanos-querier 10902:10902 &
+sleep 2
+curl -sg --data-urlencode \
+  'query=sum by (subscription,model) (increase(authorized_hits_total[1h]))' \
+  'http://127.0.0.1:10902/api/v1/query' | jq
+----
+
+Deberías ver series para `qwenqwen3-06b` / `qwen-authenticated` (o `demo`). El pipeline Envoy→collector→Loki también está activo; el vacío es del panel, no de la telemetría.
+
 == Verificar
 
 [source,bash]
