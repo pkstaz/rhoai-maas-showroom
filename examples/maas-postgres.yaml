@@ -12,7 +12,9 @@ type: Opaque
 stringData:
   database-name: maas
   database-user: maas
-  database-password: maas-workshop
+  # workshop-only: ephemeral lab Postgres password (not production)
+  # gitleaks:allow
+  database-password: maas-workshop # pragma: allowlist secret
 ---
 apiVersion: v1
 kind: Service
@@ -76,4 +78,7 @@ metadata:
   namespace: redhat-ai-gateway-infra
 type: Opaque
 stringData:
+  # workshop-only: ephemeral lab Postgres URL for temporary cluster installs
+  # gitleaks:allow
+  # pragma: allowlist nextline secret
   DB_CONNECTION_URL: postgresql://maas:maas-workshop@maas-postgres.redhat-ai-gateway-infra.svc:5432/maas?sslmode=disable

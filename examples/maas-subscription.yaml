@@ -31,5 +31,7 @@ spec:
     - name: qwen3-06b
       namespace: llm
       tokenRateLimits:
-        - limit: 100
-          window: 1m
+        - limit: 500
+          window: 30s
+        - limit: 5000
+          window: 5m
