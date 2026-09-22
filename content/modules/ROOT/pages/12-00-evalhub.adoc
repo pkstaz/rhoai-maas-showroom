@@ -85,7 +85,7 @@ oc get evalhub,pods,route -n evalhub
 . Dashboard → *Develop & train* → *Experiments (MLflow)* → proyecto `llm` (o el tuyo)
 . Crea un experimento, p. ej. `qwen-smoke`
 . *Develop & train* → *Evaluations* → *Start evaluation run*
-. Benchmark: *Helpfulness, honesty & harmlessness (HHH)* (en este build **no** aparece `hellaswag` en la lista UI). En *Benchmark parameters*:
+. Benchmark: *Helpfulness, honesty & harmlessness (HHH)*. En *Benchmark parameters*:
 
 [source,json]
 ----
