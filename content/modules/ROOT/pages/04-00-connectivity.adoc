@@ -54,3 +54,24 @@ oc get pods -n kuadrant-system
 ----
 
 `Ready`. Pods de Authorino y Limitador `Running`.
+
+== Troubleshooting
+
+=== Kuadrant: *Gateway API provider (istio / envoy gateway) is not installed*
+
+Si creaste la instancia *antes* de que `istiod-openshift-gateway` estuviera listo, el Operator de Kuadrant no detecta el provider. Con Istio ya instalado, basta reiniciar el controller:
+
+[source,bash]
+----
+oc delete pod -n openshift-operators \
+  -l control-plane=controller-manager \
+  --field-selector=status.phase=Running
+----
+
+Espera el rollout y vuelve a chequear la instancia:
+
+[source,bash]
+----
+oc rollout status -n openshift-operators deploy/kuadrant-operator-controller-manager --timeout=3m
+oc get kuadrant -n kuadrant-system
+----
