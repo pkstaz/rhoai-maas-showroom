@@ -1,6 +1,8 @@
 = ODHDashboardConfig
 
-Enciende Model Catalog, MaaS en la UI y Kueue. *No* actives `vLLMDeploymentOnMaaS`: este lab despliega con *llm-d*.
+Enciende Model Catalog, MaaS en la UI, Gen AI Studio y Kueue. *No* actives `vLLMDeploymentOnMaaS`: este lab despliega con *llm-d*.
+
+NOTE: El menú *Gen AI Studio → Playground* también exige `ogx: Managed` en el `DataScienceCluster` (ver xref:03-02-dsc.adoc[DataScienceCluster]).
 
 == UI
 
@@ -18,6 +20,7 @@ disableModelCatalog: false
 disableModelRegistry: false
 disableKueue: false
 modelAsService: true
+genAiStudio: true
 ----
 
 . *Save*
@@ -32,7 +35,8 @@ oc patch odhdashboardconfig odh-dashboard-config -n redhat-ods-applications --ty
       "disableModelCatalog": false,
       "disableModelRegistry": false,
       "disableKueue": false,
-      "modelAsService": true
+      "modelAsService": true,
+      "genAiStudio": true
     }
   }
 }'

@@ -2,10 +2,12 @@
 
 Activa solo lo que usa este lab. En la pestaña *YAML* del create, reemplaza todo el manifiesto por el de abajo.
 
-* `Managed`: `dashboard`, `workbenches`, `kserve`, `aipipelines`, `modelregistry`, `aigateway`
+* `Managed`: `dashboard`, `workbenches`, `kserve`, `aipipelines`, `modelregistry`, `aigateway`, `ogx`
 * `Unmanaged`: `kueue`
-* `Removed`: el resto (`ogx`, `sparkoperator`, `feastoperator`, `trustyai`, `ray`, `mlflowoperator`, `trainer`, `nim`, `llamastackoperator`, `trainingoperator`, …)
+* `Removed`: el resto (`sparkoperator`, `feastoperator`, `trustyai`, `ray`, `mlflowoperator`, `trainer`, `nim`, `llamastackoperator`, `trainingoperator`, …)
 * `aigateway.modelsAsAService` queda en `Removed` hasta Connectivity Link + gateway + Postgres
+
+NOTE: `ogx` en `Managed` es requisito del *Gen AI Studio → Playground*. Sin OGX, la UI de Gen AI Studio puede listar endpoints pero no ofrece Playground.
 
 == YAML final
 
@@ -22,7 +24,7 @@ metadata:
 spec:
   components:
     ogx:
-      managementState: Removed
+      managementState: Managed
     sparkoperator:
       managementState: Removed
     kserve:
@@ -87,7 +89,15 @@ oc get dsc
 oc get pods -n redhat-ods-applications
 ----
 
-Espera a que `default-dsc` esté `Ready` (5–15 min). Debe existir el dashboard:
+Espera a que `default-dsc` esté `Ready` (5–15 min). Condición `OGXReady=True` y pod del operator OGX en `redhat-ods-applications`:
+
+[source,bash]
+----
+oc get dsc default-dsc -o jsonpath='{.status.conditions[?(@.type=="OGXReady")].status}{"\n"}'
+oc get pods -n redhat-ods-applications -l name=ogx-k8s-operator
+----
+
+Debe existir el dashboard:
 
 [source,bash]
 ----
