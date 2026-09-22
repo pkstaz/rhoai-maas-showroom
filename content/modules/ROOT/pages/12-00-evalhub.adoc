@@ -1,8 +1,6 @@
 = EvalHub (evaluación del modelo)
 
-Prueba de calidad *después* de xref:11-00-observabilidad.adoc[observabilidad MaaS], para no ensuciar los dashboards de Usage con el tráfico del benchmark.
-
-Nada más obligatorio entre el 11 y este: modelo *Running* y suscripción MaaS del módulo 9.
+Prueba de calidad tras xref:11-00-observabilidad.adoc[observabilidad MaaS]. Modelo *Running* y suscripción MaaS del módulo 9.
 
 Este módulo deja *Develop & train → Evaluations* usable desde la web (TrustyAI + MLflow + EvalHub).
 
@@ -155,7 +153,7 @@ La UI puede quedarse en *Pending* unos minutos la *primera* vez: el pod descarga
 
 Sin `tokenizer` en los parameters, el job falla al tratar el id MaaS como repo de Hugging Face (`Repo id must be in the form 'namespace/repo_name'`).
 
-Tras el job, *Observe & monitor → Usage* mostrará el spike de tokens (por eso EvalHub va *después* del módulo 11).
+Tras el job, *Observe & monitor → Usage* mostrará el spike de tokens.
 
 == API (backup)
 
