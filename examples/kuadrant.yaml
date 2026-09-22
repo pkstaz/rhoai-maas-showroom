@@ -3,4 +3,6 @@ kind: Kuadrant
 metadata:
   name: kuadrant
   namespace: kuadrant-system
-spec: {}
+spec:
+  observability:
+    enable: true

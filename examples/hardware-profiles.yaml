@@ -1,0 +1,67 @@
+apiVersion: infrastructure.opendatahub.io/v1
+kind: HardwareProfile
+metadata:
+  name: cpu-workshop
+  namespace: redhat-ods-applications
+spec:
+  identifiers:
+    - displayName: CPU
+      identifier: cpu
+      resourceType: CPU
+      minCount: 1
+      defaultCount: 2
+      maxCount: 2
+    - displayName: Memory
+      identifier: memory
+      resourceType: Memory
+      minCount: 2Gi
+      defaultCount: 8Gi
+      maxCount: 8Gi
+---
+apiVersion: infrastructure.opendatahub.io/v1
+kind: HardwareProfile
+metadata:
+  name: fake-h200
+  namespace: redhat-ods-applications
+spec:
+  identifiers:
+    - displayName: CPU
+      identifier: cpu
+      resourceType: CPU
+      minCount: 1
+      defaultCount: 2
+    - displayName: Memory
+      identifier: memory
+      resourceType: Memory
+      minCount: 2Gi
+      defaultCount: 8Gi
+    - displayName: GPU
+      identifier: nvidia.com/gpu
+      resourceType: Accelerator
+      minCount: 1
+      defaultCount: 1
+      maxCount: 1
+---
+apiVersion: infrastructure.opendatahub.io/v1
+kind: HardwareProfile
+metadata:
+  name: fake-h200-mig
+  namespace: redhat-ods-applications
+spec:
+  identifiers:
+    - displayName: CPU
+      identifier: cpu
+      resourceType: CPU
+      minCount: 1
+      defaultCount: 1
+    - displayName: Memory
+      identifier: memory
+      resourceType: Memory
+      minCount: 2Gi
+      defaultCount: 4Gi
+    - displayName: GPU MIG 1g.18gb
+      identifier: nvidia.com/mig-1g.18gb
+      resourceType: Accelerator
+      minCount: 1
+      defaultCount: 1
+      maxCount: 2

@@ -1,42 +1,22 @@
 = GatewayClass y Kuadrant
 
-El Operator de Connectivity Link quedó en `openshift-operators` (módulo 2). La instancia *Kuadrant* se crea en **`kuadrant-system`**: ahí corren Authorino y Limitador.
+El Operator de Connectivity Link queda en `openshift-operators` (módulo 2). Al crear el `GatewayClass`, el Ingress Operator instala Service Mesh 3 (`istiod-openshift-gateway` en `openshift-ingress`). Después se crea la instancia *Kuadrant* en **`kuadrant-system`**.
 
 == 1. GatewayClass
 
 [source,bash]
 ----
 oc apply -f examples/gatewayclass.yaml
-oc get gatewayclass openshift-default
+oc wait --for=condition=Accepted gatewayclass/openshift-default --timeout=2m
+oc rollout status -n openshift-ingress deploy/istiod-openshift-gateway --timeout=5m
+oc delete pod -n openshift-operators \
+  $(oc get pods -n openshift-operators -o name | grep kuadrant-operator-controller-manager)
+oc rollout status -n openshift-operators deploy/kuadrant-operator-controller-manager --timeout=3m
 ----
 
-`GatewayClass` es de *cluster* (sin namespace). `ACCEPTED` = `True` basta.
+`GatewayClass` es de *cluster*. El Ingress Operator deja `istiod-openshift-gateway` `Available`. El Operator de Kuadrant se recarga después de eso para detectar el Gateway API provider.
 
-== 2. Controller name (OpenShift)
-
-Kuadrant espera el controller de Istio/Envoy. En este lab hay que apuntarlo al de OpenShift:
-
-[source,bash]
-----
-oc patch subscription rhcl-operator -n openshift-operators --type merge -p '{
-  "spec": {
-    "config": {
-      "env": [{
-        "name": "ISTIO_GATEWAY_CONTROLLER_NAMES",
-        "value": "openshift.io/gateway-controller/v1"
-      }]
-    }
-  }
-}'
-
-oc get deploy -n openshift-operators -o name | grep -i kuadrant
-oc rollout restart -n openshift-operators \
-  $(oc get deploy -n openshift-operators -o name | grep -i kuadrant)
-----
-
-Espera a que el pod del operator vuelva a `Running`.
-
-== 3. Instancia Kuadrant
+== 2. Instancia Kuadrant
 
 === UI
 
@@ -44,7 +24,16 @@ Espera a que el pod del operator vuelva a `Running`.
 . Cambia el proyecto de la consola a `kuadrant-system`
 . *Ecosystem* → *Installed Operators* → *Red Hat Connectivity Link*
 . Pestaña *Kuadrant* → *Create Kuadrant*
-. Nombre: `kuadrant` (la UI propone `kuadrant-sample`; cámbialo)
+. Nombre: `kuadrant`
+. En `spec` deja:
+
+[source,yaml]
+----
+spec:
+  observability:
+    enable: true
+----
+
 . *Create*
 
 === YAML
@@ -64,4 +53,4 @@ oc get kuadrant -n kuadrant-system
 oc get pods -n kuadrant-system
 ----
 
-`Ready` y pods de Authorino / Limitador `Running`.
+`Ready`. Pods de Authorino y Limitador `Running`.

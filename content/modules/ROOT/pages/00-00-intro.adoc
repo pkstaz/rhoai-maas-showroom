@@ -17,7 +17,7 @@ Los waits largos son el Operator de OpenShift AI y la carga del modelo.
 . User-workload monitoring
 . OpenShift AI {rhoai-version} + dashboard
 . MaaS (gateway, API keys, cuotas)
-. Fake GPU Operator
+. Fake GPU Operator (H200 141GB recortada con MIG)
 . GPU Booking Console Plugin
 . {qwen-model} en el Model Catalog
 . Inferencia CPU con llm-d, publicada en MaaS
@@ -36,7 +36,7 @@ Los YAML de `examples/` se clonan en el Web Terminal **después** de entrar como
 
 == Regla del lab
 
-En cada módulo: *UI primero*. El YAML está al final, colapsado, por si la UI falla o quieres dejarlo como código.
+En cada módulo: *UI primero*. El YAML está al final, colapsado.
 
 No instales NVIDIA GPU Operator ni OpenShift Serverless / Service Mesh *2*. Este lab usa Gateway API; el Ingress Operator instala solo Service Mesh *3* al crear el `GatewayClass`.
 

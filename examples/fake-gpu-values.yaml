@@ -1,0 +1,18 @@
+environment:
+  openshift: true
+topology:
+  migStrategy: mixed
+  nodePoolLabelKey: run.ai/simulated-gpu-node-pool
+  nodePools:
+    default:
+      gpuProduct: NVIDIA-H200-141GB-HBM3e
+      gpuCount: 1
+      gpuMemory: 143360
+      otherDevices:
+        - name: nvidia.com/mig-1g.18gb
+          count: 2
+        - name: nvidia.com/mig-2g.35gb
+          count: 1
+        - name: nvidia.com/mig-3g.71gb
+          count: 1
+

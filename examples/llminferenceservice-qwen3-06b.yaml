@@ -34,7 +34,7 @@ spec:
   template:
     containers:
       - name: main
-        image: registry.redhat.io/rhaiis/vllm-cpu-rhel9:latest
+        image: registry.redhat.io/rhaiis/vllm-cpu-rhel9:3.5.0
         command:
           - python
           - -m
@@ -60,11 +60,11 @@ spec:
             protocol: TCP
         resources:
           requests:
-            cpu: "4"
-            memory: 16Gi
+            cpu: "1"
+            memory: 8Gi
           limits:
-            cpu: "8"
-            memory: 16Gi
+            cpu: "2"
+            memory: 8Gi
 ---
 apiVersion: maas.opendatahub.io/v1alpha1
 kind: MaaSModelRef

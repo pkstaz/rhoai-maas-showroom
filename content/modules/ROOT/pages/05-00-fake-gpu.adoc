@@ -1,10 +1,31 @@
 = Fake GPU Operator
 
-Simula `nvidia.com/gpu` en workers CPU. Úsalo para perfiles y GPU Booking. *No* instales el NVIDIA GPU Operator.
+Simula `nvidia.com/gpu` en workers CPU. Este lab emula **una NVIDIA H200 141GB HBM3e** recortada con MIG. *No* instales el NVIDIA GPU Operator.
+
+La H200 queda partida así (141 GB de HBM3e):
+
+[cols="1,1,1"]
+|===
+| Slice | Recurso | Cantidad
+
+| 1g.18gb
+| `nvidia.com/mig-1g.18gb`
+| 2
+
+| 2g.35gb
+| `nvidia.com/mig-2g.35gb`
+| 1
+
+| 3g.71gb
+| `nvidia.com/mig-3g.71gb`
+| 1
+|===
+
+El worker también anuncia la GPU completa (`nvidia.com/gpu=1`) para GPU Booking y el hardware profile `fake-h200`.
 
 == Instalar
 
-Etiqueta workers (ajusta el selector si tus nodos GPU reales no deben simularse):
+Etiqueta workers:
 
 [source,bash]
 ----
@@ -15,21 +36,58 @@ oc get nodes -l node-role.kubernetes.io/worker -o name | \
 
 [source,bash]
 ----
-helm upgrade -i gpu-operator \
-  oci://ghcr.io/run-ai/fake-gpu-operator/fake-gpu-operator \
-  --namespace gpu-operator \
-  --create-namespace \
-  --version 0.2.0 \
-  --set environment.openshift=true \
-  --set topology.nodePools.default.gpuCount=2 \
-  --set topology.nodePools.default.gpuProduct=Tesla-T4 \
-  --set topology.nodePools.default.gpuMemory=16384
-
+oc create namespace gpu-operator
 oc label ns gpu-operator \
   pod-security.kubernetes.io/enforce=privileged \
   pod-security.kubernetes.io/audit=privileged \
   pod-security.kubernetes.io/warn=privileged \
   --overwrite
+
+helm upgrade -i gpu-operator \
+  oci://ghcr.io/run-ai/fake-gpu-operator/fake-gpu-operator \
+  --namespace gpu-operator \
+  --version 0.2.0 \
+  -f examples/fake-gpu-values.yaml
+----
+
+== Configurar (consola)
+
+Fake GPU no trae un plugin de consola propio. La topología se edita en el ConfigMap `topology` (namespace `gpu-operator`): producto, memoria, recorte MIG.
+
+. *Home* → *Search*
+. *Resources*: `ConfigMap`
+. Abre `topology` en `gpu-operator`
+. Pestaña *YAML*
+. En `data.topology.yml` deja el recorte H200 (ya viene de `examples/fake-gpu-values.yaml`):
+
+[source,yaml]
+----
+migStrategy: mixed
+nodePoolLabelKey: run.ai/simulated-gpu-node-pool
+nodePools:
+  default:
+    gpuCount: 1
+    gpuMemory: 143360
+    gpuProduct: NVIDIA-H200-141GB-HBM3e
+    otherDevices:
+    - count: 2
+      name: nvidia.com/mig-1g.18gb
+    - count: 1
+      name: nvidia.com/mig-2g.35gb
+    - count: 1
+      name: nvidia.com/mig-3g.71gb
+----
+
+. *Save*
+
+Si cambias la topología *después* del primer install, borra el ConfigMap por nodo y reinicia el device plugin para que el worker vuelva a anunciarla:
+
+[source,bash]
+----
+NODE=$(oc get nodes -l node-role.kubernetes.io/worker -o jsonpath='{.items[0].metadata.name}')
+oc delete cm topology-$NODE -n gpu-operator
+oc delete pod -n gpu-operator -l app=device-plugin
+oc delete pod -n gpu-operator -l app=status-updater
 ----
 
 == Verificar
@@ -37,22 +95,30 @@ oc label ns gpu-operator \
 [source,bash]
 ----
 oc get pods -n gpu-operator
-oc get nodes -o json | jq -r '
-  .items[] | select(.status.allocatable["nvidia.com/gpu"] != null) |
-  "\(.metadata.name)\t\(.status.allocatable["nvidia.com/gpu"]) GPU"
-'
+oc get node -o custom-columns=\
+'NAME:.metadata.name,PRODUCT:.metadata.labels.nvidia\.com/gpu\.product,GPU:.status.allocatable.nvidia\.com/gpu,MIG1:.status.allocatable.nvidia\.com/mig-1g\.18gb,MIG2:.status.allocatable.nvidia\.com/mig-2g\.35gb,MIG3:.status.allocatable.nvidia\.com/mig-3g\.71gb'
 ----
 
-Cada worker etiquetado debe mostrar GPUs allocatable.
+El worker muestra producto `NVIDIA-H200-141GB-HBM3e`, `nvidia.com/gpu=1`, y los cuatro slices MIG.
 
 == Hardware profile (UI)
 
 En el dashboard de OpenShift AI:
 
 . *Settings* → *Hardware profiles* → *Create*
-. Crea *dos* perfiles:
+. Crea estos perfiles:
 
-* `cpu-workshop`: 4–8 CPU, 16 Gi memory, *sin* GPU
-* `fake-t4`: 1× `nvidia.com/gpu` (para Booking / demos de acelerador)
+* `cpu-workshop`: 1–2 CPU, 8 Gi memory, *sin* GPU
+* `fake-h200`: 1× `nvidia.com/gpu` (H200 completa)
+* `fake-h200-mig`: 1× `nvidia.com/mig-1g.18gb` (slice MIG de 18 GB)
 
-El modelo Qwen usará *solo* `cpu-workshop`.
+El modelo Qwen usa *solo* `cpu-workshop`.
+
+.Alternativa YAML
+[%collapsible]
+====
+[source,bash]
+----
+oc apply -f examples/hardware-profiles.yaml
+----
+====

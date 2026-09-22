@@ -1,28 +1,26 @@
 = Operadores previos
 
-Instala estas dependencias *antes* de OpenShift AI. Canal/namespace: los que recomienda OperatorHub.
+Instala estas dependencias *antes* de OpenShift AI. Canal y namespace: los que propone OperatorHub.
 
-*No* instales OpenShift Serverless ni Service Mesh *2* (rompe llm-d y choca con Mesh 3).
+*No* instales OpenShift Serverless ni Service Mesh *2*.
 
-El Operator de Connectivity Link va aquí. La instancia *Kuadrant* y el `GatewayClass` se crean *después* de OpenShift AI (módulo 4).
+El Operator de Connectivity Link va aquí. El `GatewayClass` y la instancia *Kuadrant* se crean *después* de OpenShift AI (módulo 4).
 
 == Orden (UI → OperatorHub)
 
 Instala uno, espera *Succeeded*, sigue al siguiente:
 
 . *cert-manager Operator for Red Hat OpenShift*
-. *Red Hat OpenShift Pipelines* (el DSC usará `aipipelines`)
-. *Red Hat Connectivity Link* (Kuadrant / Authorino). Solo el Operator, namespace `openshift-operators` (All namespaces). *No* crees todavía la instancia Kuadrant.
-. *Red Hat Leader Worker Set Operator* (llm-d)
+. *Red Hat OpenShift Pipelines*
+. *Red Hat Connectivity Link*. Solo el Operator, namespace `openshift-operators` (All namespaces). *No* crees todavía la instancia Kuadrant.
+. *Red Hat Leader Worker Set Operator* (llm-d). Namespace `openshift-lws-operator`, canal `stable-v1.0`.
 . *Red Hat build of Kueue* (GPU Booking)
 
 == Connectivity Link
 
 . *Ecosystem* → *OperatorHub* → busca `Red Hat Connectivity Link`
-. Instala (All namespaces; namespace del Operator: `openshift-operators` está bien)
+. Instala (All namespaces; namespace del Operator: `openshift-operators`)
 . Espera *Succeeded*
-
-No crees la instancia *Kuadrant* aquí. Esa va en `kuadrant-system` (módulo 4).
 
 == Verificar
 
@@ -40,6 +38,4 @@ Todos `Succeeded`.
 ----
 oc apply -f examples/subscriptions.yaml
 ----
-
-Si un `Subscription` falla por nombre de paquete o canal, instala ese Operator desde OperatorHub y sigue.
 ====

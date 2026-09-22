@@ -14,5 +14,7 @@ Ejecuta los `oc apply` desde la raíz del repo.
 | `maas-postgres.yaml` | Postgres MaaS |
 | `apply-maas-gateway.sh` | Gateway MaaS |
 | `model-catalog-qwen.yaml` | Catalog HF |
+| `fake-gpu-values.yaml` | Fake GPU: 1× H200 141GB + slices MIG |
+| `hardware-profiles.yaml` | Perfiles `cpu-workshop`, `fake-h200`, `fake-h200-mig` |
 | `llminferenceservice-qwen3-06b.yaml` | llm-d CPU + MaaSModelRef |
 | `maas-subscription.yaml` | Auth policy + subscription |

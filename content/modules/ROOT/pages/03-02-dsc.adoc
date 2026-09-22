@@ -2,12 +2,10 @@
 
 Activa solo lo que usa este lab. En la pestaña *YAML* del create, reemplaza todo el manifiesto por el de abajo.
 
-Cambios respecto al default de la UI:
-
 * `Managed`: `dashboard`, `workbenches`, `kserve`, `aipipelines`, `modelregistry`, `aigateway`
-* `Unmanaged`: `kueue` (el Operator de Kueue ya está instalado)
+* `Unmanaged`: `kueue`
 * `Removed`: el resto (`ogx`, `sparkoperator`, `feastoperator`, `trustyai`, `ray`, `mlflowoperator`, `trainer`, `nim`, `llamastackoperator`, `trainingoperator`, …)
-* `aigateway.modelsAsAService` se queda en `Removed` hasta Connectivity Link + gateway + Postgres
+* `aigateway.modelsAsAService` queda en `Removed` hasta Connectivity Link + gateway + Postgres
 
 == YAML final
 

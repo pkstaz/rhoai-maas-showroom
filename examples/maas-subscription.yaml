@@ -11,7 +11,7 @@ spec:
       namespace: llm
   subjects:
     groups:
-      - system:authenticated
+      - name: system:authenticated
     users: []
 ---
 apiVersion: maas.opendatahub.io/v1alpha1
@@ -24,7 +24,7 @@ metadata:
 spec:
   owner:
     groups:
-      - system:authenticated
+      - name: system:authenticated
     users: []
   priority: 10
   modelRefs:

@@ -68,7 +68,7 @@ cd rhoai-maas-showroom
 
 Los `oc apply -f examples/...` de los módulos siguientes se ejecutan desde ese directorio.
 
-Si `helm version` falla, instálalo en tu `$HOME` (no hay `sudo` en el Web Terminal):
+Helm 3, en `$HOME` (el Web Terminal no tiene `sudo`):
 
 [source,bash]
 ----

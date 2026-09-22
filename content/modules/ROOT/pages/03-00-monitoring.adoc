@@ -2,15 +2,12 @@
 
 Actívalo *antes* del Operator de OpenShift AI. El dashboard y Kueue usan métricas de user-workload monitoring.
 
-Si `cluster-monitoring-config` ya existe, edita el YAML (no borres otras claves). Si no existe, créalo.
-
 == UI
 
 . *Home* → *Search* → recurso `ConfigMap`
 . Namespace: `openshift-monitoring`
-. Si ves `cluster-monitoring-config`, ábrelo → pestaña *YAML*
-. Si no, *Create ConfigMap* → pestaña *YAML* → pega el manifiesto
-. Deja (o añade) esto en `data.config.yaml`:
+. *Create ConfigMap* → pestaña *YAML* → pega el manifiesto (o edita `cluster-monitoring-config` si ya está)
+. `data.config.yaml`:
 
 [source,yaml]
 ----
@@ -26,16 +23,10 @@ alertmanagerMain:
 [source,bash]
 ----
 oc get cm cluster-monitoring-config -n openshift-monitoring -o yaml
-----
-
-En unos minutos debe aparecer el namespace y pods de user-workload monitoring:
-
-[source,bash]
-----
 oc get pods -n openshift-user-workload-monitoring
 ----
 
-Pods `Running`. Si el namespace tarda, espera y vuelve a listar.
+Pods `Running`.
 
 .Alternativa YAML
 [%collapsible]
@@ -43,6 +34,6 @@ Pods `Running`. Si el namespace tarda, espera y vuelve a listar.
 [source,bash]
 ----
 oc apply -f examples/cluster-monitoring-config.yaml
-oc get pods -n openshift-user-workload-monitoring -w
+oc get pods -n openshift-user-workload-monitoring
 ----
 ====

@@ -1,6 +1,6 @@
 = Probar inferencia
 
-El modelo en MaaS se llama con API key, no con el token de OpenShift en `/v1/chat/completions`.
+El modelo en MaaS se llama con API key.
 
 == API key
 
@@ -18,8 +18,6 @@ API_KEY=$(curl -sk -X POST "https://${MAAS_URL}/maas-api/v1/api-keys" \
 
 echo "$API_KEY"
 ----
-
-Si el POST falla, lista suscripciones en la UI y usa el *nombre exacto* de la subscription.
 
 == Listar modelos y chatear
 
@@ -42,11 +40,11 @@ curl -sk "https://${MAAS_URL}/v1/chat/completions" \
   }" | jq
 ----
 
-El `id` local suele ser `publishers/llm/models/qwen3-06b` (no el short name).
+El `id` local suele ser `publishers/llm/models/qwen3-06b`.
 
 == UI
 
-En el dashboard, *Models as a Service* → el modelo → *Playground* / *Try it*, si está disponible. Desactiva thinking / usa `/no_think` y `max_tokens` bajo: Qwen3 piensa por defecto y en CPU se eterniza.
+Dashboard → *Models as a Service* → el modelo → *Playground*. Usa `/no_think` y `max_tokens` bajo.
 
 == Listo
 
