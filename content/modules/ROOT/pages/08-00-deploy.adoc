@@ -1,8 +1,10 @@
 = Desplegar Qwen3-0.6B (llm-d, CPU, MaaS)
 
-Despliega *desde el catálogo* con llm-d, perfil CPU, y publícalo en MaaS.
+Despliega *desde el catálogo* / GenAI Studio con llm-d, perfil CPU, y publícalo en MaaS.
 
 Usa el hardware profile `cpu-workshop`, no `fake-h200`.
+
+El wizard de llm-d arranca por defecto con imagen *vLLM CUDA*. En un cluster sin CUDA (solo Fake GPU) el pod entra en `CrashLoopBackOff` (`Failed to infer device type`). Hay que forzar *vLLM CPU*.
 
 == Proyecto
 
@@ -18,7 +20,7 @@ oc label namespace llm \
   --overwrite
 ----
 
-== UI
+== UI (wizard)
 
 . Catalog → abre *Qwen3-0.6B*
 . *Deploy*
@@ -27,20 +29,88 @@ oc label namespace llm \
 . Hardware profile: `cpu-workshop`
 . Replicas: `1`
 . Publicar en *Models as a Service*
+. Si el formulario muestra *Additional environment variables* / *Additional serving runtime arguments*, añade:
+
+Environment variables::
+
+* `HF_HUB_DISABLE_XET` = `1`
+* `VLLM_CPU_KVCACHE_SPACE` = `4`
+* `HF_HOME` = `/tmp/hf_home`
+
+Serving runtime arguments::
+
+* `--max-model-len=2048`
+* `--enable-force-include-usage`
+
 . *Deploy*
 
 URI del modelo: `hf://Qwen/Qwen3-0.6B`
 
-== Parche CPU
+NOTE: En muchos builds de 3.5 el wizard *no* deja cambiar la imagen. Los env/args ayudan, pero *no* evitan el crash CUDA. Aplica el parche CPU del siguiente apartado.
 
-El template llm-d trae imagen CUDA. Este manifiesto usa vLLM CPU y quita `nvidia.com/gpu`.
+== Parche CPU (obligatorio tras el wizard)
+
+El Deployment del wizard usa `registry.redhat.io/rhaii/vllm-cuda-rhel9`. Cámbialo a CPU.
+
+=== Opción A — script (nombre típico del wizard)
+
+Si el `LLMInferenceService` se llama `qwenqwen3-06b` (prefijo del wizard):
 
 [source,bash]
 ----
+bash examples/patch-llmisvc-cpu.sh qwenqwen3-06b llm
+----
+
+=== Opción B — editar YAML en consola OpenShift
+
+. *Home* → *Search* → `LLMInferenceService` → namespace `llm`
+. Abre el recurso → pestaña *YAML*
+. En `spec.template.containers` (contenedor `main`) deja:
+
+[source,yaml]
+----
+- name: main
+  image: registry.redhat.io/rhaiis/vllm-cpu-rhel9:3.5.0
+  command:
+    - python
+    - -m
+    - vllm.entrypoints.openai.api_server
+  args:
+    - "--served-model-name={{.Name}}"
+    - --model=/mnt/models
+    - --max-model-len=2048
+    - --enable-ssl-refresh
+    - --ssl-certfile=/var/run/kserve/tls/tls.crt
+    - --ssl-keyfile=/var/run/kserve/tls/tls.key
+    - --enable-force-include-usage
+  env:
+    - name: HF_HOME
+      value: /tmp/hf_home
+    - name: HF_HUB_DISABLE_XET
+      value: "1"
+    - name: VLLM_CPU_KVCACHE_SPACE
+      value: "4"
+  resources:
+    requests:
+      cpu: "1"
+      memory: 8Gi
+    limits:
+      cpu: "2"
+      memory: 8Gi
+----
+
+. *Save*
+
+=== Opción C — manifiesto limpio (sin wizard)
+
+[source,bash]
+----
+oc delete llminferenceservice --all -n llm --ignore-not-found
+oc delete maasmodelref --all -n llm --ignore-not-found
 oc apply -f examples/llminferenceservice-qwen3-06b.yaml
 ----
 
-Imagen `registry.redhat.io/rhaiis/vllm-cpu-rhel9:3.5.0`, 1–2 CPU, 8 Gi, `--max-model-len=2048`, gateway `maas-default-gateway`.
+Imagen `registry.redhat.io/rhaiis/vllm-cpu-rhel9:3.5.0`, 1–2 CPU, 8 Gi, gateway `maas-default-gateway`.
 
 == Verificar
 
@@ -48,7 +118,11 @@ Imagen `registry.redhat.io/rhaiis/vllm-cpu-rhel9:3.5.0`, 1–2 CPU, 8 Gi, `--max
 ----
 oc get llminferenceservice -n llm
 oc get pods -n llm
+oc get deploy -n llm -o custom-columns=\
+'NAME:.metadata.name,IMAGE:.spec.template.spec.containers[0].image'
 oc get maasmodelref -n llm -o wide
 ----
 
-`LLMInferenceService` `Ready`. Pod `Running` (pull + load: varios minutos).
+`LLMInferenceService` `Ready`. Pod `Running`. Imagen del `*-kserve` = `vllm-cpu-rhel9` (no `vllm-cuda`).
+
+En GenAI Studio → *Playground*, prueba el modelo cuando esté Ready (usa `/no_think` y `max_tokens` bajo).

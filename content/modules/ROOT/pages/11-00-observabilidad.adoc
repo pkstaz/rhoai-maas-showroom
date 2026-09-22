@@ -1,117 +1,182 @@
 = Observabilidad MaaS
 
-Después de xref:10-00-verify.adoc[probar inferencia], revisa salud del gateway, MaaS y el serving. Todo en CPU; las mismas vistas aplican cuando el modelo corre en GPU.
+Dashboards de uso y métricas del gateway según la https://rh-aiservices-bu.github.io/rhoai-maas-guide/modules/main/07-observability.html[guía MaaS Phase 7].
 
-Requisito: user-workload monitoring activo (xref:03-00-monitoring.adoc[módulo 3]) y Kuadrant con `observability.enable: true` (xref:04-00-connectivity.adoc[módulo 4]).
+En RHOAI 3.5 el stack de dashboards usa *Cluster Observability Operator* (Perses) + Tempo + OpenTelemetry. Para usage por request: Loki + MinIO (lab) + `usageLogging`.
 
-== Qué mirar
+Hazlo *después* de xref:10-00-verify.adoc[probar inferencia] (o en paralelo si el modelo ya está Ready).
+
+== Qué instala
 
 [cols="2,3"]
 |===
-| Capa | Señales útiles
+| Pieza | Para qué
 
-| Gateway (`maas-default-gateway`)
-| Listeners `Programmed`, pods istio-proxy, errores TLS/routing
+| Tempo Operator
+| Trazas; el Monitoring de RHOAI lo requiere
 
-| MaaS (`redhat-ai-gateway-infra`)
-| `maas-api`, `maas-controller`, Postgres `Running`
+| OpenTelemetry Operator
+| Collector CRD; sin él falla el cascade de observabilidad
 
-| Gobierno (Kuadrant)
-| Authorino, Limitador; rechazos por auth o rate limit
+| Cluster Observability Operator (COO)
+| Perses + pestaña *Observe & monitor* en el dashboard RHOAI
 
-| Serving (`llm`)
-| Pod del `LLMInferenceService`, restarts, CPU/mem, tiempo de respuesta
+| DSCI `monitoring`
+| MonitoringStack, ThanosQuerier, datasources, dashboards
 
-| Consumo
-| Tokens por subscription; HTTP 429 cuando se agota la cuota
+| `MaasTenantConfig.telemetry`
+| Labels por modelo / subscription en métricas del gateway
+
+| Loki + MinIO + `usageLogging`
+| Dashboards de consumo (tokens) admin/user
 |===
 
-== UI — Observe
+== Script (recomendado)
 
-. Consola OpenShift → perspectiva *Administrator*
-. *Observe* → *Metrics*
-. Namespace: `openshift-user-workload-monitoring` (stack de user workloads) o el namespace del workload (`llm`, `openshift-ingress`, `redhat-ai-gateway-infra`)
-
-Consultas útiles en la UI (adapta el nombre del pod):
-
-* Uso de CPU/memoria del pod de inferencia en `llm`
-* Pods del gateway en `openshift-ingress` asociados a `maas-default-gateway`
-
-== Salud por CLI
+Desde la raíz del repo:
 
 [source,bash]
 ----
-# Gateway y mesh ligero
-oc get gateway maas-default-gateway -n openshift-ingress -o wide
-oc get pods -n openshift-ingress -l gateway.networking.k8s.io/gateway-name=maas-default-gateway
-
-# MaaS
-oc get pods -n redhat-ai-gateway-infra
-oc get deploy maas-api -n redhat-ai-gateway-infra
-
-# Serving
-oc get llminferenceservice,pods -n llm
-oc get maasmodelref -n llm -o wide
-
-# Kuadrant
-oc get kuadrant -n kuadrant-system
-oc get pods -n kuadrant-system
+bash examples/apply-maas-observability.sh
 ----
 
-Todos `Running` / `Ready` antes de profundizar en métricas.
+Espera CSVs `Succeeded`, LokiStack Ready y el patch de `usageLogging`. En un OpenTLC de 1 nodo puede tardar *10–20 min*.
 
-== Logs rápidos
+== Paso a paso (UI + CLI)
+
+=== 1. Tempo Operator
 
 [source,bash]
 ----
-oc logs -n llm -l serving.kserve.io/inferenceservice=qwen3-06b --tail=30
-oc logs -n redhat-ai-gateway-infra deploy/maas-api --tail=30
-oc logs -n kuadrant-system deploy/limitador --tail=30 2>/dev/null || \
-  oc logs -n kuadrant-system -l app=limitador --tail=30
+oc apply -k examples/observability/tempo
+oc wait csv -n openshift-tempo-operator \
+  -l operators.coreos.com/tempo-product.openshift-tempo-operator="" \
+  --for=jsonpath='{.status.phase}'=Succeeded --timeout=300s
 ----
 
-== Métricas Prometheus (user workload)
-
-Desde el Web Terminal, port-forward al querier de user workloads:
+=== 2. OpenTelemetry Operator
 
 [source,bash]
 ----
-oc get route -n openshift-user-workload-monitoring thanos-querier -o jsonpath='{.spec.host}{"\n"}' 2>/dev/null || \
-  oc get svc -n openshift-user-workload-monitoring | grep querier
+oc apply -k examples/observability/opentelemetry
+oc wait csv -n openshift-opentelemetry-operator \
+  -l operators.coreos.com/opentelemetry-product.openshift-opentelemetry-operator="" \
+  --for=jsonpath='{.status.phase}'=Succeeded --timeout=300s
 ----
 
-En *Observe → Metrics*, prueba consultas como:
+=== 3. Cluster Observability Operator
 
-[source,promql]
+[source,bash]
 ----
-# Pods del serving en llm
-kube_pod_status_phase{namespace="llm"}
-
-# CPU del namespace llm (rate por pod)
-sum by (pod) (rate(container_cpu_usage_seconds_total{namespace="llm", container!=""}[5m]))
-
-# Memoria working set
-sum by (pod) (container_memory_working_set_bytes{namespace="llm", container!=""})
+oc apply -k examples/observability/coo
+oc wait csv -n openshift-cluster-observability-operator \
+  -l operators.coreos.com/cluster-observability-operator.openshift-cluster-observability="" \
+  --for=jsonpath='{.status.phase}'=Succeeded --timeout=300s
 ----
 
-Kuadrant/Limitador puede exponer métricas de límites en `kuadrant-system`. Tras varias llamadas al endpoint MaaS, busca series con `limitador` o `ratelimit` en *Observe → Metrics*.
+=== 4. DSCI monitoring
 
-== FinOps básico (lab)
+Sin esto, la pestaña de dashboards no tiene datasource:
 
-Lo que ya tenéis sin GPU:
+[source,bash]
+----
+oc patch dsci default-dsci --type=merge -p '{
+  "spec": {
+    "monitoring": {
+      "namespace": "redhat-ods-monitoring",
+      "metrics": {
+        "replicas": 1,
+        "storage": { "size": "5Gi", "retention": "90d" }
+      },
+      "traces": {
+        "sampleRatio": "0.1",
+        "storage": { "backend": "pv", "retention": "2160h" }
+      }
+    }
+  }
+}'
+oc wait --for=jsonpath='{.status.phase}'=Ready dsci/default-dsci --timeout=300s
+----
 
-* *Subscriptions* con `tokenRateLimits` (xref:09-00-subscription.adoc[módulo 9]): cuota por ventana (`30s`, `5m`)
-* *Auth policies*: quién puede consumir
-* *API keys* ligadas a subscription
+=== 5. Telemetría del gateway
 
-Para ver el control de cuota en acción, repite llamadas hasta recibir HTTP `429`:
+[source,bash]
+----
+oc patch maastenantconfig default-tenant -n models-as-a-service \
+  --type=merge -p '{"spec":{"telemetry":{"enabled":true}}}'
+
+oc get telemetrypolicies.extensions.kuadrant.io -n openshift-ingress
+oc get telemetry.telemetry.istio.io -n openshift-ingress
+----
+
+El operator crea TelemetryPolicy + Istio Telemetry (labels `model`, `subscription`, …).
+
+=== 6. Loki Operator
+
+[source,bash]
+----
+oc apply -k examples/observability/loki
+oc wait csv -n openshift-operators-redhat \
+  -l operators.coreos.com/loki-operator.openshift-operators-redhat="" \
+  --for=jsonpath='{.status.phase}'=Succeeded --timeout=300s
+----
+
+=== 7. MinIO + LokiStack (lab)
+
+StorageClass por defecto del OpenTLC: `gp3-csi` (ya en el manifiesto).
+
+[source,bash]
+----
+oc apply -k examples/observability/usage-logging
+oc wait --for=condition=available deployment/minio -n redhat-ods-monitoring --timeout=300s
+oc wait lokistack/usage -n redhat-ods-monitoring \
+  --for=jsonpath='{.status.conditions[?(@.type=="Ready")].status}'=True --timeout=600s
+----
+
+=== 8. Usage logging
+
+[source,bash]
+----
+oc patch configs.maas.opendatahub.io default --type=merge \
+  -p '{"spec":{"usageLogging":true}}'
+
+oc get envoyfilter maas-model-access-logs -n openshift-ingress
+oc get opentelemetrycollector usage-logs -n redhat-ods-monitoring
+oc get persesdashboard -n redhat-ods-monitoring | grep usage-logs
+----
+
+== UI — dashboards
+
+. Dashboard OpenShift AI → *Observe & monitor* → *Dashboard* (o *Observability*)
+. Abre los dashboards MaaS / usage (admin y user)
+. Genera tráfico con el Playground o el `curl` del módulo 10; espera unos minutos a que Loki muestre requests
+
+== Verificar
+
+[source,bash]
+----
+oc get csv -n openshift-tempo-operator | grep tempo
+oc get csv -n openshift-opentelemetry-operator | grep opentelemetry
+oc get csv -n openshift-cluster-observability-operator | grep cluster-observability
+oc get csv -n openshift-operators-redhat | grep loki
+oc get crd tempostacks.tempo.grafana.com opentelemetrycollectors.opentelemetry.io \
+  perses.perses.dev lokistacks.loki.grafana.com
+oc get dsci default-dsci -o jsonpath='{.spec.monitoring.metrics}{"\n"}'
+oc get maastenantconfig default-tenant -n models-as-a-service \
+  -o jsonpath='{.spec.telemetry}{"\n"}'
+----
+
+CSVs `Succeeded`. `metrics` con `replicas`/`storage`. Telemetry `enabled: true`.
+
+== FinOps rápido (rate limit)
+
+Tras varias inferencias, HTTP `429` confirma Limitador. Los dashboards de usage muestran tokens por modelo/subscription cuando Loki está Ready.
 
 [source,bash]
 ----
 CLUSTER_DOMAIN=$(oc get ingresses.config/cluster -o jsonpath='{.spec.domain}')
 MAAS_URL="maas.${CLUSTER_DOMAIN}"
-
-# Reutiliza API_KEY del módulo 10
+# Reutiliza API_KEY y MODEL_ID del módulo 10
 for i in $(seq 1 20); do
   CODE=$(curl -sk -o /dev/null -w '%{http_code}' \
     "https://${MAAS_URL}/v1/chat/completions" \
@@ -123,38 +188,22 @@ for i in $(seq 1 20); do
 done
 ----
 
-`429` confirma que Limitador/Kuadrant aplica la subscription. En Prd conectaríais eso a dashboards de consumo por equipo.
-
-== GAPs de observabilidad (discusión)
+== GAPs
 
 [cols="2,2"]
 |===
-| Hoy en el lab | Prd objetivo
+| Lab hoy | Prd
 
-| Métricas de infra (CPU, mem, pods)
-| SLOs de latencia p95/p99 por modelo
+| MinIO + Loki `1x.demo`
+| ObjectBucketClaim / S3 gestionado
 
-| Rate limit reactivo (429)
-| Alertas antes de agotar cuota
+| Telemetry sin `captureUser` (GDPR)
+| Activar solo si política lo permite
 
-| Logs manuales con `oc logs`
-| Correlación traza gateway → serving
-
-| Sin coste por token en dashboard
-| Showback/chargeback FinOps
+| Limitador en memoria
+| Redis persistente (opcional en la guía MaaS)
 |===
 
-== Checklist de cierre
+Redis para Limitador es opcional y no va en este lab.
 
-[source,bash]
-----
-oc get gateway maas-default-gateway -n openshift-ingress \
-  -o jsonpath='{.status.conditions[?(@.type=="Programmed")].status}{"\n"}'
-oc get maasmodelref -n llm -o jsonpath='{.items[0].status.phase}{"\n"}'
-oc get pods -n llm --field-selector=status.phase=Running --no-headers | wc -l
-oc get pods -n openshift-user-workload-monitoring --no-headers | head -3
-----
-
-Gateway `True`, model ref `Ready`, pod de inferencia `Running`, stack de user monitoring activo.
-
-Tiempo orientativo: *20–30 min*.
+Tiempo orientativo: *30–45 min* (+ waits de operators).

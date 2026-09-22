@@ -22,7 +22,7 @@ Los waits largos son el Operator de OpenShift AI y la carga del modelo.
 . GPU Booking Console Plugin
 . {qwen-model} en el Model Catalog
 . Inferencia CPU con llm-d, publicada en MaaS
-. Suscripción para `system:authenticated`
+. Vista inicial de observabilidad MaaS (COO / Perses / usage dashboards — xref:11-00-observabilidad.adoc[módulo 11])
 
 Los YAML de `examples/` se clonan en el Web Terminal **después** de entrar como `admin` (módulo 1).
 

@@ -17,4 +17,7 @@ Ejecuta los `oc apply` desde la raíz del repo.
 | `fake-gpu-values.yaml` | Fake GPU: 1× H200 141GB + slices MIG |
 | `hardware-profiles.yaml` | Perfiles `cpu-workshop`, `fake-h200`, `fake-h200-mig` |
 | `llminferenceservice-qwen3-06b.yaml` | llm-d CPU + MaaSModelRef |
+| `patch-llmisvc-cpu.sh` | Parche wizard → vLLM CPU |
 | `maas-subscription.yaml` | Auth policy + subscription |
+| `observability/` | Tempo, OTEL, COO, Loki, MinIO (módulo 11) |
+| `apply-maas-observability.sh` | Instala stack observabilidad MaaS |

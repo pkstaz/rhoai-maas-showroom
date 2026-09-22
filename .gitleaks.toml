@@ -1,5 +1,8 @@
 title = "rhoai-maas-showroom gitleaks config"
 
 [allowlist]
-description = "Workshop-only Postgres credentials in examples/maas-postgres.yaml"
-paths = ['''examples/maas-postgres\.yaml''']
+description = "Workshop-only Postgres and MinIO credentials in examples"
+paths = [
+  '''examples/maas-postgres\.yaml''',
+  '''examples/observability/usage-logging/minio-secret\.yaml''',
+]
