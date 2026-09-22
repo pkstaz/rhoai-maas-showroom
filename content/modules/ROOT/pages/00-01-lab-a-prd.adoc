@@ -62,7 +62,7 @@ En *Lab* usamos un cluster efímero y un modelo pequeño en CPU. En *Prd* el mis
 | xref:11-00-observabilidad.adoc[Módulo 11]
 
 | Evaluación automatizada
-| *No* — ver GAPs
+| xref:12-00-evalhub.adoc[Módulo 12] (smoke; sin MLflow)
 
 | Registry + firma
 | *No* — ver GAPs
@@ -190,15 +190,17 @@ Ajustad las celdas a vuestra organización. El objetivo del workshop es *discuti
 . Inventario de casos de uso y criterios mínimos de evaluación por caso
 . RACI acordado entre Data, Infra, Seguridad y Arquitectura
 . PoC observabilidad MaaS (xref:11-00-observabilidad.adoc[módulo 11] como punto de partida)
+. PoC EvalHub smoke (xref:12-00-evalhub.adoc[módulo 12])
 . PoC gobierno de acceso: subscriptions, auth policies, cuotas (módulos 9–10)
 . Decisión registry + firma de modelos (¿Model Registry RHOAI? ¿pipeline Cosign?)
 . Mapa GPU: fake → real, booking → quotas productivas
-. Segunda capacitación: eval automatizada, AIPipelines, guardrails avanzados
+. Segunda capacitación: suites EvalHub + MLflow, AIPipelines, guardrails avanzados
 
 == Qué sigue en el lab hands-on
 
 . xref:01-00-web-terminal.adoc[Web Terminal] — entrar como `admin` y clonar el repo
 . Módulos 2–10 — instalar la plataforma y dejar Qwen publicado en MaaS
 . xref:11-00-observabilidad.adoc[Observabilidad MaaS] — después de probar inferencia
+. xref:12-00-evalhub.adoc[EvalHub] — después de observabilidad
 
 Tiempo orientativo de este módulo: *20–30 min* de lectura y discusión en sala.

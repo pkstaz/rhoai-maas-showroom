@@ -11,6 +11,7 @@ spec:
     disableTracking: false
     modelAsService: true
     genAiStudio: true
+    disableEvalHub: false
     notebookController:
       enabled: true
       notebookNamespace: rhods-notebooks

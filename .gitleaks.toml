@@ -5,4 +5,5 @@ description = "Workshop-only Postgres and MinIO credentials in examples"
 paths = [
   '''examples/maas-postgres\.yaml''',
   '''examples/observability/usage-logging/minio-secret\.yaml''',
+  '''examples/evalhub/postgres\.yaml''',
 ]

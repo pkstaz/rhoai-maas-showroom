@@ -8,7 +8,7 @@ El fake GPU no ejecuta CUDA. Sirve para que el cluster anuncie `nvidia.com/gpu` 
 
 * Modo rápido (seguir los clics): *~2 horas*
 * Modo explicativo (preguntas, waits, troubleshooting): *~4 horas*
-* Contexto Lab → Prd (xref:00-01-lab-a-prd.adoc[módulo 0.1]) + observabilidad (xref:11-00-observabilidad.adoc[módulo 11]): *+45–60 min* extra de lectura y discusión
+* Contexto Lab → Prd (xref:00-01-lab-a-prd.adoc[módulo 0.1]) + observabilidad (xref:11-00-observabilidad.adoc[módulo 11]) + EvalHub (xref:12-00-evalhub.adoc[módulo 12]): *+60–90 min* extra de lectura y discusión
 
 Los waits largos son el Operator de OpenShift AI y la carga del modelo.
 
@@ -23,6 +23,7 @@ Los waits largos son el Operator de OpenShift AI y la carga del modelo.
 . {qwen-model} en el Model Catalog
 . Inferencia CPU con llm-d, publicada en MaaS
 . Vista inicial de observabilidad MaaS (COO / Perses / usage dashboards — xref:11-00-observabilidad.adoc[módulo 11])
+. Smoke de evaluación con EvalHub (xref:12-00-evalhub.adoc[módulo 12])
 
 Los YAML de `examples/` se clonan en el Web Terminal **después** de entrar como `admin` (módulo 1).
 
@@ -47,4 +48,4 @@ Lee xref:00-01-lab-a-prd.adoc[Lab → Prd, RACI y GAPs] antes del hands-on si fa
 
 Sigue el menú de la izquierda, de arriba hacia abajo. Activa el monitoreo de user workloads *antes* del Operator de OpenShift AI. El Operator de Connectivity Link se instala con los operadores previos; el `GatewayClass` y la instancia Kuadrant van *después* de OpenShift AI. No enciendas `modelsAsAService` hasta tener gateway y base de datos.
 
-Después de xref:10-00-verify.adoc[probar inferencia], continúa con xref:11-00-observabilidad.adoc[observabilidad MaaS].
+Después de xref:10-00-verify.adoc[probar inferencia], continúa con xref:11-00-observabilidad.adoc[observabilidad MaaS] y luego xref:12-00-evalhub.adoc[EvalHub].

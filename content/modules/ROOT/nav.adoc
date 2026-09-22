@@ -17,3 +17,4 @@
 * xref:09-00-subscription.adoc[9. Suscripción MaaS]
 * xref:10-00-verify.adoc[10. Probar inferencia]
 * xref:11-00-observabilidad.adoc[11. Observabilidad MaaS]
+* xref:12-00-evalhub.adoc[12. EvalHub]

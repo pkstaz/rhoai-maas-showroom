@@ -1,0 +1,15 @@
+# Minimal EvalHub for the workshop smoke eval (lm-evaluation-harness only).
+# MLflow env is omitted on purpose: UI Evaluations wants MLflow; this lab uses API/CLI.
+apiVersion: trustyai.opendatahub.io/v1alpha1
+kind: EvalHub
+metadata:
+  name: evalhub
+  namespace: evalhub
+spec:
+  replicas: 1
+  database:
+    type: postgresql
+    secret: evalhub-db-credentials
+  providers:
+    - lm-evaluation-harness
+  collections: []

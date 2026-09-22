@@ -1,0 +1,86 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: evalhub-postgres
+  namespace: evalhub
+type: Opaque
+stringData:
+  database-name: evalhub
+  database-user: evalhub
+  # workshop-only: ephemeral lab Postgres password (not production)
+  # gitleaks:allow
+  database-password: evalhub-workshop # pragma: allowlist secret
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: evalhub-postgres
+  namespace: evalhub
+spec:
+  ports:
+    - name: postgresql
+      port: 5432
+      targetPort: 5432
+  selector:
+    app: evalhub-postgres
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: evalhub-postgres
+  namespace: evalhub
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: evalhub-postgres
+  template:
+    metadata:
+      labels:
+        app: evalhub-postgres
+    spec:
+      containers:
+        - name: postgresql
+          image: registry.redhat.io/rhel9/postgresql-16:latest
+          env:
+            - name: POSTGRESQL_USER
+              valueFrom:
+                secretKeyRef:
+                  name: evalhub-postgres
+                  key: database-user
+            - name: POSTGRESQL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: evalhub-postgres
+                  key: database-password
+            - name: POSTGRESQL_DATABASE
+              valueFrom:
+                secretKeyRef:
+                  name: evalhub-postgres
+                  key: database-name
+          ports:
+            - containerPort: 5432
+          readinessProbe:
+            tcpSocket:
+              port: 5432
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          resources:
+            requests:
+              cpu: 50m
+              memory: 256Mi
+            limits:
+              cpu: "1"
+              memory: 1Gi
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: evalhub-db-credentials
+  namespace: evalhub
+type: Opaque
+stringData:
+  # workshop-only: ephemeral lab Postgres URL
+  # gitleaks:allow
+  # pragma: allowlist nextline secret
+  db-url: postgres://evalhub:evalhub-workshop@evalhub-postgres.evalhub.svc.cluster.local:5432/evalhub?sslmode=disable
