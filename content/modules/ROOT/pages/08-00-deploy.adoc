@@ -52,6 +52,8 @@ NOTE: En muchos builds de 3.5 el wizard *no* deja cambiar la imagen. Los env/arg
 
 El Deployment del wizard usa `registry.redhat.io/rhaii/vllm-cuda-rhel9`. Cámbialo a CPU.
 
+IMPORTANT: Cualquier cambio en el `LLMInferenceService` (imagen, env, args, resources) hazlo con el modelo *parado*. Si editas en caliente, los pods suelen quedarse en `Pending` / rollout a medias. Orden: *Stop* → editar → *Start*.
+
 === Opción A — script (nombre típico del wizard)
 
 Si el `LLMInferenceService` se llama `qwenqwen3-06b` (prefijo del wizard):
@@ -61,8 +63,12 @@ Si el `LLMInferenceService` se llama `qwenqwen3-06b` (prefijo del wizard):
 bash examples/patch-llmisvc-cpu.sh qwenqwen3-06b llm
 ----
 
-=== Opción B — editar YAML en consola OpenShift
+El script hace `replicas: 0` → parche CPU → `replicas: 1`.
 
+=== Opción B — UI dashboard + YAML
+
+. Dashboard OpenShift AI → proyecto `llm` → el modelo → *Stop*
+. Espera a que no queden pods del serving en `llm`
 . *Home* → *Search* → `LLMInferenceService` → namespace `llm`
 . Abre el recurso → pestaña *YAML*
 . En `spec.template.containers` (contenedor `main`) deja:
@@ -100,6 +106,16 @@ bash examples/patch-llmisvc-cpu.sh qwenqwen3-06b llm
 ----
 
 . *Save*
+. Dashboard → el modelo → *Start* (o `spec.replicas: 1`)
+
+Stop/Start por CLI:
+
+[source,bash]
+----
+oc patch llminferenceservice qwenqwen3-06b -n llm --type=merge -p '{"spec":{"replicas":0}}'
+# … edita el YAML …
+oc patch llminferenceservice qwenqwen3-06b -n llm --type=merge -p '{"spec":{"replicas":1}}'
+----
 
 === Opción C — manifiesto limpio (sin wizard)
 
