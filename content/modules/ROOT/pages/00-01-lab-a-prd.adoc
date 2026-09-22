@@ -62,7 +62,7 @@ En *Lab* usamos un cluster efímero y un modelo pequeño en CPU. En *Prd* el mis
 | xref:11-00-observabilidad.adoc[Módulo 11]
 
 | Evaluación automatizada
-| xref:12-00-evalhub.adoc[Módulo 12] (smoke; sin MLflow)
+| xref:12-00-evalhub.adoc[Módulo 12] (UI Evaluations + MLflow lab)
 
 | Registry + firma
 | *No* — ver GAPs

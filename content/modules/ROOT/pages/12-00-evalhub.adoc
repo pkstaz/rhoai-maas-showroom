@@ -2,7 +2,9 @@
 
 Prueba de calidad *después* de xref:11-00-observabilidad.adoc[observabilidad MaaS], para no ensuciar los dashboards de Usage con el tráfico del benchmark.
 
-Nada más obligatorio entre el módulo 11 y este: el modelo debe estar *Running* (Start si lo dejaste parado) y la suscripción MaaS del módulo 9 activa.
+Nada más obligatorio entre el 11 y este: modelo *Running* y suscripción MaaS del módulo 9.
+
+Este módulo deja *Develop & train → Evaluations* usable desde la web (TrustyAI + MLflow + EvalHub).
 
 == Qué instala
 
@@ -10,129 +12,100 @@ Nada más obligatorio entre el módulo 11 y este: el modelo debe estar *Running*
 |===
 | Pieza | Para qué
 
-| `trustyai` Managed en el DSC
-| Operator TrustyAI (EvalHub CRD)
+| `trustyai` Managed
+| Operator TrustyAI (CRD `EvalHub`)
+
+| `mlflowoperator` Managed + CR `mlflow`
+| Tracking de experimentos (requerido por la UI Evaluations)
 
 | Postgres efímero en `evalhub`
-| Backend del EvalHub Server (lab only)
+| Backend del EvalHub Server (lab)
 
-| `EvalHub` CR
-| API de jobs + provider `lm-evaluation-harness`
+| `EvalHub` CR + `MLFLOW_TRACKING_URI`
+| Jobs de eval + log a MLflow
 
-| `disableEvalHub: false`
-| Página *Develop & train → Evaluations* (si usas UI + MLflow)
+| `disableLMEval: false`
+| Menú *Develop & train → Evaluations*
 |===
-
-NOTE: La UI *Evaluations* de RHOAI 3.5 también pide un servidor *MLflow*. En este lab la prueba smoke va por *API/CLI* (sin MLflow) para no sumar otro stack en OpenTLC. MLflow queda como GAP → Prd.
 
 == Script (recomendado)
 
-Desde la raíz del repo (modelo con `replicas: 1`):
-
 [source,bash]
 ----
-# Si Qwen está parado:
+# Modelo arriba (si lo paraste por CPU):
 oc patch llminferenceservice qwenqwen3-06b -n llm --type=merge -p '{"spec":{"replicas":1}}'
 
 bash examples/apply-evalhub.sh
 ----
 
+Espera TrustyAI/MLflow Ready y pods de EvalHub. Hard refresh del dashboard (`Cmd+Shift+R`).
+
 == Paso a paso
 
-=== 1. TrustyAI en el DataScienceCluster
+=== 1. Operators en el DSC
 
 [source,bash]
 ----
 oc patch dsc default-dsc --type=merge -p '{
-  "spec":{"components":{"trustyai":{"managementState":"Managed"}}}
+  "spec":{
+    "components":{
+      "trustyai":{"managementState":"Managed"},
+      "mlflowoperator":{"managementState":"Managed"}
+    }
+  }
 }'
-oc get dsc default-dsc -o jsonpath='{.status.conditions[?(@.type=="TrustyAIReady")].status}{"\n"}'
 ----
 
-Espera `TrustyAIReady=True` (unos minutos).
+Espera `TrustyAIReady=True` y `MLflowOperatorReady=True`.
 
-=== 2. Flag del dashboard
+=== 2. Flags del dashboard
 
 [source,bash]
 ----
 oc patch odhdashboardconfig odh-dashboard-config -n redhat-ods-applications --type merge -p '{
-  "spec":{"dashboardConfig":{"disableEvalHub":false}}
+  "spec":{"dashboardConfig":{"disableLMEval":false,"genAiStudio":true}}
 }'
 ----
 
-=== 3. Deploy EvalHub
+=== 3. MLflow (lab: SQLite + PVC)
+
+[source,bash]
+----
+oc apply -f examples/evalhub/mlflow.yaml
+oc get pods -n redhat-ods-applications | grep -i mlflow
+----
+
+=== 4. EvalHub
 
 [source,bash]
 ----
 oc apply -k examples/evalhub
-oc rollout status deploy/evalhub-postgres -n evalhub --timeout=300s
-oc get pods -n evalhub
-oc get route -n evalhub
+oc get evalhub,pods,route -n evalhub
 ----
 
-== Smoke eval (API)
+== UI — lanzar la evaluación
 
-Eval corta: *hellaswag* con `limit: 5` (minutos, no una suite completa). Endpoint OpenAI-compatible del gateway MaaS (in-cluster) + API key del módulo 10.
+. Dashboard → *Develop & train* → *Experiments (MLflow)* → proyecto `llm` (o el tuyo)
+. Crea un experimento, p. ej. `qwen-smoke`
+. *Develop & train* → *Evaluations* → *Start evaluation run*
+. Benchmark: `hellaswag` (o suite corta). En *Benchmark parameters*:
 
-[source,bash]
+[source,json]
 ----
-EVALHUB_URL="https://$(oc get route -n evalhub -o jsonpath='{.items[0].spec.host}')"
-TOKEN="$(oc whoami -t)"
-TENANT=llm
-
-CLUSTER_DOMAIN=$(oc get ingresses.config/cluster -o jsonpath='{.spec.domain}')
-MAAS_URL="maas.${CLUSTER_DOMAIN}"
-
-# Reutiliza o crea API_KEY (módulo 10)
-: "${API_KEY:?export API_KEY from module 10}"
-
-oc -n evalhub create secret generic maas-api-key \
-  --from-literal=api-key="${API_KEY}" \
-  --dry-run=client -o yaml | oc apply -f -
-
-MODEL_URL="http://maas-default-gateway-openshift-default.openshift-ingress.svc.cluster.local/v1"
-MODEL_ID=$(curl -sk "https://${MAAS_URL}/v1/models" \
-  -H "Authorization: Bearer ${API_KEY}" | jq -r '.data[0].id')
-
-curl -sk -X POST "${EVALHUB_URL}/api/v1/evaluations/jobs" \
-  -H "Authorization: Bearer ${TOKEN}" \
-  -H "Content-Type: application/json" \
-  -H "X-Tenant: ${TENANT}" \
-  -d "{
-    \"name\": \"qwen-smoke-hellaswag\",
-    \"model\": {
-      \"url\": \"${MODEL_URL}\",
-      \"name\": \"${MODEL_ID}\",
-      \"auth\": { \"type\": \"api_key\", \"secret_ref\": \"maas-api-key\" }
-    },
-    \"benchmarks\": [{
-      \"provider_id\": \"lm_evaluation_harness\",
-      \"benchmark_id\": \"hellaswag\",
-      \"parameters\": { \"limit\": 5, \"num_fewshot\": 0 }
-    }]
-  }" | jq .
+{"limit": 5, "num_fewshot": 0}
 ----
 
-Sigue el job:
-
-[source,bash]
-----
-JOB_ID=<id del JSON>
-curl -sk -H "Authorization: Bearer ${TOKEN}" -H "X-Tenant: ${TENANT}" \
-  "${EVALHUB_URL}/api/v1/evaluations/jobs/${JOB_ID}" | jq '{state, results}'
-oc get jobs,pods -n llm | head -20
-----
-
-Tras `completed`, vuelve a *Observe & monitor → Usage*: verás el spike de tokens del eval (por eso va *después* del módulo 11).
-
-== UI (opcional, con MLflow)
-
-Si más adelante activas `mlflowoperator` + un tracking server:
-
-. Dashboard → *Develop & train* → *Evaluations*
-. *Start evaluation run* → benchmark *hellaswag* (o suite corta)
-. Source = modelo / endpoint MaaS; parámetros `limit: 5`
+. *MLflow experiment*: el que creaste
+. *Source*: modelo desplegado / endpoint MaaS (`publishers/llm/models/...`)
 . *Evaluate*
+
+Espera *Completed* (el smoke suele ser *5–15 min* en OpenTLC). Luego *Experiments (MLflow)* para ver métricas del run.
+
+Tras el job, *Observe & monitor → Usage* mostrará el spike de tokens (por eso EvalHub va *después* del módulo 11).
+
+== API (backup)
+
+Si la UI no lista el modelo, usa el curl del repo en `examples/apply-evalhub.sh` / el bloque API de commits anteriores: mismo `hellaswag` + `limit: 5` contra el gateway MaaS in-cluster.
 
 == GAPs
 
@@ -140,26 +113,26 @@ Si más adelante activas `mlflowoperator` + un tracking server:
 |===
 | Lab hoy | Prd
 
-| Postgres efímero + un solo provider
-| Postgres gestionado, providers/collections acordados
+| MLflow SQLite + PVC 5 Gi
+| Postgres + S3 / ObjectBucketClaim
 
-| Smoke `limit: 5` por API
-| Suites + umbrales + MLflow + gates en pipeline
+| Postgres EvalHub efímero
+| DB gestionada
 
-| Sin MLflow
-| Experiment tracking y comparación de runs
+| Smoke `limit: 5`
+| Suites + umbrales + gates en pipeline
 
-| Eval en el mismo nodo que serving
-| Cola Kueue / nodos de batch separados
+| Eval + serving en el mismo nodo
+| Kueue / nodos de batch
 |===
 
-Tiempo orientativo: *25–40 min* (+ waits TrustyAI/EvalHub; el smoke suele ser *5–15 min*).
+Tiempo orientativo: *35–50 min* (+ waits de operators).
 
 .Alternativa YAML
 [%collapsible]
 ====
 [source,bash]
 ----
-oc apply -k examples/evalhub
+bash examples/apply-evalhub.sh
 ----
 ====

@@ -21,7 +21,7 @@ disableModelRegistry: false
 disableKueue: false
 modelAsService: true
 genAiStudio: true
-disableEvalHub: false
+disableLMEval: false
 ----
 
 . *Save*
@@ -38,7 +38,7 @@ oc patch odhdashboardconfig odh-dashboard-config -n redhat-ods-applications --ty
       "disableKueue": false,
       "modelAsService": true,
       "genAiStudio": true,
-      "disableEvalHub": false
+      "disableLMEval": false
     }
   }
 }'

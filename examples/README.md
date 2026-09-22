@@ -21,5 +21,5 @@ Ejecuta los `oc apply` desde la raíz del repo.
 | `maas-subscription.yaml` | Auth policy + subscription |
 | `observability/` | Tempo, OTEL, COO, Loki, MinIO (módulo 11) |
 | `apply-maas-observability.sh` | Instala stack observabilidad MaaS |
-| `evalhub/` | Postgres + EvalHub CR (módulo 12) |
-| `apply-evalhub.sh` | TrustyAI Managed + EvalHub lab |
+| `evalhub/` | Postgres + EvalHub CR + MLflow lab (módulo 12) |
+| `apply-evalhub.sh` | TrustyAI + MLflow + EvalHub (UI Evaluations) |

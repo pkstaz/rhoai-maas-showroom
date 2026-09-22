@@ -1,5 +1,4 @@
-# Minimal EvalHub for the workshop smoke eval (lm-evaluation-harness only).
-# MLflow env is omitted on purpose: UI Evaluations wants MLflow; this lab uses API/CLI.
+# Minimal EvalHub for workshop UI Evaluations (lm-evaluation-harness + MLflow).
 apiVersion: trustyai.opendatahub.io/v1alpha1
 kind: EvalHub
 metadata:
@@ -13,3 +12,7 @@ spec:
   providers:
     - lm-evaluation-harness
   collections: []
+  env:
+    - name: MLFLOW_TRACKING_URI
+      # In-cluster MLflow (TLS on :8443) from examples/evalhub/mlflow.yaml
+      value: "https://mlflow.redhat-ods-applications.svc.cluster.local:8443"
