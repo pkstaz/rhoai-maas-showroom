@@ -4,4 +4,5 @@ resources:
   - namespace.yaml
   - postgres.yaml
   - evalhub.yaml
-# mlflow.yaml is cluster-scoped in redhat-ods-applications; apply via apply-evalhub.sh
+# mlflow.yaml (redhat-ods-applications) and mlflow-workspace-rbac.yaml (needs DSP ns)
+# are applied by examples/apply-evalhub.sh

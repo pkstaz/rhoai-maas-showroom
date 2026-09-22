@@ -1,0 +1,15 @@
+# Let EvalHub's SA use the MLflow workspace for project `llm`
+# (MLflow kubernetes auth = SelfSubjectAccessReview on the workspace namespace).
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: evalhub-mlflow-workspace-llm
+  namespace: llm
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: edit
+subjects:
+  - kind: ServiceAccount
+    name: evalhub-service
+    namespace: evalhub

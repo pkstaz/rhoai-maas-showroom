@@ -1,4 +1,7 @@
 # Minimal EvalHub for workshop UI Evaluations (lm-evaluation-harness + MLflow).
+# MLFLOW_TRACKING_URI must include the /mlflow static-prefix or EvalHub probes
+# workspaces_enabled=false and CreateEvaluationJob fails with
+# "Workspace context is required for this request."
 apiVersion: trustyai.opendatahub.io/v1alpha1
 kind: EvalHub
 metadata:
@@ -14,5 +17,7 @@ spec:
   collections: []
   env:
     - name: MLFLOW_TRACKING_URI
-      # In-cluster MLflow (TLS on :8443) from examples/evalhub/mlflow.yaml
-      value: "https://mlflow.redhat-ods-applications.svc.cluster.local:8443"
+      value: "https://mlflow.redhat-ods-applications.svc.cluster.local:8443/mlflow"
+    - name: MLFLOW_WORKSPACE
+      # Data Science Project where you create the MLflow experiment (module 8: llm)
+      value: "llm"

@@ -21,8 +21,11 @@ Este módulo deja *Develop & train → Evaluations* usable desde la web (TrustyA
 | Postgres efímero en `evalhub`
 | Backend del EvalHub Server (lab)
 
-| `EvalHub` CR + `MLFLOW_TRACKING_URI`
-| Jobs de eval + log a MLflow
+| `EvalHub` CR + `MLFLOW_TRACKING_URI` (`…/mlflow`) + `MLFLOW_WORKSPACE`
+| Jobs de eval + log a MLflow (el path `/mlflow` es obligatorio)
+
+| RoleBinding EvalHub SA → proyecto `llm`
+| Acceso al workspace MLflow del DSP
 
 | `disableLMEval: false`
 | Menú *Develop & train → Evaluations*
@@ -35,7 +38,9 @@ Este módulo deja *Develop & train → Evaluations* usable desde la web (TrustyA
 bash examples/apply-evalhub.sh
 ----
 
-Espera TrustyAI/MLflow Ready y pods de EvalHub. Hard refresh del dashboard (`Cmd+Shift+R`).
+Aplica operators → *MLflow Ready* → EvalHub → RBAC al workspace `llm`. Hard refresh del dashboard (`Cmd+Shift+R`).
+
+IMPORTANT: Crea el CR `mlflow` *antes* que `EvalHub`. Si EvalHub arrancó primero, borra y vuelve a aplicar el CR (`oc delete evalhub evalhub -n evalhub` y re-ejecuta el script).
 
 == Paso a paso
 
@@ -72,31 +77,83 @@ oc apply -f examples/evalhub/mlflow.yaml
 oc get pods -n redhat-ods-applications | grep -i mlflow
 ----
 
+Espera el deploy `mlflow` con `readyReplicas=1` *antes* del paso 4.
+
 === 4. EvalHub
 
 [source,bash]
 ----
 oc apply -k examples/evalhub
+oc apply -f examples/evalhub/mlflow-workspace-rbac.yaml
 oc get evalhub,pods,route -n evalhub
 ----
 
+El YAML fija:
+
+* `MLFLOW_TRACKING_URI=https://mlflow.redhat-ods-applications.svc.cluster.local:8443/mlflow`
+* `MLFLOW_WORKSPACE=llm`
+
+Sin el sufijo `/mlflow`, CreateEvaluationJob falla con `Workspace context is required`.
+
+== Valores para el formulario (external / MaaS)
+
+Secret con la API key MaaS (clave `OPENAI_API_KEY`) y variables para pegar en la UI:
+
+[source,bash]
+----
+CLUSTER_DOMAIN=$(oc get ingresses.config.openshift.io cluster -o jsonpath='{.spec.domain}')
+MAAS_URL="maas.${CLUSTER_DOMAIN}"
+
+API_KEY=$(curl -sk -X POST "https://${MAAS_URL}/maas-api/v1/api-keys" \
+  -H "Authorization: Bearer $(oc whoami -t)" \
+  -H "Content-Type: application/json" \
+  -d '{"name":"evalhub","subscription":"qwen-authenticated","expiresIn":"72h"}' \
+  | jq -r '.key')
+
+oc create secret generic maas-eval-api-key -n llm \
+  --from-literal=OPENAI_API_KEY="${API_KEY}" \
+  --from-literal=api-key="${API_KEY}" \
+  --dry-run=client -o yaml | oc apply -f -
+# El job corre en namespace evalhub y monta el mismo Secret
+oc get secret maas-eval-api-key -n llm -o yaml \
+  | sed 's/namespace: llm/namespace: evalhub/' | oc apply -f -
+
+export ENDPOINT="https://${MAAS_URL}/v1"
+export MODEL_ID=$(curl -sk "https://${MAAS_URL}/v1/models" \
+  -H "Authorization: Bearer ${API_KEY}" | jq -r '.data[0].id')
+export API_KEY_SECRET="maas-eval-api-key"
+
+printf '\n'
+printf '┌──────────────────────────────────────────────────────────────┐\n'
+printf '│  EvalHub — External model (pegar en el formulario)           │\n'
+printf '├──────────────────────────────────────────────────────────────┤\n'
+printf '│ ENDPOINT       = %-44s │\n' "${ENDPOINT}"
+printf '│ MODEL_ID       = %-44s │\n' "${MODEL_ID}"
+printf '│ API_KEY_SECRET = %-44s │\n' "${API_KEY_SECRET}"
+printf '└──────────────────────────────────────────────────────────────┘\n'
+----
+
+En el formulario: *Endpoint URL* = `ENDPOINT`, *Model name* = `MODEL_ID` (id MaaS, p. ej. `publishers/llm/models/qwenqwen3-06b`), *API key secret name* = `API_KEY_SECRET` (nombre del Secret, no el `sk-oai-…`).
+
 == UI — lanzar la evaluación
 
-. Dashboard → *Develop & train* → *Experiments (MLflow)* → proyecto `llm` (o el tuyo)
+. Dashboard → *Develop & train* → *Experiments (MLflow)* → proyecto `llm`
 . Crea un experimento, p. ej. `qwen-smoke`
 . *Develop & train* → *Evaluations* → *Start evaluation run*
-. Benchmark: *Helpfulness, honesty & harmlessness (HHH)*. En *Benchmark parameters*:
+. Benchmark: *Helpfulness, honesty & harmlessness (HHH)*. En *Benchmark parameters* incluye el tokenizer HF (el id MaaS *no* sirve como tokenizer):
 
 [source,json]
 ----
-{"limit": 5, "num_fewshot": 0}
+{"limit": 5, "num_fewshot": 0, "tokenizer": "Qwen/Qwen3-0.6B"}
 ----
 
 . *MLflow experiment*: el que creaste
-. *Source*: modelo desplegado / endpoint MaaS (`publishers/llm/models/...`)
+. *Source*: external / MaaS — usa `ENDPOINT`, `MODEL_ID` y `API_KEY_SECRET` de arriba
 . *Evaluate*
 
-Espera *Completed* (el smoke suele ser *5–15 min* en OpenTLC). Luego *Experiments (MLflow)* para ver métricas del run.
+La UI puede quedarse en *Pending* unos minutos la *primera* vez: el pod descarga `odh-ta-lmes-job` (~7 GB). Luego pasa a *Running* / *Completed* (smoke ~5–15 min en OpenTLC). *Experiments (MLflow)* para ver métricas.
+
+Sin `tokenizer` en los parameters, el job falla al tratar el id MaaS como repo de Hugging Face (`Repo id must be in the form 'namespace/repo_name'`).
 
 Tras el job, *Observe & monitor → Usage* mostrará el spike de tokens (por eso EvalHub va *después* del módulo 11).
 
