@@ -32,9 +32,6 @@ Este módulo deja *Develop & train → Evaluations* usable desde la web (TrustyA
 
 [source,bash]
 ----
-# Modelo arriba (si lo paraste por CPU):
-oc patch llminferenceservice qwenqwen3-06b -n llm --type=merge -p '{"spec":{"replicas":1}}'
-
 bash examples/apply-evalhub.sh
 ----
 
