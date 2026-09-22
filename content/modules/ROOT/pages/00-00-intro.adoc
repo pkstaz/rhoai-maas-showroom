@@ -14,6 +14,7 @@ Los waits largos son el Operator de OpenShift AI y la carga del modelo.
 == Qué vas a dejar funcionando
 
 . Web Terminal en la consola
+. User-workload monitoring
 . OpenShift AI {rhoai-version} + dashboard
 . MaaS (gateway, API keys, cuotas)
 . Fake GPU Operator
@@ -41,4 +42,4 @@ No instales NVIDIA GPU Operator ni OpenShift Serverless / Service Mesh *2*. Este
 
 == Orden
 
-Sigue el menú de la izquierda, de arriba hacia abajo. El Operator de Connectivity Link se instala con los operadores previos; el `GatewayClass` y la instancia Kuadrant van *después* de OpenShift AI. No enciendas `modelsAsAService` hasta tener gateway y base de datos.
+Sigue el menú de la izquierda, de arriba hacia abajo. Activa el monitoreo de user workloads *antes* del Operator de OpenShift AI. El Operator de Connectivity Link se instala con los operadores previos; el `GatewayClass` y la instancia Kuadrant van *después* de OpenShift AI. No enciendas `modelsAsAService` hasta tener gateway y base de datos.
