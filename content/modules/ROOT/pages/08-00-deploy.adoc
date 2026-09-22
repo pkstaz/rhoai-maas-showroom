@@ -29,6 +29,7 @@ oc label namespace llm \
 . Hardware profile: `cpu-workshop`
 . Replicas: `1`
 . Publicar en *Models as a Service*
+. Marca *Add as AI asset endpoint* (sin esto, Gen AI Studio → *AI asset endpoints* no lista el modelo)
 . Si el formulario muestra *Additional environment variables* / *Additional serving runtime arguments*, añade:
 
 Environment variables::
@@ -140,5 +141,12 @@ oc get maasmodelref -n llm -o wide
 ----
 
 `LLMInferenceService` `Ready`. Pod `Running`. Imagen del `*-kserve` = `vllm-cpu-rhel9` (no `vllm-cuda`).
+
+Gen AI Studio → *AI asset endpoints* solo lista modelos con la etiqueta `opendatahub.io/genai-asset=true` (checkbox del wizard o CLI abajo). Proyecto seleccionado: `llm`.
+
+[source,bash]
+----
+oc label llminferenceservice qwenqwen3-06b -n llm opendatahub.io/genai-asset=true --overwrite
+----
 
 En GenAI Studio → *Playground*, prueba el modelo cuando esté Ready (usa `/no_think` y `max_tokens` bajo).
