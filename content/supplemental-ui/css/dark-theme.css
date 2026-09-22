@@ -1,18 +1,18 @@
 /* Dark tone for RHDP showroom UI — same layout, inverted surfaces.
-   Keeps Red Hat red (#e00) accents and RedHatText / RedHatDisplay fonts. */
+   Mirrors the filtered mock: charcoal page, dark code blocks, red accents. */
 
 :root {
-  --lab-bg: #15171a;
-  --lab-bg-elevated: #1e2126;
-  --lab-bg-soft: #252930;
-  --lab-bg-code: #0f1114;
-  --lab-border: #3a3f47;
-  --lab-text: #d2d5db;
-  --lab-text-muted: #9aa0a8;
-  --lab-heading: #f5f6f7;
+  --lab-bg: #121416;
+  --lab-bg-elevated: #1a1d22;
+  --lab-bg-soft: #23272e;
+  --lab-bg-code: #0d0f12;
+  --lab-border: #3c424c;
+  --lab-text: #d8dbe2;
+  --lab-text-muted: #9aa1ab;
+  --lab-heading: #ffffff;
   --lab-accent: #ee0000;
   --lab-accent-soft: #ff4d4d;
-  --lab-shadow: rgba(0, 0, 0, 0.45);
+  --lab-shadow: rgba(0, 0, 0, 0.55);
 }
 
 html,
@@ -32,7 +32,7 @@ a:focus {
 
 /* Navbar */
 .navbar {
-  background-color: #0f1114 !important;
+  background-color: #0a0b0d !important;
   color: var(--lab-heading) !important;
   box-shadow: 0 1px 0 var(--lab-border) !important;
 }
@@ -53,7 +53,7 @@ a:focus {
 }
 
 .navbar .navbar-menu {
-  background-color: #0f1114 !important;
+  background-color: #0a0b0d !important;
   border-color: var(--lab-border) !important;
 }
 
@@ -172,6 +172,7 @@ aside.toc.sidebar,
 #content,
 .content,
 .doc {
+  background-color: transparent !important;
   color: var(--lab-text) !important;
 }
 
@@ -202,19 +203,47 @@ aside.toc.sidebar,
   color: #ff6b6b !important;
 }
 
-.doc p code,
-.doc thead code,
-.doc .literalblock code {
-  color: #f0f1f3 !important;
-  background: var(--lab-bg-soft) !important;
+.doc .admonitionblock .title,
+.doc .exampleblock .title,
+.doc .imageblock .title,
+.doc .listingblock .title,
+.doc .literalblock .title,
+.doc .openblock .title,
+.doc .tableblock caption {
+  color: var(--lab-text-muted) !important;
 }
 
-.doc pre,
-.doc .listingblock pre,
-.doc .literalblock pre {
-  background: var(--lab-bg-code) !important;
-  color: #e6e8ec !important;
+/* Inline code pills */
+.doc p code,
+.doc thead code,
+.doc td code,
+.doc li code,
+.doc .literalblock code,
+.doc code:not(.hljs):not([data-lang]) {
+  color: #f0f2f5 !important;
+  background: var(--lab-bg-soft) !important;
   border: 1px solid var(--lab-border);
+  border-radius: 0.25em;
+}
+
+/* Code blocks — override site.css light #ededed on pre/code */
+.doc pre,
+.doc pre.highlight,
+.doc .listingblock pre,
+.doc .literalblock pre,
+.doc pre.highlight code,
+.doc pre:not(.highlight),
+.doc .listingblock pre code,
+.doc .literalblock pre code,
+.doc .console-input pre.highlight code,
+.doc .copypaste pre.highlight code,
+.doc .execute pre.highlight code,
+.doc .console-output pre.highlight code {
+  background: var(--lab-bg-code) !important;
+  background-color: var(--lab-bg-code) !important;
+  color: #e8eaed !important;
+  box-shadow: none !important;
+  border: 1px solid var(--lab-border) !important;
   border-radius: 4px;
 }
 
@@ -223,16 +252,93 @@ aside.toc.sidebar,
   background: transparent !important;
 }
 
+.doc .listingblock code[data-lang]::before {
+  color: var(--lab-text-muted) !important;
+}
+
+/* Highlight.js tokens for dark backgrounds */
+.hljs-comment,
+.hljs-quote {
+  color: #8b949e !important;
+}
+
+.hljs-keyword,
+.hljs-selector-tag,
+.hljs-subst {
+  color: #ff7b72 !important;
+  font-weight: 500;
+}
+
+.hljs-literal,
+.hljs-number,
+.hljs-tag .hljs-attr,
+.hljs-template-variable,
+.hljs-variable {
+  color: #79c0ff !important;
+}
+
+.hljs-doctag,
+.hljs-string {
+  color: #a5d6ff !important;
+}
+
+.hljs-section,
+.hljs-selector-id,
+.hljs-title {
+  color: #ffa657 !important;
+}
+
+.hljs-class .hljs-title,
+.hljs-type {
+  color: #d2a8ff !important;
+}
+
+.hljs-attribute,
+.hljs-name,
+.hljs-tag {
+  color: #7ee787 !important;
+}
+
+.hljs-link,
+.hljs-regexp {
+  color: #a5d6ff !important;
+}
+
+.hljs-bullet,
+.hljs-symbol {
+  color: #f2cc60 !important;
+}
+
+.hljs-built_in,
+.hljs-builtin-name {
+  color: #ffa657 !important;
+}
+
+.hljs-meta {
+  color: #8b949e !important;
+}
+
+.hljs-deletion {
+  background: #490202 !important;
+}
+
+.hljs-addition {
+  background: #033a16 !important;
+}
+
+/* Tables */
 .doc table.tableblock thead th {
-  border-bottom-color: var(--lab-border) !important;
+  border-bottom: 2px solid var(--lab-border) !important;
   color: var(--lab-heading) !important;
-  background: var(--lab-bg-elevated);
+  background: var(--lab-bg-elevated) !important;
 }
 
 .doc table.tableblock > :not(thead) th,
 .doc table.tableblock td {
   border-top-color: var(--lab-border) !important;
   border-bottom-color: var(--lab-border) !important;
+  background: transparent !important;
+  color: var(--lab-text) !important;
 }
 
 .doc .sidebarblock,
@@ -242,6 +348,10 @@ aside.toc.sidebar,
   background: var(--lab-bg-elevated) !important;
   border-color: var(--lab-border) !important;
   color: var(--lab-text) !important;
+}
+
+.doc .exampleblock > .content {
+  border: 0.25rem solid var(--lab-border) !important;
 }
 
 .doc .admonitionblock td.icon {
@@ -271,11 +381,12 @@ aside.toc.sidebar,
 }
 
 .doc details,
-.doc .openblock.collapsible {
-  background: var(--lab-bg-elevated);
-  border: 1px solid var(--lab-border);
+.doc .openblock.collapsible,
+.tabset > .content {
+  background: var(--lab-bg-elevated) !important;
+  border: 1px solid var(--lab-border) !important;
   border-radius: 4px;
-  padding: 0.5rem 0.75rem;
+  color: var(--lab-text) !important;
 }
 
 .doc hr {
@@ -297,7 +408,6 @@ footer.footer,
   color: var(--lab-accent-soft) !important;
 }
 
-/* Page versions menu */
 .page-versions .version-menu {
   background-color: var(--lab-bg-elevated) !important;
   border-color: var(--lab-border) !important;
