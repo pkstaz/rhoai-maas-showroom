@@ -20,6 +20,7 @@ Ejecuta los `oc apply` desde la raíz del repo.
 | `patch-llmisvc-cpu.sh` | Parche wizard → vLLM CPU |
 | `maas-subscription.yaml` | Auth policy + subscription (`qwenqwen3-06b`) |
 | `fix-maas-authorino-ca.sh` | Authorino + service-CA (evita AUTH_FAILURE) |
+| `fix-maas-usage-user-label.sh` | TelemetryPolicy `user` label → Usage UI muestra tokens |
 | `fix-playground-maas.sh` | Playground: API key MaaS + max_tokens=1024 |
 | `observability/` | Tempo, OTEL, COO, Loki, MinIO (módulo 11) |
 | `apply-maas-observability.sh` | Instala stack observabilidad MaaS |
