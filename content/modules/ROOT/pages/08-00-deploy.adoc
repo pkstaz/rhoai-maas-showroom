@@ -149,4 +149,6 @@ Gen AI Studio → *AI asset endpoints* solo lista modelos con la etiqueta `opend
 oc label llminferenceservice qwenqwen3-06b -n llm opendatahub.io/genai-asset=true --overwrite
 ----
 
-En GenAI Studio → *Playground*, prueba el modelo cuando esté Ready (usa `/no_think` y `max_tokens` bajo).
+En GenAI Studio → *Playground*, prueba el modelo cuando esté Ready (usa `/no_think`).
+
+IMPORTANT: El vLLM CPU del lab usa `max_model_len=2048`. Si el Playground falla con `max_tokens=4096 cannot be greater than max_model_len`, baja a ≤ 1024. Tras la subscription (módulo 9), el módulo 10 documenta `examples/fix-playground-maas.sh` (API key real + `VLLM_MAX_TOKENS=1024`).

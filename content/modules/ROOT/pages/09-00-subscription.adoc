@@ -8,7 +8,7 @@ Para consumir el modelo por el gateway hace falta *subscription* y *authorizatio
 . *Create subscription*
 . Name: `qwen-authenticated`
 . Groups: `system:authenticated`
-. Model: el `MaaSModelRef` `qwen3-06b` (namespace `llm`)
+. Model: el `MaaSModelRef` en `llm` (suele llamarse `qwenqwen3-06b` si salió del wizard)
 . Rate limits (dos ventanas, más realistas para el lab):
 
 * `500` tokens / `30s` — ráfaga por petición
@@ -21,6 +21,8 @@ Para consumir el modelo por el gateway hace falta *subscription* y *authorizatio
 . Group: `system:authenticated`
 . Mismos model refs que la subscription
 . *Create*
+
+IMPORTANT: El nombre de la subscription (`qwen-authenticated`, o `demo` si la creaste a mano) debe coincidir al pedir la API key en el módulo 10. Si `jq` imprime `null`, lista suscripciones con `oc get maassubscription -n models-as-a-service`.
 
 == Verificar
 

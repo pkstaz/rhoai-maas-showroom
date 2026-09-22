@@ -18,7 +18,9 @@ Ejecuta los `oc apply` desde la raíz del repo.
 | `hardware-profiles.yaml` | Perfiles `cpu-workshop`, `fake-h200`, `fake-h200-mig` |
 | `llminferenceservice-qwen3-06b.yaml` | llm-d CPU + MaaSModelRef |
 | `patch-llmisvc-cpu.sh` | Parche wizard → vLLM CPU |
-| `maas-subscription.yaml` | Auth policy + subscription |
+| `maas-subscription.yaml` | Auth policy + subscription (`qwenqwen3-06b`) |
+| `fix-maas-authorino-ca.sh` | Authorino + service-CA (evita AUTH_FAILURE) |
+| `fix-playground-maas.sh` | Playground: API key MaaS + max_tokens=1024 |
 | `observability/` | Tempo, OTEL, COO, Loki, MinIO (módulo 11) |
 | `apply-maas-observability.sh` | Instala stack observabilidad MaaS |
 | `evalhub/` | Postgres + EvalHub CR + MLflow lab (módulo 12) |

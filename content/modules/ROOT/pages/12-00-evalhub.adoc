@@ -88,7 +88,7 @@ oc get evalhub,pods,route -n evalhub
 . Dashboard → *Develop & train* → *Experiments (MLflow)* → proyecto `llm` (o el tuyo)
 . Crea un experimento, p. ej. `qwen-smoke`
 . *Develop & train* → *Evaluations* → *Start evaluation run*
-. Benchmark: `hellaswag` (o suite corta). En *Benchmark parameters*:
+. Benchmark: *Helpfulness, honesty & harmlessness (HHH)* (en este build **no** aparece `hellaswag` en la lista UI). En *Benchmark parameters*:
 
 [source,json]
 ----
@@ -105,7 +105,7 @@ Tras el job, *Observe & monitor → Usage* mostrará el spike de tokens (por eso
 
 == API (backup)
 
-Si la UI no lista el modelo, usa el curl del repo en `examples/apply-evalhub.sh` / el bloque API de commits anteriores: mismo `hellaswag` + `limit: 5` contra el gateway MaaS in-cluster.
+Si la UI no lista el modelo, usa API/CLI con `benchmark_id` del provider (p. ej. el id interno de HHH / `bigbench_hhh_alignment_multiple_choice`) y `limit: 5`.
 
 == GAPs
 
