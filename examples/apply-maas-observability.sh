@@ -6,23 +6,43 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 OBS="${ROOT}/examples/observability"
 
+# Wait until a CSV whose name matches REGEX exists in NS, then until Succeeded.
+wait_csv() {
+  local ns="$1"
+  local regex="$2"
+  local timeout="${3:-300}"
+  local end=$((SECONDS + timeout))
+  local csv=""
+
+  echo "Waiting for CSV matching /${regex}/ in ${ns}..."
+  while (( SECONDS < end )); do
+    csv="$(oc get csv -n "${ns}" -o jsonpath='{range .items[*]}{.metadata.name}{"\n"}{end}' 2>/dev/null \
+      | grep -E "${regex}" | head -1 || true)"
+    if [[ -n "${csv}" ]]; then
+      echo "Found ${csv}; waiting Succeeded..."
+      oc wait "csv/${csv}" -n "${ns}" \
+        --for=jsonpath='{.status.phase}'=Succeeded \
+        --timeout="${timeout}s"
+      return 0
+    fi
+    sleep 5
+  done
+  echo "Timed out waiting for CSV /${regex}/ in ${ns}" >&2
+  oc get csv -n "${ns}" || true
+  return 1
+}
+
 echo "=== 1. Tempo Operator ==="
 oc apply -k "${OBS}/tempo"
-oc wait csv -n openshift-tempo-operator \
-  -l operators.coreos.com/tempo-product.openshift-tempo-operator="" \
-  --for=jsonpath='{.status.phase}'=Succeeded --timeout=300s
+wait_csv openshift-tempo-operator 'tempo-operator' 300
 
 echo "=== 2. OpenTelemetry Operator ==="
 oc apply -k "${OBS}/opentelemetry"
-oc wait csv -n openshift-opentelemetry-operator \
-  -l operators.coreos.com/opentelemetry-product.openshift-opentelemetry-operator="" \
-  --for=jsonpath='{.status.phase}'=Succeeded --timeout=300s
+wait_csv openshift-opentelemetry-operator 'opentelemetry-operator' 300
 
 echo "=== 3. Cluster Observability Operator ==="
 oc apply -k "${OBS}/coo"
-oc wait csv -n openshift-cluster-observability-operator \
-  -l operators.coreos.com/cluster-observability-operator.openshift-cluster-observability="" \
-  --for=jsonpath='{.status.phase}'=Succeeded --timeout=300s
+wait_csv openshift-cluster-observability-operator 'cluster-observability-operator' 300
 
 echo "=== 4. DSCI monitoring (Perses dashboards) ==="
 oc patch dsci default-dsci --type=merge -p '{
@@ -54,9 +74,7 @@ oc patch maastenantconfig default-tenant -n models-as-a-service \
 
 echo "=== 6. Loki Operator ==="
 oc apply -k "${OBS}/loki"
-oc wait csv -n openshift-operators-redhat \
-  -l operators.coreos.com/loki-operator.openshift-operators-redhat="" \
-  --for=jsonpath='{.status.phase}'=Succeeded --timeout=300s
+wait_csv openshift-operators-redhat 'loki-operator' 300
 
 echo "=== 7. MinIO + LokiStack (usage dashboards) ==="
 oc apply -k "${OBS}/usage-logging"
