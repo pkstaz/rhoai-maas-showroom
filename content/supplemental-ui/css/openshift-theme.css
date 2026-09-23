@@ -412,7 +412,6 @@ html.pf-v5-theme-dark .doc .sidebarblock,
 html.pf-v5-theme-dark .doc .exampleblock > .content,
 html.pf-v5-theme-dark .doc .quoteblock,
 html.pf-v5-theme-dark .doc .verseblock,
-html.pf-v5-theme-dark .doc .admonitionblock > table,
 html.pf-v5-theme-dark .doc .admonitionblock td.content,
 html.pf-v5-theme-dark .doc details,
 html.pf-v5-theme-dark .tabset > .content {
@@ -429,16 +428,44 @@ html.pf-v5-theme-dark .doc .exampleblock > .content {
 }
 
 html.pf-v5-theme-dark .doc .admonitionblock {
-  margin: 1.25rem 0 !important;
+  margin: 1.75rem 0 1.25rem !important;
+  overflow: visible !important;
 }
 
 html.pf-v5-theme-dark .doc .admonitionblock > table {
+  background: var(--ocp-bg-surface) !important;
+  border: 1px solid var(--ocp-border-subtle) !important;
+  border-radius: var(--ocp-radius-md) !important;
   border-collapse: separate !important;
   border-spacing: 0 !important;
+  overflow: visible !important;
+  color: var(--ocp-text) !important;
+}
+
+html.pf-v5-theme-dark .doc .admonitionblock td.content {
+  border: none !important;
+  border-radius: 0 var(--ocp-radius-md) var(--ocp-radius-md) 0 !important;
+  overflow: visible !important;
 }
 
 html.pf-v5-theme-dark .doc .admonitionblock td.icon {
+  position: relative;
+  z-index: 2;
+  overflow: visible !important;
+  vertical-align: top;
   border-radius: var(--ocp-radius-md) 0 0 var(--ocp-radius-md) !important;
+  padding: 0.85rem 0.9rem !important;
+}
+
+/* Keep NOTE/TIP/… label fully visible on top of the card */
+html.pf-v5-theme-dark .doc .admonitionblock td.icon .title,
+html.pf-v5-theme-dark .doc .admonitionblock td.icon i,
+html.pf-v5-theme-dark .doc .admonitionblock td.icon [class^="fa icon-"] {
+  position: relative;
+  z-index: 3;
+  display: inline-block;
+  line-height: 1.2 !important;
+  overflow: visible !important;
 }
 
 html.pf-v5-theme-dark .doc .admonitionblock.note td.icon,
