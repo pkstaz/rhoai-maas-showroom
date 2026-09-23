@@ -2,11 +2,9 @@
 
 Abre una terminal dentro de la consola. El resto del lab se puede hacer desde ahí.
 
-== UI
-
-. Consola OpenShift → *Ecosystem* (o *Operators*) → *OperatorHub*
+. Consola OpenShift → *Ecosystem* → *Software Catalog*
 . Busca `Web Terminal`
-. Instala *Web Terminal* (incluye DevWorkspace). Deja *All namespaces* y el namespace recomendado.
+. Instala *Web Terminal*. Deja los valores por defecto (*All namespaces* y el namespace recomendado).
 . Espera *Succeeded*
 
 == Abrir la terminal
@@ -21,17 +19,23 @@ oc whoami
 oc version
 ----
 
-`oc whoami` debe devolver `kubeadmin`. El Web Terminal no tiene `sudo`: Helm se instala más abajo, ya como `admin`.
+`oc whoami` debe devolver `kubeadmin`.
 
 == Usuario admin
 
 `kubeadmin` vale para Operators. El dashboard de OpenShift AI *no* lo acepta.
 
-Desde esta terminal:
+Define la contraseña (puedes cambiarla; por defecto `rhoai`):
 
 [source,bash]
 ----
 PASS='rhoai'
+----
+
+Desde esta terminal:
+
+[source,bash]
+----
 echo "admin:$(openssl passwd -apr1 "$PASS")" > /tmp/htpasswd
 
 oc create secret generic htpasswd-secret \
@@ -44,10 +48,17 @@ oc patch oauth cluster --type merge -p '{"spec":{"identityProviders":[{"name":"h
 oc adm policy add-cluster-role-to-user cluster-admin admin
 ----
 
-Espera ~1 minuto (pods de `openshift-authentication`).
+Espera a que los pods de `openshift-authentication` estén `Ready`:
+
+[source,bash]
+----
+oc wait --for=condition=Ready pods --all -n openshift-authentication --timeout=180s
+----
+
+== Cambiar Usuario
 
 . Cierra sesión (esquina superior derecha)
-. Entra como `admin` / `rhoai`
+. Entra como `admin` / `rhoai` (o la contraseña que hayas puesto en `PASS`)
 . Abre otra vez el Web Terminal
 . Comprueba:
 
@@ -58,7 +69,7 @@ oc whoami
 
 Debe devolver `admin`. El resto del lab se hace con este usuario.
 
-Clona el repo en esta terminal (el `$HOME` de `kubeadmin` no se comparte):
+Clona el repo en esta terminal:
 
 [source,bash]
 ----
