@@ -1,7 +1,6 @@
 = GPU
 
 Capacidad `nvidia.com/gpu` para perfiles y GPU Booking.
-El profile CPU (`cpu-workshop`) ya está en xref:03-04-hardware-profile-cpu.adoc[Instalar OpenShift AI].
 
 Dos menús independientes (puedes hacer uno, los dos o ninguno):
 
@@ -28,6 +27,8 @@ Dos menús independientes (puedes hacer uno, los dos o ninguno):
 |===
 
 IMPORTANT: *Nunca* instales Fake GPU en un nodo que ya tenga GPU NVIDIA (mismo nodo = conflicto).
+
+NOTE: *Node Feature Discovery* (NFD) sí puedes usarlo con NVIDIA GPU Operator y Fake GPU a la vez. NFD solo etiqueta hardware real (p. ej. PCI `10de`); Fake GPU usa su propio label (`run.ai/simulated-gpu-node-pool`) en workers CPU y no choca con NFD. El NVIDIA GPU Operator suele desplegar o depender de NFD — déjalo en los nodos con GPU; no hace falta (ni conviene) forzar labels NVIDIA en el nodo Fake.
 
 == Inventario (opcional, compartido)
 

@@ -90,16 +90,27 @@ oc delete pod -n gpu-operator -l app=status-updater
 
 == Verificar
 
+`$FAKE_GPU_NODE` debe seguir definido en esta sesión (si abriste otra terminal, vuelve a exportarlo).
+
 [source,bash]
 ----
+: "${FAKE_GPU_NODE:?FAKE_GPU_NODE vacío — vuelve a la sección Elegir un nodo CPU}"
+
 oc get pods -n gpu-operator
-oc get node "$FAKE_GPU_NODE" -o custom-columns=\
-NAME:.metadata.name,\
-PRODUCT:.metadata.labels.nvidia\.com/gpu\.product,\
-GPU:.status.allocatable.nvidia\.com/gpu,\
-MIG1:.status.allocatable.nvidia\.com/mig-1g\.18gb,\
-MIG2:.status.allocatable.nvidia\.com/mig-2g\.35gb,\
-MIG3:.status.allocatable.nvidia\.com/mig-3g\.71gb
+
+oc get node "$FAKE_GPU_NODE" -o json | jq -r '
+  [
+    .metadata.name,
+    (.metadata.labels["nvidia.com/gpu.product"] // "-"),
+    (.status.allocatable["nvidia.com/gpu"] // "-"),
+    (.status.allocatable["nvidia.com/mig-1g.18gb"] // "-"),
+    (.status.allocatable["nvidia.com/mig-2g.35gb"] // "-"),
+    (.status.allocatable["nvidia.com/mig-3g.71gb"] // "-")
+  ] | @tsv
+' | awk -F'\t' 'BEGIN{
+  printf "%-42s %-28s %-8s %-10s %-10s %-10s\n","NAME","PRODUCT","GPU","MIG1","MIG2","MIG3"
+}
+{ printf "%-42s %-28s %-8s %-10s %-10s %-10s\n",$1,$2,$3,$4,$5,$6 }'
 ----
 
 Esperado: `NVIDIA-H200-141GB-HBM3e`, `nvidia.com/gpu=1`, y los slices MIG.

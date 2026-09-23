@@ -29,4 +29,5 @@ oc get consoleplugin gpu-booking-plugin
 
 Hard refresh de la consola OpenShift. En perspectiva Administrator aparece *GPU Booking*.
 
-Abre el calendario, dispara *Discover*, y confirma `NVIDIA-H200-141GB-HBM3e` (141 GB) y los slices MIG `1g.18gb`, `2g.35gb`, `3g.71gb`.
+Abre el calendario, dispara *Discover*, y confirma que aparece al menos una GPU (producto, memoria y, si aplica, slices MIG).
+El nombre exacto depende de tu cluster: GPU real (p. ej. A100, H100, H200, L40S…) o Fake GPU (`NVIDIA-H200-141GB-HBM3e` con MIG `1g.18gb` / `2g.35gb` / `3g.71gb` si instalaste el módulo Fake).

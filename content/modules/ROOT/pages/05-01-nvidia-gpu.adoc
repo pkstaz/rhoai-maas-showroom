@@ -3,9 +3,18 @@
 Instala el *NVIDIA GPU Operator* cuando tengas (o vayas a tener) nodos con GPU real.
 Si tu cluster es single-node solo CPU, omite este menú y usa xref:05-02-fake-gpu.adoc[Fake GPU Operator].
 
-Documentación: https://docs.nvidia.com/datacenter/cloud-native/openshift/latest/index.html[NVIDIA GPU Operator on OpenShift].
+En OpenShift, *Node Feature Discovery* (*NFD*) es **requisito** del GPU Operator: etiqueta nodos con PCI NVIDIA (`feature.node.kubernetes.io/pci-10de.present=true`) para que el Operator sepa dónde desplegar drivers y device plugins.
 
-== Validar candidatos
+Documentación:
+
+* https://docs.nvidia.com/datacenter/cloud-native/openshift/latest/install-nfd.html[Instalar NFD (NVIDIA)]
+* https://docs.nvidia.com/datacenter/cloud-native/openshift/latest/install-gpu-ocp.html[Instalar NVIDIA GPU Operator]
+
+Orden: *NFD Operator* → instancia `NodeFeatureDiscovery` → *NVIDIA GPU Operator* → `ClusterPolicy` → hardware profile.
+
+== Validar candidatos (antes / después de NFD)
+
+Antes de NFD puede no haber labels. Tras NFD + ClusterPolicy deberías ver GPU allocatable.
 
 [source,bash]
 ----
@@ -20,13 +29,75 @@ oc get nodes -o json | jq -r '
 '
 ----
 
-NOTE: Sin NFD, un nodo con GPU puede no mostrar labels todavía. Revisa el tipo de instancia o `oc describe node`.
+== NFD Operator (recomendado / requerido)
 
-== Instalar Operator
+. Consola → *Ecosystem* → *Software Catalog*
+. Busca `Node Feature Discovery`
+. Instala en el namespace recomendado (suele ser `openshift-nfd`)
+. Espera *Succeeded*
 
-. Consola → *Ecosystem* → *Software Catalog* → busca `NVIDIA GPU Operator`
+Verificar CSV:
+
+[source,bash]
+----
+oc get csv -n openshift-nfd
+----
+
+== NodeFeatureDiscovery (CR)
+
+El ejemplo oficial sale del CSV del Operator (la imagen `operand` depende de la versión de OpenShift). Consíguelo y aplícalo:
+
+[source,bash]
+----
+oc get csv -n openshift-nfd -o jsonpath='{.items[0].metadata.annotations.alm-examples}' \
+  | jq 'map(select(.kind == "NodeFeatureDiscovery")) | .[0]' \
+  > /tmp/nodefeaturediscovery.json
+
+oc apply -f /tmp/nodefeaturediscovery.json
+----
+
+Espera pods de NFD y labels NVIDIA en nodos con GPU:
+
+[source,bash]
+----
+oc get pods -n openshift-nfd
+oc get nodes -L feature.node.kubernetes.io/pci-10de.present
+----
+
+En nodos con GPU real debería verse `true` en esa columna.
+
+== NVIDIA GPU Operator
+
+. Consola → *Ecosystem* → *Software Catalog*
+. Busca `NVIDIA GPU Operator`
 . Instala en el namespace recomendado (suele ser `nvidia-gpu-operator`)
 . Espera *Succeeded*
+
+[source,bash]
+----
+oc get csv -n nvidia-gpu-operator
+----
+
+== ClusterPolicy
+
+Igual que NFD: el manifiesto de ejemplo depende de la versión del Operator. Extráelo del CSV y aplícalo (nombre típico `gpu-cluster-policy`):
+
+[source,bash]
+----
+oc get csv -n nvidia-gpu-operator -o jsonpath='{.items[0].metadata.annotations.alm-examples}' \
+  | jq 'map(select(.kind == "ClusterPolicy")) | .[0]' \
+  > /tmp/clusterpolicy.json
+
+oc apply -f /tmp/clusterpolicy.json
+----
+
+Sigue el despliegue del stack (driver, device plugin, GFD, etc.):
+
+[source,bash]
+----
+oc get clusterpolicy -A
+oc get pods -n nvidia-gpu-operator
+----
 
 == Verificar GPU en nodos
 
@@ -35,7 +106,8 @@ NOTE: Sin NFD, un nodo con GPU puede no mostrar labels todavía. Revisa el tipo 
 oc get nodes -o custom-columns=\
 NAME:.metadata.name,\
 GPU:.status.allocatable.nvidia\.com/gpu,\
-PRODUCT:.metadata.labels.nvidia\.com/gpu\.product
+PRODUCT:.metadata.labels.nvidia\.com/gpu\.product,\
+NFD:.metadata.labels.feature\.node\.kubernetes\.io/pci-10de\.present
 ----
 
 Esperado: al menos un worker con `GPU` ≥ `1`.
@@ -44,16 +116,10 @@ IMPORTANT: *No* etiquetes esos nodos con `run.ai/simulated-gpu-node-pool` (eso e
 
 == Hardware profile
 
-Crea el profile `nvidia-gpu` (1× `nvidia.com/gpu`) para workbenches / serving sobre GPU real:
+Crea el profile `nvidia-gpu` (1× `nvidia.com/gpu`):
 
 [source,bash]
 ----
 oc apply -f manifests/hardware-profile-nvidia.yaml
-----
-
-Verificar:
-
-[source,bash]
-----
 oc get hardwareprofile nvidia-gpu -n redhat-ods-applications
 ----
