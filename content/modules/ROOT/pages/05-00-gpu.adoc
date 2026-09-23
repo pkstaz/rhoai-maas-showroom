@@ -1,0 +1,77 @@
+= GPU
+
+Capacidad `nvidia.com/gpu` para perfiles y GPU Booking.
+El profile CPU (`cpu-workshop`) ya está en xref:03-04-hardware-profile-cpu.adoc[Instalar OpenShift AI].
+
+Dos menús independientes (puedes hacer uno, los dos o ninguno):
+
+* xref:05-01-nvidia-gpu.adoc[NVIDIA GPU Operator] — nodos con GPU real + profile `nvidia-gpu`
+* xref:05-02-fake-gpu.adoc[Fake GPU Operator] — nodos solo CPU + profiles `fake-h200` / `fake-h200-mig`
+
+== Qué instalar según tu cluster
+
+[cols="1,2"]
+|===
+|Topología |Qué hacer
+
+|Single node *con* GPU
+|Solo xref:05-01-nvidia-gpu.adoc[NVIDIA GPU Operator]. *No* Fake GPU.
+
+|Single node *solo* CPU
+|Solo xref:05-02-fake-gpu.adoc[Fake GPU Operator].
+
+|Nodos GPU y CPU *separados*
+|Puedes *ambos*: NVIDIA en GPU; Fake solo en workers CPU.
+
+|Sin GPU / sin Fake
+|Omite ambos. Qwen usa `cpu-workshop`.
+|===
+
+IMPORTANT: *Nunca* instales Fake GPU en un nodo que ya tenga GPU NVIDIA (mismo nodo = conflicto).
+
+== Inventario (opcional, compartido)
+
+[source,bash]
+----
+printf '%-42s %-10s %-12s %s\n' "NODO" "ROLE" "GPU_ALLOC" "NVIDIA_HINTS"
+printf '%-42s %-10s %-12s %s\n' "------------------------------------------" "----------" "------------" "----------------"
+
+oc get nodes -o json | jq -r '
+  .items[] |
+  . as $n |
+  ($n.metadata.labels["node-role.kubernetes.io/worker"] // empty) as $w |
+  ($n.metadata.labels["node-role.kubernetes.io/master"] // $n.metadata.labels["node-role.kubernetes.io/control-plane"] // empty) as $m |
+  (if $w != "" then "worker" elif $m != "" then "master" else "-" end) as $role |
+  ($n.status.allocatable["nvidia.com/gpu"] // "-") as $gpu |
+  ([
+    $n.metadata.labels["nvidia.com/gpu.product"] // empty,
+    $n.metadata.labels["feature.node.kubernetes.io/pci-10de.present"] // empty
+  ] | map(select(. != "")) | join(", ")) as $labels |
+  "\($n.metadata.name)\t\($role)\t\($gpu)\t\($labels)"
+' | while IFS=$'\t' read -r name role gpu labels; do
+  printf '%-42s %-10s %-12s %s\n' "$name" "$role" "$gpu" "${labels:--}"
+done
+----
+
+[source,bash]
+----
+export NVIDIA_GPU_NODES=$(oc get nodes -o json | jq -r '
+  .items[] |
+  select(
+    (.status.allocatable["nvidia.com/gpu"] != null)
+    or (.metadata.labels["feature.node.kubernetes.io/pci-10de.present"] == "true")
+    or ((.metadata.labels["nvidia.com/gpu.product"] // "") != "")
+  ) |
+  .metadata.name
+' | tr '\n' ' ')
+
+export CPU_WORKER_NODES=$(oc get nodes -l node-role.kubernetes.io/worker -o json | jq -r '
+  .items[] |
+  select((.status.allocatable["nvidia.com/gpu"] // "0") == "0"
+    or .status.allocatable["nvidia.com/gpu"] == null) |
+  .metadata.name
+' | tr '\n' ' ')
+
+echo "NVIDIA_GPU_NODES=${NVIDIA_GPU_NODES:-(ninguno)}"
+echo "CPU_WORKER_NODES=${CPU_WORKER_NODES:-(ninguno)}"
+----

@@ -17,7 +17,9 @@ Run `oc apply` / scripts from the **repo root**.
 | `apply-maas-gateway.sh` | MaaS Gateway |
 | `model-catalog-qwen.yaml` | Model Catalog (HF) |
 | `fake-gpu-values.yaml` | Fake GPU topology |
-| `hardware-profiles.yaml` | Hardware profiles |
+| `hardware-profile-cpu.yaml` | CPU hardware profile `cpu-workshop` (module 3)
+| `hardware-profile-nvidia.yaml` | GPU profile `nvidia-gpu` (module 5 NVIDIA)
+| `hardware-profiles-fake.yaml` | Fake GPU profiles `fake-h200` / `fake-h200-mig` (module 5 Fake)
 | `llminferenceservice-qwen3-06b.yaml` | llm-d CPU + MaaSModelRef |
 | `patch-llmisvc-cpu.sh` | Force vLLM CPU after wizard |
 | `maas-subscription.yaml` | Auth policy + subscription |

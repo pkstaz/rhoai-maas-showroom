@@ -1,26 +1,6 @@
 apiVersion: infrastructure.opendatahub.io/v1
 kind: HardwareProfile
 metadata:
-  name: cpu-workshop
-  namespace: redhat-ods-applications
-spec:
-  identifiers:
-    - displayName: CPU
-      identifier: cpu
-      resourceType: CPU
-      minCount: 1
-      defaultCount: 2
-      maxCount: 2
-    - displayName: Memory
-      identifier: memory
-      resourceType: Memory
-      minCount: 2Gi
-      defaultCount: 8Gi
-      maxCount: 8Gi
----
-apiVersion: infrastructure.opendatahub.io/v1
-kind: HardwareProfile
-metadata:
   name: fake-h200
   namespace: redhat-ods-applications
 spec:

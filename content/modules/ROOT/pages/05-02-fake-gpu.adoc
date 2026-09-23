@@ -1,48 +1,77 @@
 = Fake GPU Operator
 
-Simula `nvidia.com/gpu` en workers CPU. Este lab emula **una NVIDIA H200 141GB HBM3e** recortada con MIG. *No* instales el NVIDIA GPU Operator.
+Simula `nvidia.com/gpu` (y MIG) en un *worker solo CPU*.
+Úsalo en single-node CPU, o en workers CPU de un cluster híbrido.
+*No* lo uses en un single-node que ya tenga GPU real (ahí solo xref:05-01-nvidia-gpu.adoc[NVIDIA GPU Operator]).
 
-La H200 queda partida así (141 GB de HBM3e):
+Emula **una NVIDIA H200 141GB HBM3e** recortada con MIG:
 
 [cols="1,1,1"]
 |===
-| Slice | Recurso | Cantidad
+|Slice |Recurso |Cantidad
 
-| 1g.18gb
-| `nvidia.com/mig-1g.18gb`
-| 2
+|1g.18gb
+|`nvidia.com/mig-1g.18gb`
+|2
 
-| 2g.35gb
-| `nvidia.com/mig-2g.35gb`
-| 1
+|2g.35gb
+|`nvidia.com/mig-2g.35gb`
+|1
 
-| 3g.71gb
-| `nvidia.com/mig-3g.71gb`
-| 1
+|3g.71gb
+|`nvidia.com/mig-3g.71gb`
+|1
 |===
 
-El worker también anuncia la GPU completa (`nvidia.com/gpu=1`) para GPU Booking y el hardware profile `fake-h200`.
+El worker también anuncia la GPU completa (`nvidia.com/gpu=1`) para GPU Booking y el profile `fake-h200`.
 
-== Instalar
-
-Etiqueta workers:
+== Elegir un nodo CPU
 
 [source,bash]
 ----
-oc get nodes -l node-role.kubernetes.io/worker
-oc get nodes -l node-role.kubernetes.io/worker -o name | \
-  xargs -I{} oc label {} run.ai/simulated-gpu-node-pool=default --overwrite
+export CPU_WORKER_NODES=$(oc get nodes -l node-role.kubernetes.io/worker -o json | jq -r '
+  .items[] |
+  select((.status.allocatable["nvidia.com/gpu"] // "0") == "0"
+    or .status.allocatable["nvidia.com/gpu"] == null) |
+  .metadata.name
+' | tr '\n' ' ')
+
+export FAKE_GPU_NODE=$(echo "$CPU_WORKER_NODES" | awk '{print $1}')
+echo "FAKE_GPU_NODE=${FAKE_GPU_NODE}"
+test -n "$FAKE_GPU_NODE" && echo "OK: nodo = $FAKE_GPU_NODE" || echo "SKIP: no hay worker CPU libre"
 ----
+
+Si `FAKE_GPU_NODE` está vacío, omite el resto de este menú.
+
+Comprueba que no tenga GPU real anunciada:
 
 [source,bash]
 ----
+oc get node "$FAKE_GPU_NODE" -o jsonpath='{.status.allocatable.nvidia\.com/gpu}{"\n"}'
+----
+
+Debe estar vacío o `0`.
+
+== Etiquetar nodo y namespace
+
+[source,bash]
+----
+oc label node "$FAKE_GPU_NODE" run.ai/simulated-gpu-node-pool=default --overwrite
+
 oc create namespace gpu-operator
 oc label ns gpu-operator \
   pod-security.kubernetes.io/enforce=privileged \
   pod-security.kubernetes.io/audit=privileged \
   pod-security.kubernetes.io/warn=privileged \
   --overwrite
+----
 
+== Instalar Fake GPU (Helm)
+
+Namespace `gpu-operator` = Fake (distinto de `nvidia-gpu-operator`). Desde la raíz del repo:
+
+[source,bash]
+----
 helm upgrade -i gpu-operator \
   oci://ghcr.io/run-ai/fake-gpu-operator/fake-gpu-operator \
   --namespace gpu-operator \
@@ -50,42 +79,11 @@ helm upgrade -i gpu-operator \
   -f manifests/fake-gpu-values.yaml
 ----
 
-== Configurar (consola)
-
-Fake GPU no trae un plugin de consola propio. La topología se edita en el ConfigMap `topology` (namespace `gpu-operator`): producto, memoria, recorte MIG.
-
-. *Home* → *Search*
-. *Resources*: `ConfigMap`
-. Abre `topology` en `gpu-operator`
-. Pestaña *YAML*
-. En `data.topology.yml` deja el recorte H200 (ya viene de `manifests/fake-gpu-values.yaml`):
-
-[source,yaml]
-----
-migStrategy: mixed
-nodePoolLabelKey: run.ai/simulated-gpu-node-pool
-nodePools:
-  default:
-    gpuCount: 1
-    gpuMemory: 143360
-    gpuProduct: NVIDIA-H200-141GB-HBM3e
-    otherDevices:
-    - count: 2
-      name: nvidia.com/mig-1g.18gb
-    - count: 1
-      name: nvidia.com/mig-2g.35gb
-    - count: 1
-      name: nvidia.com/mig-3g.71gb
-----
-
-. *Save*
-
-Si cambias la topología *después* del primer install, borra el ConfigMap por nodo y reinicia el device plugin para que el worker vuelva a anunciarla:
+Si cambias la topología *después* del install:
 
 [source,bash]
 ----
-NODE=$(oc get nodes -l node-role.kubernetes.io/worker -o jsonpath='{.items[0].metadata.name}')
-oc delete cm topology-$NODE -n gpu-operator
+oc delete cm "topology-${FAKE_GPU_NODE}" -n gpu-operator --ignore-not-found
 oc delete pod -n gpu-operator -l app=device-plugin
 oc delete pod -n gpu-operator -l app=status-updater
 ----
@@ -95,30 +93,32 @@ oc delete pod -n gpu-operator -l app=status-updater
 [source,bash]
 ----
 oc get pods -n gpu-operator
-oc get node -o custom-columns=\
-'NAME:.metadata.name,PRODUCT:.metadata.labels.nvidia\.com/gpu\.product,GPU:.status.allocatable.nvidia\.com/gpu,MIG1:.status.allocatable.nvidia\.com/mig-1g\.18gb,MIG2:.status.allocatable.nvidia\.com/mig-2g\.35gb,MIG3:.status.allocatable.nvidia\.com/mig-3g\.71gb'
+oc get node "$FAKE_GPU_NODE" -o custom-columns=\
+NAME:.metadata.name,\
+PRODUCT:.metadata.labels.nvidia\.com/gpu\.product,\
+GPU:.status.allocatable.nvidia\.com/gpu,\
+MIG1:.status.allocatable.nvidia\.com/mig-1g\.18gb,\
+MIG2:.status.allocatable.nvidia\.com/mig-2g\.35gb,\
+MIG3:.status.allocatable.nvidia\.com/mig-3g\.71gb
 ----
 
-El worker muestra producto `NVIDIA-H200-141GB-HBM3e`, `nvidia.com/gpu=1`, y los cuatro slices MIG.
+Esperado: `NVIDIA-H200-141GB-HBM3e`, `nvidia.com/gpu=1`, y los slices MIG.
 
-== Hardware profile (UI)
+== Hardware profiles
 
-En el dashboard de OpenShift AI:
+Profiles de este camino (no incluye `nvidia-gpu` ni `cpu-workshop`):
 
-. *Settings* → *Hardware profiles* → *Create*
-. Crea estos perfiles:
+* `fake-h200`: 1× `nvidia.com/gpu`
+* `fake-h200-mig`: 1× `nvidia.com/mig-1g.18gb`
 
-* `cpu-workshop`: 1–2 CPU, 8 Gi memory, *sin* GPU
-* `fake-h200`: 1× `nvidia.com/gpu` (H200 completa)
-* `fake-h200-mig`: 1× `nvidia.com/mig-1g.18gb` (slice MIG de 18 GB)
-
-El modelo Qwen usa *solo* `cpu-workshop`.
-
-.Alternativa YAML
-[%collapsible]
-====
 [source,bash]
 ----
-oc apply -f manifests/hardware-profiles.yaml
+oc apply -f manifests/hardware-profiles-fake.yaml
 ----
-====
+
+Verificar:
+
+[source,bash]
+----
+oc get hardwareprofile -n redhat-ods-applications fake-h200 fake-h200-mig
+----

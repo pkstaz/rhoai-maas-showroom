@@ -153,7 +153,7 @@ oc get persesdashboard -n redhat-ods-monitoring | grep usage-logs
 . Abre los dashboards MaaS / usage (admin y user)
 . Genera tráfico con el Playground o el `curl` del módulo 10; espera unos minutos a que Loki muestre requests
 
-IMPORTANT: *GPU utilization* = *No data* es normal en este lab. El `{qwen-model}` corre con imagen **vLLM CPU** (`rhaii/vllm-cpu-rhel9`) y **sin** `nvidia.com/gpu` en el `LLMInferenceService`. Fake GPU (módulo 5) y DCGM están para perfiles/hardware; no alimentan el panel de GPU de este serving. Mira tokens, latencia y logs de usage en su lugar.
+IMPORTANT: *GPU utilization* = *No data* es normal en este lab. El `{qwen-model}` corre con imagen **vLLM CPU** (`rhaii/vllm-cpu-rhel9`) y **sin** `nvidia.com/gpu` en el `LLMInferenceService`. Fake/NVIDIA GPU (módulo 5) y DCGM están para perfiles/hardware; no alimentan el panel de GPU de este serving. Mira tokens, latencia y logs de usage en su lugar.
 
 Si desplegaras el mismo modelo con imagen CUDA + request de GPU (real o fake), ahí sí aparecerían series DCGM.
 

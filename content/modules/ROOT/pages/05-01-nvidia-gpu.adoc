@@ -1,0 +1,59 @@
+= NVIDIA GPU Operator
+
+Instala el *NVIDIA GPU Operator* cuando tengas (o vayas a tener) nodos con GPU real.
+Si tu cluster es single-node solo CPU, omite este menú y usa xref:05-02-fake-gpu.adoc[Fake GPU Operator].
+
+Documentación: https://docs.nvidia.com/datacenter/cloud-native/openshift/latest/index.html[NVIDIA GPU Operator on OpenShift].
+
+== Validar candidatos
+
+[source,bash]
+----
+oc get nodes -o json | jq -r '
+  .items[] |
+  select(
+    (.status.allocatable["nvidia.com/gpu"] != null)
+    or (.metadata.labels["feature.node.kubernetes.io/pci-10de.present"] == "true")
+    or ((.metadata.labels["nvidia.com/gpu.product"] // "") != "")
+  ) |
+  .metadata.name
+'
+----
+
+NOTE: Sin NFD, un nodo con GPU puede no mostrar labels todavía. Revisa el tipo de instancia o `oc describe node`.
+
+== Instalar Operator
+
+. Consola → *Ecosystem* → *Software Catalog* → busca `NVIDIA GPU Operator`
+. Instala en el namespace recomendado (suele ser `nvidia-gpu-operator`)
+. Espera *Succeeded*
+
+== Verificar GPU en nodos
+
+[source,bash]
+----
+oc get nodes -o custom-columns=\
+NAME:.metadata.name,\
+GPU:.status.allocatable.nvidia\.com/gpu,\
+PRODUCT:.metadata.labels.nvidia\.com/gpu\.product
+----
+
+Esperado: al menos un worker con `GPU` ≥ `1`.
+
+IMPORTANT: *No* etiquetes esos nodos con `run.ai/simulated-gpu-node-pool` (eso es solo Fake GPU).
+
+== Hardware profile
+
+Crea el profile `nvidia-gpu` (1× `nvidia.com/gpu`) para workbenches / serving sobre GPU real:
+
+[source,bash]
+----
+oc apply -f manifests/hardware-profile-nvidia.yaml
+----
+
+Verificar:
+
+[source,bash]
+----
+oc get hardwareprofile nvidia-gpu -n redhat-ods-applications
+----
