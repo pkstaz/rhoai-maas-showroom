@@ -1,42 +1,66 @@
 = GatewayClass y Kuadrant
 
-El Operator de Connectivity Link queda en `openshift-operators` (módulo 2). Al crear el `GatewayClass`, el Ingress Operator instala Service Mesh 3 (`istiod-openshift-gateway` en `openshift-ingress`). Después se crea la instancia *Kuadrant* en **`kuadrant-system`**.
+El Operator de Connectivity Link ya quedó en `openshift-operators` (xref:02-00-operators.adoc[pre-requisitos]).
+Aquí se crean el `GatewayClass` (cluster) y la instancia *Kuadrant* en **`kuadrant-system`**, base del *AI Gateway* / MaaS.
 
-== 1. GatewayClass
+== GatewayClass
+
+Un `GatewayClass` declara *quién* implementa Gateway API en el cluster (el controller).
+En OpenShift, `openshift-default` apunta al controller del Ingress Operator (`openshift.io/gateway-controller/v1`).
+Al crearlo, ese Operator instala Service Mesh 3 (`istiod-openshift-gateway` en `openshift-ingress`), que es el data plane (Istio) delante de las rutas del gateway de MaaS.
+
+Sin este paso no hay provider de Gateway API listo; Kuadrant no podrá enganchar políticas (auth, rate limit) al gateway.
+
+=== Instalar por terminal
 
 [source,bash]
 ----
 oc apply -f manifests/gatewayclass.yaml
-oc wait --for=condition=Accepted gatewayclass/openshift-default --timeout=2m
-oc rollout status -n openshift-ingress deploy/istiod-openshift-gateway --timeout=5m
-oc delete pod -n openshift-operators \
-  $(oc get pods -n openshift-operators -o name | grep kuadrant-operator-controller-manager)
-oc rollout status -n openshift-operators deploy/kuadrant-operator-controller-manager --timeout=3m
 ----
 
-`GatewayClass` es de *cluster*. El Ingress Operator deja `istiod-openshift-gateway` `Available`. El Operator de Kuadrant se recarga después de eso para detectar el Gateway API provider.
+=== Esperar Istio (antes de Kuadrant)
 
-== 2. Instancia Kuadrant
+*No* crees la instancia Kuadrant hasta que Istio esté listo.
+Si Kuadrant arranca antes, el Operator a veces no detecta el provider y hay que reiniciar el controller (ver <<_troubleshooting,Troubleshooting>>).
 
-=== UI
-
-. *Home* → *Projects* → *Create Project* → `kuadrant-system`
-. Cambia el proyecto de la consola a `kuadrant-system`
-. *Ecosystem* → *Installed Operators* → *Red Hat Connectivity Link*
-. Pestaña *Kuadrant* → *Create Kuadrant*
-. Nombre: `kuadrant`
-. En `spec` deja:
-
-[source,yaml]
+[source,bash]
 ----
+printf '%-42s %-12s %s\n' "RECURSO" "ESTADO" "DETALLE"
+printf '%-42s %-12s %s\n' "------------------------------------------" "------------" "----------------"
+
+oc wait --for=condition=Accepted gatewayclass/openshift-default --timeout=2m >/dev/null 2>&1 && \
+  printf '%-42s %-12s %s\n' "GatewayClass/openshift-default" "OK" "Accepted" || \
+  printf '%-42s %-12s %s\n' "GatewayClass/openshift-default" "PENDIENTE" "no Accepted"
+
+oc rollout status -n openshift-ingress deploy/istiod-openshift-gateway --timeout=5m >/dev/null 2>&1 && \
+  printf '%-42s %-12s %s\n' "istiod-openshift-gateway" "OK" "rollout complete" || \
+  printf '%-42s %-12s %s\n' "istiod-openshift-gateway" "PENDIENTE" "esperando deploy"
+----
+
+Cuando ambos queden `OK`, sigue con Kuadrant.
+
+== Instancia Kuadrant
+
+*Kuadrant* (Connectivity Link) es la capa de políticas sobre Gateway API: Authorino (auth) y Limitador (rate limits) que MaaS usa delante del AI Gateway.
+Se crea *una* instancia en el namespace `kuadrant-system`, con observabilidad activa:
+
+.kuadrant.yaml (click para expandir)
+[%collapsible]
+====
+[source]
+----
+apiVersion: kuadrant.io/v1beta1
+kind: Kuadrant
+metadata:
+  name: kuadrant
+  namespace: kuadrant-system
 spec:
   observability:
     enable: true
 ----
+====
 
-. *Create*
-
-=== YAML
+=== Instalar por terminal
 
 [source,bash]
 ----

@@ -1,32 +1,36 @@
 = ODHDashboardConfig
 
-Enciende Model Catalog, MaaS en la UI, Gen AI Studio, EvalHub (menú Evaluations) y Kueue. *No* actives `vLLMDeploymentOnMaaS`: este lab despliega con *llm-d*.
+Este recurso controla qué menús y funciones aparecen en el dashboard de OpenShift AI.
+Con el patch de este lab se activan las piezas que usarás más adelante (catálogo, MaaS, Gen AI Studio, Evaluations y Kueue). *No* se habilita `vLLMDeploymentOnMaaS`: aquí se despliega con *llm-d*.
 
-NOTE: El menú *Gen AI Studio → Playground* también exige `ogx: Managed` en el `DataScienceCluster` (ver xref:03-02-dsc.adoc[DataScienceCluster]). La página *Evaluations* exige TrustyAI + EvalHub desplegado (xref:12-00-evalhub.adoc[módulo 12]) y, para la UI completa, MLflow.
+NOTE: *Gen AI Studio → Playground* también exige `ogx: Managed` en el `DataScienceCluster` (xref:03-02-dsc.adoc[DataScienceCluster]). *Evaluations* exige TrustyAI + EvalHub (xref:12-00-evalhub.adoc[módulo 12]) y, para la UI completa, MLflow.
 
-== UI
+== Qué se activa
 
-La pestaña *OdhDashboardConfig* no aparece en el Operator de OpenShift AI. Ábrelo así:
+[cols="1,2"]
+|===
+|Flag |Efecto
 
-. Consola OpenShift → *Home* → *Search*
-. En *Resources*, busca `OdhDashboardConfig` (con `OdhDash` alcanza)
-. Abre `odh-dashboard-config` en el namespace `redhat-ods-applications`
-. Pestaña *YAML*
-. En `spec.dashboardConfig` deja (o añade) esto:
+|`disableModelCatalog: false`
+|Muestra el *Model Catalog*.
 
-[source,yaml]
-----
-disableModelCatalog: false
-disableModelRegistry: false
-disableKueue: false
-modelAsService: true
-genAiStudio: true
-disableLMEval: false
-----
+|`disableModelRegistry: false`
+|Muestra el *Model Registry*.
 
-. *Save*
+|`disableKueue: false`
+|Habilita la UI de Kueue / GPU Booking en el dashboard.
 
-O, más rápido, desde el Web Terminal:
+|`modelAsService: true`
+|Muestra *Models as a Service* (MaaS).
+
+|`genAiStudio: true`
+|Muestra *Gen AI Studio* (Playground cuando OGX está listo).
+
+|`disableLMEval: false`
+|Habilita el menú *Evaluations* (EvalHub; se usa en el módulo 12).
+|===
+
+== Instalar por terminal
 
 [source,bash]
 ----
@@ -55,12 +59,3 @@ oc get odhdashboardconfig odh-dashboard-config -n redhat-ods-applications \
 ----
 
 En el dashboard deben verse *Catalog* / *Models as a Service* (el nombre exacto depende de la build).
-
-.Alternativa YAML
-[%collapsible]
-====
-[source,bash]
-----
-oc apply -f manifests/odh-dashboard-config-patch.yaml
-----
-====

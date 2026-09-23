@@ -1,4 +1,4 @@
-= Habilitar MaaS
+= Postgres, Gateway y modelsAsAService
 
 Orden:
 
@@ -28,12 +28,9 @@ oc get gateway maas-default-gateway -n openshift-ingress
 
 == 3. Encender MaaS en el DSC
 
-=== UI
+Hasta ahora `modelsAsAService` estaba en `Removed`. Aquí se deja el AI Gateway en `Managed` y se enciende MaaS en el `DataScienceCluster`:
 
-. *Installed Operators* → *Red Hat OpenShift AI* → *DataScienceCluster* → `default-dsc` → *YAML*
-. En `spec.components.aigateway`:
-
-[source,yaml]
+[source]
 ----
 aigateway:
   managementState: Managed
@@ -41,9 +38,7 @@ aigateway:
     managementState: Managed
 ----
 
-. *Save*
-
-=== YAML
+=== Instalar por terminal
 
 [source,bash]
 ----
