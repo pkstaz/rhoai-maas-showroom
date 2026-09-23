@@ -1,29 +1,62 @@
 = Operadores previos
 
-Instala estas dependencias *antes* de OpenShift AI. Canal y namespace: los que propone OperatorHub.
+Instala estas dependencias *antes* de OpenShift AI. Canal y namespace: los que propone el catálogo (deja los valores por defecto salvo que la tabla indique otra cosa).
 
-*No* instales OpenShift Serverless ni Service Mesh *2*.
-
-El Operator de Connectivity Link va aquí. El `GatewayClass` y la instancia *Kuadrant* se crean *después* de OpenShift AI (módulo 4).
-
-== Orden (UI → OperatorHub)
+== Orden (UI → Software Catalog)
 
 Instala uno, espera *Succeeded*, sigue al siguiente:
 
-. *cert-manager Operator for Red Hat OpenShift*
-. *Red Hat OpenShift Pipelines*
-. *Red Hat Connectivity Link*. Solo el Operator, namespace `openshift-operators` (All namespaces). *No* crees todavía la instancia Kuadrant.
-. *Red Hat Leader Worker Set Operator* (llm-d). Namespace `openshift-lws-operator`, canal `stable-v1.0`.
-. *Red Hat build of Kueue* (GPU Booking)
+[cols="1,2"]
+|===
+|Operador |Detalle
+
+|*cert-manager Operator for Red Hat OpenShift*
+|Certificados TLS para rutas e ingress del lab.
+
+|*Red Hat OpenShift Pipelines*
+|Pipelines (Tekton) usados más adelante en el flujo.
+
+|*Red Hat Connectivity Link*
+|Solo el Operator, namespace `openshift-operators` (All namespaces). *No* crees todavía la instancia Kuadrant ni el `GatewayClass` (módulo 4, después de OpenShift AI).
+
+|*Leader Worker Set Operator*
+|Para llm-d. Namespace `openshift-lws-operator`, canal `stable-v1.0`.
+
+|*Red Hat build of Kueue*
+|GPU Booking (colas y cuotas de GPU).
+|===
 
 == Verificar
 
+Estado de los operadores requeridos (`OK` = CSV `Succeeded`, `PENDIENTE` = aún no instalado o sin CSV):
+
 [source,bash]
 ----
-oc get csv -A | grep -i -E 'cert-manager|pipelines|connectivity|leaderworker|kueue'
+printf '%-42s %-14s\n' "OPERADOR" "ESTADO"
+printf '%-42s %-14s\n' "------------------------------------------" "--------------"
+check() {
+  local name="$1" pattern="$2"
+  local line phase
+  line=$(oc get csv -A --no-headers 2>/dev/null | grep -iE "$pattern" | head -1)
+  if [ -z "$line" ]; then
+    printf '%-42s %-14s\n' "$name" "PENDIENTE"
+  else
+    phase=$(echo "$line" | awk '{print $NF}')
+    if [ "$phase" = "Succeeded" ]; then
+      printf '%-42s %-14s\n' "$name" "OK"
+    else
+      printf '%-42s %-14s\n' "$name" "$phase"
+    fi
+  fi
+}
+check "cert-manager" "cert-manager"
+check "OpenShift Pipelines" "pipelines"
+check "Connectivity Link" "connectivity"
+check "Leader Worker Set" "leaderworker|lws"
+check "Kueue" "kueue"
 ----
 
-Todos `Succeeded`.
+Todos deben quedar en `OK`.
 
 .Alternativa YAML
 [%collapsible]
