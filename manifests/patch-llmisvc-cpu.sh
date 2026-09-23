@@ -20,13 +20,13 @@ oc delete pod -n "${NS}" -l "serving.kserve.io/inferenceservice=${NAME}" \
 sleep 5
 oc get pods -n "${NS}" || true
 
-echo "=== Patch image/env/args -> vllm-cpu-rhel9:3.5.0 ==="
+echo "=== Patch image/env/args -> vllm-cpu-rhel9:3.5.0-ea.2 ==="
 oc patch llminferenceservice "${NAME}" -n "${NS}" --type=merge -p '{
   "spec": {
     "template": {
       "containers": [{
         "name": "main",
-        "image": "registry.redhat.io/rhaiis/vllm-cpu-rhel9:3.5.0",
+        "image": "registry.redhat.io/rhaii-early-access/vllm-cpu-rhel9:3.5.0-ea.2",
         "command": ["python", "-m", "vllm.entrypoints.openai.api_server"],
         "args": [
           "--served-model-name={{.Name}}",

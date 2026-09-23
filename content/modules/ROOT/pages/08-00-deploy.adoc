@@ -16,7 +16,7 @@ Manifiesto: `manifests/llminferenceservice-qwen3-06b.yaml`.
 |Proyecto de Data Science + acceso al gateway MaaS.
 
 |`LLMInferenceService/qwen3-06b`
-|llm-d + imagen `vllm-cpu-rhel9:3.5.0`, `max-model-len=2048`, label `opendatahub.io/genai-asset=true`.
+|llm-d + imagen `rhaii-early-access/vllm-cpu-rhel9:3.5.0-ea.2`, `max-model-len=2048`, label `opendatahub.io/genai-asset=true`.
 
 |`MaaSModelRef/qwen3-06b`
 |Publica el modelo en Models as a Service.
@@ -30,6 +30,11 @@ Desde la raíz del repo:
 ----
 oc apply -f manifests/llminferenceservice-qwen3-06b.yaml
 ----
+
+NOTE: El tag GA `rhaiis/vllm-cpu-rhel9:3.5.0` *no* está publicado (`manifest unknown`).
+El lab usa Early Access `rhaii-early-access/vllm-cpu-rhel9:3.5.0-ea.2`
+(https://docs.redhat.com/en/documentation/red_hat_ai_inference/3.5/html/release_notes/rhaii-350-ea2-release-notes_release-notes[RHAI 3.5.0-ea.2]).
+El cluster debe poder pull de `registry.redhat.io` (pull secret global / entitled).
 
 == Esperar Ready
 

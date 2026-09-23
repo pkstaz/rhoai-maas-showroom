@@ -34,7 +34,7 @@ spec:
   template:
     containers:
       - name: main
-        image: registry.redhat.io/rhaiis/vllm-cpu-rhel9:3.5.0
+        image: registry.redhat.io/rhaii-early-access/vllm-cpu-rhel9:3.5.0-ea.2
         command:
           - python
           - -m
