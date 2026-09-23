@@ -2,6 +2,10 @@
 # MLFLOW_TRACKING_URI must include the /mlflow static-prefix or EvalHub probes
 # workspaces_enabled=false and CreateEvaluationJob fails with
 # "Workspace context is required for this request."
+#
+# Default tenancy is multi: label DSP namespaces with
+# evalhub.trustyai.opendatahub.io/tenant so the dashboard finds ConfigMap
+# evalhub-discovery in the project (otherwise: "Evaluations unavailable").
 apiVersion: trustyai.opendatahub.io/v1alpha1
 kind: EvalHub
 metadata:

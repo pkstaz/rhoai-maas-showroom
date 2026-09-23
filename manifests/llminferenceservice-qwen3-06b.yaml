@@ -6,6 +6,7 @@ metadata:
     opendatahub.io/dashboard: "true"
     opendatahub.io/generated-namespace: "true"
     maas.opendatahub.io/gateway-access: "true"
+    evalhub.trustyai.opendatahub.io/tenant: "true"
 ---
 apiVersion: serving.kserve.io/v1alpha1
 kind: LLMInferenceService

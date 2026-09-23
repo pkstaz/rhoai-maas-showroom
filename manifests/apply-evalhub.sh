@@ -73,7 +73,13 @@ oc patch evalhub evalhub -n evalhub --type=merge -p "{
   }
 }" 2>/dev/null || true
 
-echo "=== 5. RBAC: EvalHub SA → MLflow workspace ${DSP_NS} ==="
+echo "=== 5. RBAC + tenant label: EvalHub SA → MLflow workspace ${DSP_NS} ==="
+# Dashboard Evaluations discovers EvalHub via ConfigMap evalhub-discovery in the
+# selected DSP. TrustyAI only injects it into namespaces with this tenant label.
+if oc get ns "${DSP_NS}" >/dev/null 2>&1; then
+  oc label ns "${DSP_NS}" evalhub.trustyai.opendatahub.io/tenant=true --overwrite
+fi
+
 # roleRef is immutable: recreate the RoleBinding if it already exists with another ref.
 ensure_mlflow_workspace_rbac() {
   local ns="$1"
@@ -100,8 +106,20 @@ elif oc get ns "${DSP_NS}" >/dev/null 2>&1; then
     --dry-run=client -o yaml | oc apply -f -
 else
   echo "WARN: namespace ${DSP_NS} missing — create the DSP first, then:"
+  echo "  oc label ns ${DSP_NS} evalhub.trustyai.opendatahub.io/tenant=true --overwrite"
   echo "  oc apply -f manifests/evalhub/mlflow-workspace-rbac.yaml"
 fi
+
+echo "Waiting for evalhub-discovery ConfigMap in ${DSP_NS}..."
+for i in $(seq 1 24); do
+  if oc get cm evalhub-discovery -n "${DSP_NS}" >/dev/null 2>&1; then
+    echo "OK: evalhub-discovery in ${DSP_NS}"
+    oc get cm evalhub-discovery -n "${DSP_NS}" -o jsonpath='{.data}{"\n"}' 2>/dev/null || true
+    break
+  fi
+  echo "try $i: waiting for tenant reconcile..."
+  sleep 5
+done
 
 echo "Waiting Postgres + EvalHub..."
 oc rollout status deploy/evalhub-postgres -n evalhub --timeout=300s || true

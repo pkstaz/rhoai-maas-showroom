@@ -1,11 +1,11 @@
 ;(function () {
-  var COPY_LANGS = { bash: true, sh: true, shell: true, console: true, yaml: true, yml: true }
+  var COPY_LANGS = { bash: true, sh: true, shell: true, console: true, yaml: true, yml: true, json: true }
 
   function isBashBlock (block) {
     var el = block.querySelector('code')
     if (!el) return false
     if (COPY_LANGS[el.getAttribute('data-lang')]) return true
-    return /(^|\s)language-(bash|sh|shell|console|yaml|yml)(\s|$)/.test(el.className || '')
+    return /(^|\s)language-(bash|sh|shell|console|yaml|yml|json)(\s|$)/.test(el.className || '')
   }
 
   function sourceText (block) {
