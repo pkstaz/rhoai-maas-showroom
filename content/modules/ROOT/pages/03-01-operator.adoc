@@ -1,8 +1,32 @@
 = Operator de OpenShift AI
 
-== UI
+Instala el Operator *Red Hat OpenShift AI* (no Community). Canal `stable-3.5`, versión `{rhoai-version}`, namespace `redhat-ods-operator`.
 
-. *Ecosystem* → *OperatorHub*
+== Validar instalado
+
+Ejecuta esto *antes* (y otra vez al final). `OK` = CSV `Succeeded`; `PENDIENTE` = aún no está o no terminó:
+
+[source,bash]
+----
+printf '%-42s %-14s\n' "OPERADOR" "ESTADO"
+printf '%-42s %-14s\n' "------------------------------------------" "--------------"
+line=$(oc get csv -n redhat-ods-operator --no-headers 2>/dev/null | grep -i rhods | head -1)
+if [ -z "$line" ]; then
+  printf '%-42s %-14s\n' "Red Hat OpenShift AI" "PENDIENTE"
+else
+  phase=$(echo "$line" | awk '{print $NF}')
+  name=$(echo "$line" | awk '{print $1}')
+  if [ "$phase" = "Succeeded" ]; then
+    printf '%-42s %-14s\n' "Red Hat OpenShift AI ($name)" "OK"
+  else
+    printf '%-42s %-14s\n' "Red Hat OpenShift AI ($name)" "$phase"
+  fi
+fi
+----
+
+== Orden de instalación (UI)
+
+. Consola OpenShift → *Ecosystem* → *Software Catalog*
 . Busca `Red Hat OpenShift AI`
 . Elige el Operator *Red Hat* (no Community)
 . Channel: `stable-3.5`
@@ -13,22 +37,29 @@
 . Update approval: *Automatic*
 . Espera *Succeeded* (varios minutos)
 
-== Verificar
+== Manifiesto (CLI)
 
-[source,bash]
-----
-oc get csv -n redhat-ods-operator
-oc get pods -n redhat-ods-operator
-----
+Desde la raíz del repo:
 
-CSV `Succeeded`, pods `Running`.
-
-.Alternativa YAML
-[%collapsible]
-====
 [source,bash]
 ----
 oc apply -f manifests/rhoai-operator.yaml
+----
+
+Puedes seguir el CSV con:
+
+[source,bash]
+----
 oc get csv -n redhat-ods-operator -w
 ----
-====
+
+== Verificar
+
+Vuelve a ejecutar el comando de *Validar instalado* (debe quedar `OK`) y comprueba los pods:
+
+[source,bash]
+----
+oc get pods -n redhat-ods-operator
+----
+
+Pods `Running`.
