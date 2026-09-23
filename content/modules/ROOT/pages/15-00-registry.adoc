@@ -1,5 +1,7 @@
 = Model Registry
 
+CAUTION: *WIP* (Work in Progress). Este módulo aún se valida en lab; los pasos pueden cambiar.
+
 El DSC ya tiene `modelregistry: Managed` (namespace `rhoai-model-registries`). Este módulo crea *una instancia* de lab (Postgres efímero). No sustituye Hugging Face del módulo 7: el serving sigue siendo `hf://Qwen/Qwen3-0.6B`.
 
 Firma Cosign / promotion GitOps = GAP (tabla 0.1).

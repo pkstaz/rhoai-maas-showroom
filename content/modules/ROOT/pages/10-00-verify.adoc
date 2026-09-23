@@ -93,4 +93,4 @@ Tienes:
 
 xref:11-00-observabilidad.adoc[Observabilidad MaaS]: gateway, serving, rate limits y FinOps básico.
 
-Luego xref:12-00-evalhub.adoc[EvalHub] y xref:13-00-finops.adoc[FinOps].
+Luego xref:12-00-evalhub.adoc[EvalHub] (*WIP*) y xref:13-00-finops.adoc[FinOps].

@@ -1,5 +1,7 @@
 = MCP Catalog (OpenShift MCP)
 
+CAUTION: *WIP* (Work in Progress). Este módulo aún se valida en lab; los pasos pueden cambiar.
+
 El *MCP Lifecycle Operator* (`mcplifecycleoperator`) despliega `MCPServer` CRs.
 El catálogo del dashboard (`mcpCatalog: true`) permite *Deploy* cuando el CRD existe.
 

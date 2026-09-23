@@ -1,14 +1,16 @@
 = Introducción
 
-Este workshop instala *OpenShift AI {rhoai-version}* en un cluster vacío y deja un modelo *{qwen-model}* publicado en *Models as a Service* (MaaS), servido con *llm-d* en CPU. Después del vertical slice (módulos 1–12) habilita FinOps, guardrails, registry, AutoML/AutoRAG, Prompt Registry, MCP, AgentOps y el plugin de Skills.
+Este workshop instala *OpenShift AI {rhoai-version}* en un cluster vacío y deja un modelo *{qwen-model}* publicado en *Models as a Service* (MaaS), servido con *llm-d* en CPU. Después del vertical slice (módulos 1–11) habilita FinOps, guardrails, registry, AutoML/AutoRAG, Prompt Registry, MCP, AgentOps y el plugin de Skills.
+
+CAUTION: Los módulos *12–22* están en *WIP* (Work in Progress): se validan en lab y pueden cambiar.
 
 El fake GPU no ejecuta CUDA. Sirve para que el cluster anuncie `nvidia.com/gpu` (perfiles, GPU Booking). La inferencia de Qwen corre en CPU. Guardrails, AutoRAG y AgentOps tienen *ruta CPU* y *ruta GPU* cuando el cluster las tiene.
 
 == Tiempo
 
 * Módulos 1–10 (plataforma + MaaS): *~2 h* rápido / *~4 h* explicativo
-* Módulos 0.1 + 11–12 (mapa Lab→Prd, observabilidad, EvalHub): *+60–90 min*
-* Módulos 13–22 (gobierno, Gen AI Studio, MCP, agentes, Skills): *+2–3 h* según CPU vs GPU
+* Módulos 0.1 + 11 (mapa Lab→Prd, observabilidad): *+60–90 min*
+* Módulos 12–22 *WIP* (EvalHub, gobierno, Gen AI Studio, MCP, agentes, Skills): *+2–3 h* según CPU vs GPU
 
 Los waits largos son el Operator de OpenShift AI, la carga del modelo y (si hay GPU) AutoRAG / un vLLM CUDA detrás de NeMo.
 

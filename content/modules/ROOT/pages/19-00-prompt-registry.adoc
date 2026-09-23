@@ -1,5 +1,7 @@
 = Prompt Registry
 
+CAUTION: *WIP* (Work in Progress). Este módulo aún se valida en lab; los pasos pueden cambiar.
+
 Los system prompts del Playground se versionan en **MLflow Prompt Registry** (Technology Preview).
 MLflow ya está del módulo 12 (`mlflow` en `redhat-ods-applications`, workspace `llm`).
 

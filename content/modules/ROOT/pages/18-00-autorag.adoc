@@ -1,5 +1,7 @@
 = AutoRAG y vector stores
 
+CAUTION: *WIP* (Work in Progress). Este módulo aún se valida en lab; los pasos pueden cambiar.
+
 AutoRAG (Technology Preview) busca el mejor patrón RAG (chunking, embeddings, retrieval, generación).
 Un *optimization run* completo pide foundation 7B+ *con tool calling* y GPU. En CPU el lab deja:
 

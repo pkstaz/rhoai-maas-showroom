@@ -1,5 +1,7 @@
 = Garak y red team (Chatterbox)
 
+CAUTION: *WIP* (Work in Progress). Este módulo aún se valida en lab; los pasos pueden cambiar.
+
 Tras xref:12-00-evalhub.adoc[EvalHub] (calidad HHH). Aquí se *escanea* el modelo: fallos de seguridad, no accuracy.
 
 En OpenShift AI 3.5 **no hay un CRD Chatterbox**. Red Hat integró Chatterbox Labs en *Automated Red Teaming* (ART): provider EvalHub `garak-kfp`, benchmark `intents`. Garak clásico es el provider `garak` (jobs Kubernetes, sin pipeline).

@@ -1,5 +1,7 @@
 = FinOps y cuotas MaaS
 
+CAUTION: *WIP* (Work in Progress). Este módulo aún se valida en lab; los pasos pueden cambiar.
+
 Dos planes sobre el mismo modelo: *free* (cuota baja, prioridad 1) y *team* (cuota alta, prioridad 50).
 El plan `qwen-authenticated` del módulo 9 se queda como baseline.
 

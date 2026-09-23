@@ -1,5 +1,7 @@
 = Multi-modelo y ruteo
 
+CAUTION: *WIP* (Work in Progress). Este módulo aún se valida en lab; los pasos pueden cambiar.
+
 Un gateway MaaS (`maas-default-gateway`) puede publicar *varios* `MaaSModelRef`. El cliente elige el `model` id; Kuadrant aplica auth y rate limit por subscription.
 
 == Qué ya tienes

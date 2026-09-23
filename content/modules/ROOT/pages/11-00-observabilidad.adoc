@@ -247,4 +247,4 @@ Tiempo orientativo: *30–45 min* (+ waits de operators).
 
 == Siguiente
 
-xref:12-00-evalhub.adoc[EvalHub]: TrustyAI + smoke HHH.
+xref:12-00-evalhub.adoc[EvalHub] (*WIP*): TrustyAI + smoke HHH.

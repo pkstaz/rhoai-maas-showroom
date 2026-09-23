@@ -1,5 +1,7 @@
 = Guardrails (NemoGuardrails)
 
+CAUTION: *WIP* (Work in Progress). Este módulo aún se valida en lab; los pasos pueden cambiar.
+
 El módulo 9 controla *quién* llama al modelo. Este módulo controla *qué* puede decir (PII, secretos, nombres).
 
 En OpenShift AI 3.5 el CRD nativo es `NemoGuardrails` (`trustyai.opendatahub.io/v1alpha1`), gestionado por TrustyAI. No usa FMS / `GuardrailsOrchestrator` (legacy). Va incluido en RHOAI; no hace falta suscripción NVIDIA.

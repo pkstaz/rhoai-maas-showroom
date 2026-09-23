@@ -1,5 +1,7 @@
 = Guardrails con LLM (MaaS / GPU)
 
+CAUTION: *WIP* (Work in Progress). Este módulo aún se valida en lab; los pasos pueden cambiar.
+
 El CR sigue siendo `NemoGuardrails`. Aquí NeMo *habla con un modelo* OpenAI-compatible (`engine: openai`) y aplica rails de input *y* output.
 
 El Qwen CPU del módulo 8 basta. GPU solo si apuntas a un vLLM CUDA (mismo patrón, otra `openai_api_base`).

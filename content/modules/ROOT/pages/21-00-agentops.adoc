@@ -1,5 +1,7 @@
 = AgentOps (catálogo + agente)
 
+CAUTION: *WIP* (Work in Progress). Este módulo aún se valida en lab; los pasos pueden cambiar.
+
 Habilita *Agents Catalog* y *Agent Ops* (Developer Preview).
 
 Hay *dos* “agentes” distintos:

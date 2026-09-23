@@ -218,8 +218,8 @@ Ajustad las celdas a vuestra organización. El objetivo del workshop es *discuti
 . xref:01-00-web-terminal.adoc[Web Terminal] — entrar como `admin` y clonar el repo
 . Módulos 2–10 — instalar la plataforma y dejar Qwen publicado en MaaS
 . xref:11-00-observabilidad.adoc[Observabilidad MaaS] — después de probar inferencia
-. xref:12-00-evalhub.adoc[EvalHub] — después de observabilidad
+. xref:12-00-evalhub.adoc[EvalHub] — después de observabilidad (*WIP* desde aquí)
 . xref:12-01-garak.adoc[Garak / red team] — después de EvalHub (ART opcional tras pipelines)
-. xref:13-00-finops.adoc[FinOps] → xref:14-00-guardrails.adoc[Guardrails] → registry / ruteo / AutoML / AutoRAG / prompts / MCP / AgentOps / Skills
+. xref:13-00-finops.adoc[FinOps] → xref:14-00-guardrails.adoc[Guardrails] → registry / ruteo / AutoML / AutoRAG / prompts / MCP / AgentOps / Skills (*WIP*)
 
 Tiempo orientativo de este módulo: *20–30 min* de lectura y discusión en sala.
