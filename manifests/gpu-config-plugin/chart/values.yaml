@@ -1,0 +1,36 @@
+---
+replicaCount: 1
+
+image:
+  repository: quay.io/eformat/gpu-config-plugin
+  tag: latest
+  pullPolicy: Always
+
+plugin:
+  name: gpu-config-plugin
+  displayName: "GPU Config Plugin"
+  port: 9443
+
+serviceAccount:
+  create: true
+  name: gpu-config-plugin
+
+service:
+  type: ClusterIP
+  port: 9443
+
+gpuOperatorNamespace: gpu-operator
+bookingPluginNamespace: gpu-booking-app-plugin
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 128Mi
+  limits:
+    cpu: 200m
+    memory: 256Mi
+
+tls:
+  enabled: true
+
+enablePlugin: true

@@ -134,10 +134,12 @@ Verificar:
 oc get hardwareprofile -n redhat-ods-applications fake-h200 fake-h200-mig
 ----
 
-== Dashboard Fake GPU (DCGM)
+== Dashboard Observe (DCGM Grafana)
 
-Grafana dashboard + `ServiceMonitor` para el exporter del Fake GPU Operator
+Panel *NVIDIA DCGM Exporter Dashboard* en *Observe* → *Dashboards* + `ServiceMonitor` del exporter Fake
 (https://github.com/rhpds/gpu-resource-mgmt-automation/tree/main/workloads/fake-gpu-operator/dashboard[fuente rhpds]).
+
+Eso **no** es el plugin *Compute* → *GPUs* (ese va en xref:05-01-nvidia-gpu.adoc[NVIDIA GPU Operator]).
 
 [source,bash]
 ----
@@ -148,8 +150,10 @@ Verificar:
 
 [source,bash]
 ----
-oc get cm -n gpu-operator | grep -i dcgm
+oc get cm nvidia-dcgm-exporter-dashboard -n openshift-config-managed
 oc get servicemonitor -n gpu-operator nvidia-dcgm-exporter
 ----
 
-Abre el dashboard DCGM en la consola de monitoring / Grafana del cluster (el ConfigMap aporta el JSON del panel).
+Consola → *Observe* → *Dashboards* → *NVIDIA DCGM Exporter Dashboard*.
+
+Siguiente (opcional): xref:05-03-gpu-config.adoc[GPU Config Plugin] para cambiar topología/MIG Fake desde la consola.

@@ -15,6 +15,7 @@
 * xref:05-00-gpu.adoc[5. GPU]
 ** xref:05-01-nvidia-gpu.adoc[NVIDIA GPU Operator]
 ** xref:05-02-fake-gpu.adoc[Fake GPU Operator]
+** xref:05-03-gpu-config.adoc[GPU Config Plugin (Fake)]
 * xref:06-00-gpu-booking.adoc[6. GPU Booking Plugin]
 * xref:07-00-catalog.adoc[7. Model Catalog]
 * xref:08-00-deploy.adoc[8. Desplegar Qwen3-0.6B]

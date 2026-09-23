@@ -1,0 +1,55 @@
+= GPU Config Plugin (Fake GPU)
+
+Plugin de consola OpenShift para **reconfigurar** la topología Fake (producto GPU / slices MIG) y alinear hardware profiles / Kueue.
+
+Solo para el camino xref:05-02-fake-gpu.adoc[Fake GPU] (`gpu-operator`).
+**No** uses este plugin con NVIDIA GPU Operator real — ahí el equivalente es xref:05-01-nvidia-gpu.adoc#mig-real[Configurar MIG (NVIDIA real)].
+
+Fuente: https://github.com/rhpds/gpu-resource-mgmt-automation/tree/main/workloads/gpu-config-plugin[rhpds/gpu-config-plugin]
+(`quay.io/eformat/gpu-config-plugin`).
+
+Requisito: Fake GPU instalado (módulo 5.2). Ideal después de RHOAI (namespace `redhat-ods-applications`).
+
+== Instalar
+
+El chart del lab apunta a `gpu-operator` y al namespace del GPU Booking (se crea vacío si aún no instalaste el módulo 6):
+
+[source,bash]
+----
+oc create namespace gpu-booking-app-plugin --dry-run=client -o yaml | oc apply -f -
+
+helm upgrade -i gpu-config-plugin \
+  manifests/gpu-config-plugin/chart \
+  -n gpu-config-plugin \
+  --create-namespace \
+  -f manifests/gpu-config-plugin/values.yaml
+----
+
+El chart incluye un Job que añade `gpu-config-plugin` a `consoles.operator.openshift.io/cluster`.
+Si el Job falla por conflicto, habilítalo a mano:
+
+[source,bash]
+----
+oc get consoles.operator.openshift.io cluster -o json \
+  | jq '.spec.plugins = ((.spec.plugins // []) + ["gpu-config-plugin"] | unique)' \
+  | oc apply -f -
+----
+
+== Verificar
+
+[source,bash]
+----
+oc get pods -n gpu-config-plugin
+oc get consoleplugin gpu-config-plugin
+oc get consoles.operator.openshift.io cluster -o jsonpath='{.spec.plugins}{"\n"}'
+----
+
+Recarga forzada la consola (Ctrl+Shift+R). En perspectiva *Administrator* aparece *GPU Config* (o el display name del plugin).
+
+Desde ahí puedes ajustar la topología Fake; confirma con:
+
+[source,bash]
+----
+oc get cm -n gpu-operator | grep -E 'topology|mig'
+oc get nodes -L nvidia.com/gpu.product
+----

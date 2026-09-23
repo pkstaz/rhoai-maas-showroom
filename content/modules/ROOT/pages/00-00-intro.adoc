@@ -19,6 +19,7 @@ Los waits largos son el Operator de OpenShift AI y la carga del modelo.
 . OpenShift AI {rhoai-version} + dashboard
 . MaaS (gateway, API keys, cuotas)
 . GPU opcional: NVIDIA GPU Operator y/o Fake GPU (menús independientes en el módulo 5)
+. GPU Config Plugin (solo Fake) y/o MIG nativo (NVIDIA real)
 . GPU Booking Console Plugin
 . {qwen-model} en el Model Catalog
 . Inferencia CPU con llm-d, publicada en MaaS

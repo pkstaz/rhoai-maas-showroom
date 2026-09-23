@@ -1,0 +1,4 @@
+# Defaults match rhpds; namespace gpu-operator = Fake GPU path in this lab.
+gpuOperatorNamespace: gpu-operator
+bookingPluginNamespace: gpu-booking-app-plugin
+enablePlugin: true

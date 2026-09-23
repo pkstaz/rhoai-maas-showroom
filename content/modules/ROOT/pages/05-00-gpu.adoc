@@ -2,10 +2,11 @@
 
 Capacidad `nvidia.com/gpu` para perfiles y GPU Booking.
 
-Dos menús independientes (puedes hacer uno, los dos o ninguno):
+Menús independientes (puedes hacer uno, los dos o ninguno):
 
-* xref:05-01-nvidia-gpu.adoc[NVIDIA GPU Operator] — nodos con GPU real + profile `nvidia-gpu`
+* xref:05-01-nvidia-gpu.adoc[NVIDIA GPU Operator] — nodos con GPU real + profile `nvidia-gpu` (+ MIG nativo si aplica)
 * xref:05-02-fake-gpu.adoc[Fake GPU Operator] — nodos solo CPU + profiles `fake-h200` / `fake-h200-mig`
+* xref:05-03-gpu-config.adoc[GPU Config Plugin] — solo Fake: UI para reconfigurar topología/MIG
 
 == Qué instalar según tu cluster
 

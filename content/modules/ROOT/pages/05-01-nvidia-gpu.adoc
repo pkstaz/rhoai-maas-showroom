@@ -10,7 +10,7 @@ Documentación:
 * https://docs.nvidia.com/datacenter/cloud-native/openshift/latest/install-nfd.html[Instalar NFD (NVIDIA)]
 * https://docs.nvidia.com/datacenter/cloud-native/openshift/latest/install-gpu-ocp.html[Instalar NVIDIA GPU Operator]
 
-Orden: *NFD Operator* → instancia `NodeFeatureDiscovery` → *NVIDIA GPU Operator* → `ClusterPolicy` → hardware profile.
+Orden: *NFD Operator* → instancia `NodeFeatureDiscovery` → *NVIDIA GPU Operator* → `ClusterPolicy` → GPU Administrator plugin → MIG (opcional) → hardware profile.
 
 == Validar candidatos (antes / después de NFD)
 
@@ -114,6 +114,117 @@ Esperado: al menos un worker con `GPU` ≥ `1`.
 
 IMPORTANT: *No* etiquetes esos nodos con `run.ai/simulated-gpu-node-pool` (eso es solo Fake GPU).
 
+== GPU Administrator (Compute → GPUs)
+
+Plugin de consola
+https://github.com/rh-ecosystem-edge/console-plugin-nvidia-gpu[`console-plugin-nvidia-gpu`]:
+menú *Administrator* → *Compute* → *GPUs* con métricas DCGM del NVIDIA GPU Operator.
+OpenShift *4.20+* → chart `0.3.0`. Namespace: `nvidia-gpu-operator`.
+
+[source,bash]
+----
+helm repo add rh-ecosystem-edge \
+  https://rh-ecosystem-edge.github.io/console-plugin-nvidia-gpu
+helm repo update
+
+helm upgrade -i console-plugin-nvidia-gpu \
+  rh-ecosystem-edge/console-plugin-nvidia-gpu \
+  --namespace nvidia-gpu-operator \
+  --version 0.3.0
+
+# habilitar el plugin (sin pisar otros plugins ya listados)
+oc get consoles.operator.openshift.io cluster -o json \
+  | jq '.spec.plugins = ((.spec.plugins // []) + ["console-plugin-nvidia-gpu"] | unique)' \
+  | oc apply -f -
+
+# métricas DCGM que pide el plugin (ConfigMap del chart)
+oc patch clusterpolicies.nvidia.com gpu-cluster-policy --type=merge \
+  -p '{"spec":{"dcgmExporter":{"config":{"name":"console-plugin-nvidia-gpu"}}}}'
+----
+
+Si el `ClusterPolicy` no se llama `gpu-cluster-policy`, usa el nombre de `oc get clusterpolicy -A`.
+
+Verificar:
+
+[source,bash]
+----
+oc get consoleplugin console-plugin-nvidia-gpu
+oc -n nvidia-gpu-operator get deploy,svc -l app.kubernetes.io/name=console-plugin-nvidia-gpu
+oc get consoles.operator.openshift.io cluster -o jsonpath='{.spec.plugins}{"\n"}'
+----
+
+Recarga forzada la consola (Ctrl+Shift+R) → *Compute* → *GPUs*.
+
+NOTE: Este plugin es del camino *NVIDIA real*. En Fake GPU no hace falta (ni el parche de `ClusterPolicy`).
+
+[#mig-real]
+== Configurar MIG (NVIDIA real)
+
+Equivalente *operativo* al xref:05-03-gpu-config.adoc[GPU Config Plugin] del Fake: aquí **no** hay ese ConsolePlugin.
+MIG lo aplica el *MIG Manager* del NVIDIA GPU Operator
+(https://docs.nvidia.com/datacenter/cloud-native/openshift/latest/mig-ocp.html[doc oficial]).
+
+Requisitos: GPU MIG-capable (A100, A30, H100, H200, …), nodos **sin** workloads GPU (drena antes de reconfigurar).
+
+. Estrategia de anuncio (`mixed` = recursos `nvidia.com/mig-*`; `single` = slices como `nvidia.com/gpu`):
+
+[source,bash]
+----
+STRATEGY=mixed
+oc patch clusterpolicy/gpu-cluster-policy --type=json \
+  -p="[{\"op\":\"replace\",\"path\":\"/spec/mig/strategy\",\"value\":\"${STRATEGY}\"}]"
+----
+
+Si el CR no se llama `gpu-cluster-policy`, usa `oc get clusterpolicy -A`.
+
+. Perfiles disponibles en el nodo (ConfigMap generado o `default-mig-parted-config`):
+
+[source,bash]
+----
+export NVIDIA_GPU_NODE=$(oc get nodes -o json | jq -r '
+  .items[] |
+  select((.status.allocatable["nvidia.com/gpu"] // "0") != "0"
+    and .status.allocatable["nvidia.com/gpu"] != null) |
+  .metadata.name' | head -1)
+echo "NVIDIA_GPU_NODE=${NVIDIA_GPU_NODE}"
+
+oc get cm -n nvidia-gpu-operator "${NVIDIA_GPU_NODE}-mig-config" -o name 2>/dev/null \
+  || oc get cm -n nvidia-gpu-operator default-mig-parted-config -o name
+----
+
+. Aplicar un perfil (ejemplo; el nombre exacto depende del GPU — mira el ConfigMap):
+
+[source,bash]
+----
+# ejemplos típicos: all-disabled | all-balanced | all-1g.10gb | all-2g.20gb …
+MIG_CONFIGURATION=all-balanced
+oc label node "${NVIDIA_GPU_NODE}" \
+  "nvidia.com/mig.config=${MIG_CONFIGURATION}" --overwrite
+----
+
+. Esperar a que el MIG Manager termine:
+
+[source,bash]
+----
+oc get node "${NVIDIA_GPU_NODE}" -o jsonpath='{.metadata.labels.nvidia\.com/mig\.config}{"\n"}{.metadata.labels.nvidia\.com/mig\.config\.state}{"\n"}'
+oc get node "${NVIDIA_GPU_NODE}" -o json | jq -r '
+  .status.allocatable |
+  to_entries[] |
+  select(.key | startswith("nvidia.com/")) |
+  "\(.key)=\(.value)"'
+----
+
+Esperado: `nvidia.com/mig.config.state=success` y recursos `nvidia.com/mig-…` (o `nvidia.com/gpu` si usaste `single`).
+
+Para volver a GPU completa:
+
+[source,bash]
+----
+oc label node "${NVIDIA_GPU_NODE}" nvidia.com/mig.config=all-disabled --overwrite
+----
+
+NOTE: El xref:05-03-gpu-config.adoc[GPU Config Plugin] de rhpds solo habla con Fake (`gpu-operator`). No lo apuntes a `nvidia-gpu-operator`.
+
 == Hardware profile
 
 Crea el profile `nvidia-gpu` (1× `nvidia.com/gpu`):
@@ -123,3 +234,5 @@ Crea el profile `nvidia-gpu` (1× `nvidia.com/gpu`):
 oc apply -f manifests/hardware-profile-nvidia.yaml
 oc get hardwareprofile nvidia-gpu -n redhat-ods-applications
 ----
+
+Si habilitaste MIG y quieres un profile por slice, clona el YAML y cambia el identifier a p. ej. `nvidia.com/mig-1g.18gb` (el nombre exacto debe coincidir con lo anunciado en el nodo).
