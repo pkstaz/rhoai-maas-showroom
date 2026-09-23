@@ -1,2 +1,13 @@
+    <script>
+      (function () {
+        try {
+          var t = localStorage.getItem('lab-theme');
+          if (t !== 'light') document.documentElement.classList.add('pf-v5-theme-dark');
+        } catch (e) {
+          document.documentElement.classList.add('pf-v5-theme-dark');
+        }
+      })();
+    </script>
     <link rel="stylesheet" href="{{{uiRootPath}}}/css/site.css">
+    <link rel="stylesheet" href="{{{uiRootPath}}}/css/openshift-theme.css?v=1">
     <link rel="stylesheet" href="{{{uiRootPath}}}/css/copy-code.css?v=8">

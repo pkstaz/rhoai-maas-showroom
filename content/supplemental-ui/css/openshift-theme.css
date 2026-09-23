@@ -1,0 +1,384 @@
+/* OpenShift Console / PatternFly dark theme for Antora showroom.
+   Enabled when <html> has class pf-v5-theme-dark (default). */
+
+html.pf-v5-theme-dark {
+  color-scheme: dark;
+  --ocp-bg: #151515;
+  --ocp-bg-elevated: #212427;
+  --ocp-bg-hover: #3c3f42;
+  --ocp-bg-code: #1b1d21;
+  --ocp-border: #444548;
+  --ocp-text: #f0f0f0;
+  --ocp-text-muted: #c7c7c7;
+  --ocp-heading: #ffffff;
+  --ocp-link: #2b9af3;
+  --ocp-link-hover: #73bcf7;
+  --ocp-accent: #ee0000;
+}
+
+html.pf-v5-theme-dark,
+html.pf-v5-theme-dark body {
+  background-color: var(--ocp-bg) !important;
+  color: var(--ocp-text) !important;
+}
+
+html.pf-v5-theme-dark a {
+  color: var(--ocp-link);
+}
+
+html.pf-v5-theme-dark a:hover,
+html.pf-v5-theme-dark a:focus {
+  color: var(--ocp-link-hover);
+}
+
+/* Navbar — OpenShift masthead feel */
+html.pf-v5-theme-dark .navbar {
+  background-color: #151515 !important;
+  color: var(--ocp-heading) !important;
+  border-bottom: 1px solid var(--ocp-border);
+  box-shadow: none !important;
+}
+
+html.pf-v5-theme-dark .navbar a,
+html.pf-v5-theme-dark .navbar .navbar-item,
+html.pf-v5-theme-dark .navbar .navbar-link,
+html.pf-v5-theme-dark .navbar .site-title {
+  color: var(--ocp-heading) !important;
+}
+
+html.pf-v5-theme-dark .navbar .navbar-item:hover,
+html.pf-v5-theme-dark .navbar .navbar-link:hover {
+  background-color: var(--ocp-bg-hover) !important;
+}
+
+html.pf-v5-theme-dark .navbar .navbar-menu {
+  background-color: #151515 !important;
+  border-color: var(--ocp-border) !important;
+}
+
+html.pf-v5-theme-dark .navbar .navbar-dropdown {
+  background-color: var(--ocp-bg-elevated) !important;
+  border-color: var(--ocp-border) !important;
+}
+
+html.pf-v5-theme-dark .navbar .navbar-dropdown .navbar-item:hover {
+  background-color: var(--ocp-bg-hover) !important;
+}
+
+/* Theme toggle — PatternFly-like control */
+.theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0;
+  padding: 0.35rem 0.7rem;
+  border: 1px solid #8a8d90;
+  border-radius: 3px;
+  background: transparent;
+  color: #fff;
+  font-family: RedHatText, Overpass, overpass, helvetica, arial, sans-serif;
+  font-size: 0.8rem;
+  font-weight: 500;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.theme-toggle:hover,
+.theme-toggle:focus {
+  background: rgba(255, 255, 255, 0.1);
+  outline: none;
+}
+
+.theme-toggle-icon-sun {
+  display: none;
+}
+
+html.pf-v5-theme-dark .theme-toggle-icon-moon {
+  display: none;
+}
+
+html.pf-v5-theme-dark .theme-toggle-icon-sun {
+  display: inline;
+}
+
+/* Side nav + toolbar */
+html.pf-v5-theme-dark .nav,
+html.pf-v5-theme-dark .nav-container,
+html.pf-v5-theme-dark .nav-panel-menu,
+html.pf-v5-theme-dark .nav-panel-explore,
+html.pf-v5-theme-dark .toolbar {
+  background-color: var(--ocp-bg-elevated) !important;
+  border-color: var(--ocp-border) !important;
+  color: var(--ocp-text) !important;
+  box-shadow: none !important;
+}
+
+html.pf-v5-theme-dark .nav {
+  box-shadow: inset -1px 0 0 var(--ocp-border) !important;
+}
+
+html.pf-v5-theme-dark .toolbar {
+  box-shadow: 0 1px 0 var(--ocp-border) !important;
+}
+
+html.pf-v5-theme-dark .nav .title,
+html.pf-v5-theme-dark .nav .title a,
+html.pf-v5-theme-dark .nav .nav-link,
+html.pf-v5-theme-dark .nav .nav-text,
+html.pf-v5-theme-dark .nav-menu,
+html.pf-v5-theme-dark .nav-menu a,
+html.pf-v5-theme-dark .toolbar a,
+html.pf-v5-theme-dark .breadcrumbs,
+html.pf-v5-theme-dark .breadcrumbs a,
+html.pf-v5-theme-dark .edit-this-page a {
+  color: var(--ocp-text) !important;
+}
+
+html.pf-v5-theme-dark .nav .nav-item.is-current-page > .nav-link,
+html.pf-v5-theme-dark .nav .nav-item.is-current-page > .nav-text {
+  color: #fff !important;
+  font-weight: 600;
+  border-left: 3px solid var(--ocp-link);
+  padding-left: 0.35rem;
+}
+
+html.pf-v5-theme-dark .nav-panel-explore {
+  background: var(--ocp-bg-hover) !important;
+}
+
+html.pf-v5-theme-dark .nav-panel-explore .context {
+  color: var(--ocp-text-muted) !important;
+  box-shadow: 0 -1px 0 var(--ocp-border) !important;
+}
+
+html.pf-v5-theme-dark .nav-panel-explore .components {
+  background: var(--ocp-bg-elevated) !important;
+  box-shadow: none !important;
+}
+
+html.pf-v5-theme-dark .nav-panel-explore .component .version a {
+  border-color: var(--ocp-border) !important;
+  color: var(--ocp-text) !important;
+}
+
+/* TOC */
+html.pf-v5-theme-dark aside.toc.sidebar,
+html.pf-v5-theme-dark .toc.sidebar {
+  background-color: transparent !important;
+  color: var(--ocp-text) !important;
+  border-color: var(--ocp-border) !important;
+}
+
+html.pf-v5-theme-dark .toc .toc-menu h3 {
+  color: var(--ocp-heading) !important;
+}
+
+html.pf-v5-theme-dark .toc .toc-menu a,
+html.pf-v5-theme-dark .sidebar.toc .toc-menu a {
+  color: var(--ocp-text-muted) !important;
+  border-left-color: var(--ocp-border) !important;
+}
+
+html.pf-v5-theme-dark .toc .toc-menu a.is-active {
+  color: #fff !important;
+  border-left-color: var(--ocp-link) !important;
+}
+
+html.pf-v5-theme-dark .toc .toc-menu a:hover,
+html.pf-v5-theme-dark .toc .toc-menu a:focus {
+  background: var(--ocp-bg-hover) !important;
+  color: #fff !important;
+}
+
+/* Document */
+html.pf-v5-theme-dark .main,
+html.pf-v5-theme-dark #content,
+html.pf-v5-theme-dark .content,
+html.pf-v5-theme-dark .doc {
+  background-color: transparent !important;
+  color: var(--ocp-text) !important;
+}
+
+html.pf-v5-theme-dark .doc h1,
+html.pf-v5-theme-dark .doc h2,
+html.pf-v5-theme-dark .doc h3,
+html.pf-v5-theme-dark .doc h4,
+html.pf-v5-theme-dark .doc h5,
+html.pf-v5-theme-dark .doc h6,
+html.pf-v5-theme-dark .doc .title,
+html.pf-v5-theme-dark .doc > h1.page {
+  color: var(--ocp-heading) !important;
+}
+
+html.pf-v5-theme-dark .doc h1.sect0,
+html.pf-v5-theme-dark .doc h2:not(.discrete) {
+  background: transparent !important;
+  border-bottom-color: var(--ocp-border) !important;
+}
+
+html.pf-v5-theme-dark .doc a,
+html.pf-v5-theme-dark .doc a:hover {
+  color: var(--ocp-link) !important;
+}
+
+html.pf-v5-theme-dark .doc a:hover {
+  color: var(--ocp-link-hover) !important;
+}
+
+html.pf-v5-theme-dark .doc .admonitionblock .title,
+html.pf-v5-theme-dark .doc .exampleblock .title,
+html.pf-v5-theme-dark .doc .listingblock .title,
+html.pf-v5-theme-dark .doc .tableblock caption {
+  color: var(--ocp-text-muted) !important;
+}
+
+/* Inline code */
+html.pf-v5-theme-dark .doc p code,
+html.pf-v5-theme-dark .doc thead code,
+html.pf-v5-theme-dark .doc td code,
+html.pf-v5-theme-dark .doc li code,
+html.pf-v5-theme-dark .doc code:not(.hljs):not([data-lang]) {
+  color: #f0f0f0 !important;
+  background: var(--ocp-bg-hover) !important;
+  border: 1px solid var(--ocp-border);
+  border-radius: 3px;
+}
+
+/* Code blocks — override site.css #ededed */
+html.pf-v5-theme-dark .doc pre,
+html.pf-v5-theme-dark .doc pre.highlight,
+html.pf-v5-theme-dark .doc .listingblock pre,
+html.pf-v5-theme-dark .doc .literalblock pre,
+html.pf-v5-theme-dark .doc pre.highlight code,
+html.pf-v5-theme-dark .doc pre:not(.highlight),
+html.pf-v5-theme-dark .doc .listingblock pre code,
+html.pf-v5-theme-dark .doc .literalblock pre code,
+html.pf-v5-theme-dark .doc .console-input pre.highlight code,
+html.pf-v5-theme-dark .doc .copypaste pre.highlight code,
+html.pf-v5-theme-dark .doc .execute pre.highlight code,
+html.pf-v5-theme-dark .doc .console-output pre.highlight code {
+  background: var(--ocp-bg-code) !important;
+  background-color: var(--ocp-bg-code) !important;
+  color: #f0f0f0 !important;
+  box-shadow: none !important;
+  border: 1px solid var(--ocp-border) !important;
+  border-radius: 3px;
+}
+
+html.pf-v5-theme-dark .doc .listingblock .content,
+html.pf-v5-theme-dark .doc .literalblock .content {
+  background: transparent !important;
+}
+
+/* HLJS tokens tuned for OpenShift dark */
+html.pf-v5-theme-dark .hljs-comment,
+html.pf-v5-theme-dark .hljs-quote {
+  color: #8a8d90 !important;
+}
+
+html.pf-v5-theme-dark .hljs-keyword,
+html.pf-v5-theme-dark .hljs-selector-tag {
+  color: #c58aff !important;
+}
+
+html.pf-v5-theme-dark .hljs-string,
+html.pf-v5-theme-dark .hljs-doctag {
+  color: #bde2b9 !important;
+}
+
+html.pf-v5-theme-dark .hljs-number,
+html.pf-v5-theme-dark .hljs-literal {
+  color: #a2d2fc !important;
+}
+
+html.pf-v5-theme-dark .hljs-title,
+html.pf-v5-theme-dark .hljs-section {
+  color: #f4c145 !important;
+}
+
+html.pf-v5-theme-dark .hljs-built_in,
+html.pf-v5-theme-dark .hljs-type {
+  color: #73bcf7 !important;
+}
+
+html.pf-v5-theme-dark .hljs-attr,
+html.pf-v5-theme-dark .hljs-attribute,
+html.pf-v5-theme-dark .hljs-name {
+  color: #7ee787 !important;
+}
+
+/* Tables */
+html.pf-v5-theme-dark .doc table.tableblock thead th {
+  background: var(--ocp-bg-elevated) !important;
+  color: var(--ocp-heading) !important;
+  border-bottom: 2px solid var(--ocp-border) !important;
+}
+
+html.pf-v5-theme-dark .doc table.tableblock > :not(thead) th,
+html.pf-v5-theme-dark .doc table.tableblock td {
+  border-color: var(--ocp-border) !important;
+  background: transparent !important;
+  color: var(--ocp-text) !important;
+}
+
+html.pf-v5-theme-dark .doc .sidebarblock,
+html.pf-v5-theme-dark .doc .exampleblock > .content,
+html.pf-v5-theme-dark .doc .quoteblock,
+html.pf-v5-theme-dark .doc .verseblock,
+html.pf-v5-theme-dark .doc .admonitionblock > table,
+html.pf-v5-theme-dark .doc .admonitionblock td.content,
+html.pf-v5-theme-dark .doc details,
+html.pf-v5-theme-dark .tabset > .content {
+  background: var(--ocp-bg-elevated) !important;
+  border-color: var(--ocp-border) !important;
+  color: var(--ocp-text) !important;
+}
+
+html.pf-v5-theme-dark .doc .exampleblock > .content {
+  border: 0.25rem solid var(--ocp-border) !important;
+}
+
+html.pf-v5-theme-dark .doc .admonitionblock.note td.icon,
+html.pf-v5-theme-dark .doc .admonitionblock.tip td.icon {
+  background-color: #002952 !important;
+  color: #fff !important;
+}
+
+html.pf-v5-theme-dark .doc .admonitionblock.important td.icon,
+html.pf-v5-theme-dark .doc .admonitionblock.warning td.icon,
+html.pf-v5-theme-dark .doc .admonitionblock.caution td.icon {
+  background-color: #795600 !important;
+  color: #fff !important;
+}
+
+html.pf-v5-theme-dark .doc hr {
+  border-color: var(--ocp-border) !important;
+}
+
+html.pf-v5-theme-dark .footer,
+html.pf-v5-theme-dark footer.footer,
+html.pf-v5-theme-dark .nav-footer,
+html.pf-v5-theme-dark .pagination a {
+  background-color: var(--ocp-bg-elevated) !important;
+  color: var(--ocp-text-muted) !important;
+  border-color: var(--ocp-border) !important;
+}
+
+html.pf-v5-theme-dark .footer a,
+html.pf-v5-theme-dark .pagination a {
+  color: var(--ocp-link) !important;
+}
+
+html.pf-v5-theme-dark .page-versions .version-menu {
+  background-color: var(--ocp-bg-elevated) !important;
+  border-color: var(--ocp-border) !important;
+}
+
+html.pf-v5-theme-dark .page-versions .version-menu a {
+  color: var(--ocp-text) !important;
+}
+
+/* Copy button stays Red Hat red in both themes */
+html.pf-v5-theme-dark .listingblock pre .lab-copy-btn {
+  background: #c9190b !important;
+}
