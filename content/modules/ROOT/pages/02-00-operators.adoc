@@ -1,4 +1,4 @@
-= Operadores previos
+= Operadores
 
 Antes de OpenShift AI hace falta un conjunto *fijo* de operadores de plataforma.
 Sin ellos no podrás exponer MaaS por Gateway con TLS, usar AI Pipelines, repartir inferencia con llm-d ni reservar GPU con Kueue.
@@ -63,7 +63,7 @@ En la consola: *Ecosystem* → *Software Catalog*. Instala uno, espera *Succeede
 
 == Manifiestos por operador
 
-Si prefieres CLI (o para repetir en otro cluster), aplica *uno por uno* desde la raíz del repo. Espera `Succeeded` entre cada apply (reutiliza el comando de validación).
+También puedes aplicar *uno por uno* desde la raíz del repo. Espera `Succeeded` entre cada apply (reutiliza el comando de validación).
 
 === cert-manager
 

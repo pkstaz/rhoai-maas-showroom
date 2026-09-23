@@ -1,8 +1,10 @@
 = Instalar OpenShift AI {rhoai-version}
 
-Tres pasos: monitoreo de user workloads, Operator y `DataScienceCluster`.
+Dos pasos: Operator y `DataScienceCluster`.
+
+El monitoreo de user workloads ya quedó en xref:02-01-monitoring.adoc[Pre-requisitos → Monitoreo].
 
 * Canal: `stable-3.5`
 * Versión: `{rhoai-version}`
 
-Siguiente: xref:03-00-monitoring.adoc[Monitoreo], xref:03-01-operator.adoc[Operator] y xref:03-02-dsc.adoc[DataScienceCluster]. El `GatewayClass` y la instancia Kuadrant van *después*, en el módulo de MaaS.
+Siguiente: xref:03-01-operator.adoc[Operator] y xref:03-02-dsc.adoc[DataScienceCluster]. El `GatewayClass` y la instancia Kuadrant van *después*, en el módulo de MaaS.

@@ -1,0 +1,50 @@
+= Monitoreo (user workloads)
+
+OpenShift separa el monitoreo de *plataforma* (`openshift-monitoring`) del de *cargas de usuario*.
+OpenShift AI (dashboard, workbenches, serving) y Kueue publican métricas en ese segundo plano: *user-workload monitoring*.
+
+Sin `enableUserWorkload: true`:
+
+* el dashboard de OpenShift AI no recibe bien métricas de uso / salud de workloads
+* Kueue / GPU Booking no tienen el pipeline de métricas que esperan para colas y ocupación
+* no se crea (o no queda operativo) el namespace `openshift-user-workload-monitoring`
+
+Por eso se activa *aquí*, en los pre-requisitos, *antes* del Operator de OpenShift AI.
+
+== Comprobar si ya existe
+
+[source,bash]
+----
+oc get cm cluster-monitoring-config -n openshift-monitoring -o yaml
+----
+
+* Si el ConfigMap *no existe*, el comando falla con `NotFound` → créalo en el paso siguiente.
+* Si *existe*, revisa que en `data.config.yaml` aparezca `enableUserWorkload: true` (y, en este lab, `alertmanagerMain.enableUserAlertmanagerConfig: true`).
+
+== Crear o actualizar
+
+`oc apply` crea el ConfigMap o lo actualiza si ya estaba:
+
+[source,bash]
+----
+oc apply -f manifests/cluster-monitoring-config.yaml
+----
+
+El manifiesto deja:
+
+[source,yaml]
+----
+enableUserWorkload: true
+alertmanagerMain:
+  enableUserAlertmanagerConfig: true
+----
+
+== Verificar
+
+[source,bash]
+----
+oc get cm cluster-monitoring-config -n openshift-monitoring -o yaml
+oc get pods -n openshift-user-workload-monitoring
+----
+
+Los pods de `openshift-user-workload-monitoring` deben quedar `Running` (puede tardar uno o dos minutos la primera vez).

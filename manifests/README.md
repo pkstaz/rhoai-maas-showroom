@@ -5,7 +5,8 @@ Run `oc apply` / scripts from the **repo root**.
 
 | Path | Module |
 |---|---|
-| `operators/` | Prerequisite operators (module 2), one directory per Operator |
+| `operators/` | Prerequisite operators (module 2), one directory per Operator
+| `cluster-monitoring-config.yaml` | User-workload monitoring (module 2) |
 | `oauth-htpasswd.yaml` | Optional OAuth htpasswd patch |
 | `gatewayclass.yaml` | GatewayClass (module 4) |
 | `kuadrant.yaml` | Kuadrant instance (module 4) |
