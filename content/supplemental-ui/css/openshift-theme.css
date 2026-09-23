@@ -1,19 +1,27 @@
 /* OpenShift Console / PatternFly dark theme for Antora showroom.
-   Enabled when <html> has class pf-v5-theme-dark (default). */
+   Soft, card-like layout inspired by the OCP Overview. */
 
 html.pf-v5-theme-dark {
   color-scheme: dark;
   --ocp-bg: #151515;
+  --ocp-bg-shell: #0f0f0f;
   --ocp-bg-elevated: #212427;
+  --ocp-bg-surface: #2b2d30;
   --ocp-bg-hover: #3c3f42;
   --ocp-bg-code: #1b1d21;
-  --ocp-border: #444548;
+  --ocp-border: #3c3f42;
+  --ocp-border-subtle: rgba(255, 255, 255, 0.08);
   --ocp-text: #f0f0f0;
-  --ocp-text-muted: #c7c7c7;
+  --ocp-text-muted: #b8bbbe;
   --ocp-heading: #ffffff;
   --ocp-link: #2b9af3;
   --ocp-link-hover: #73bcf7;
   --ocp-accent: #ee0000;
+  --ocp-radius-sm: 8px;
+  --ocp-radius-md: 12px;
+  --ocp-radius-lg: 16px;
+  --ocp-radius-xl: 20px;
+  --ocp-gap: 1.25rem;
 }
 
 html.pf-v5-theme-dark,
@@ -31,11 +39,11 @@ html.pf-v5-theme-dark a:focus {
   color: var(--ocp-link-hover);
 }
 
-/* Navbar — OpenShift masthead feel */
+/* Navbar — flat masthead, soft edges on controls */
 html.pf-v5-theme-dark .navbar {
-  background-color: #151515 !important;
+  background-color: var(--ocp-bg) !important;
   color: var(--ocp-heading) !important;
-  border-bottom: 1px solid var(--ocp-border);
+  border-bottom: 1px solid var(--ocp-border-subtle);
   box-shadow: none !important;
 }
 
@@ -49,31 +57,35 @@ html.pf-v5-theme-dark .navbar .site-title {
 html.pf-v5-theme-dark .navbar .navbar-item:hover,
 html.pf-v5-theme-dark .navbar .navbar-link:hover {
   background-color: var(--ocp-bg-hover) !important;
+  border-radius: var(--ocp-radius-sm);
 }
 
 html.pf-v5-theme-dark .navbar .navbar-menu {
-  background-color: #151515 !important;
+  background-color: var(--ocp-bg) !important;
   border-color: var(--ocp-border) !important;
 }
 
 html.pf-v5-theme-dark .navbar .navbar-dropdown {
   background-color: var(--ocp-bg-elevated) !important;
-  border-color: var(--ocp-border) !important;
+  border: 1px solid var(--ocp-border) !important;
+  border-radius: var(--ocp-radius-md) !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45) !important;
+  overflow: hidden;
 }
 
 html.pf-v5-theme-dark .navbar .navbar-dropdown .navbar-item:hover {
   background-color: var(--ocp-bg-hover) !important;
 }
 
-/* Theme toggle — PatternFly-like control */
+/* Theme toggle */
 .theme-toggle {
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
   margin: 0;
-  padding: 0.35rem 0.7rem;
-  border: 1px solid #8a8d90;
-  border-radius: 3px;
+  padding: 0.4rem 0.75rem;
+  border: 1px solid #6a6e73;
+  border-radius: 999px;
   background: transparent;
   color: #fff;
   font-family: RedHatText, Overpass, overpass, helvetica, arial, sans-serif;
@@ -81,11 +93,13 @@ html.pf-v5-theme-dark .navbar .navbar-dropdown .navbar-item:hover {
   font-weight: 500;
   line-height: 1;
   cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
 }
 
 .theme-toggle:hover,
 .theme-toggle:focus {
   background: rgba(255, 255, 255, 0.1);
+  border-color: #a0a4a8;
   outline: none;
 }
 
@@ -101,24 +115,33 @@ html.pf-v5-theme-dark .theme-toggle-icon-sun {
   display: inline;
 }
 
-/* Side nav + toolbar */
+/* Side nav — soft list, pill selection */
+html.pf-v5-theme-dark .nav-container {
+  background-color: var(--ocp-bg) !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
 html.pf-v5-theme-dark .nav,
-html.pf-v5-theme-dark .nav-container,
 html.pf-v5-theme-dark .nav-panel-menu,
-html.pf-v5-theme-dark .nav-panel-explore,
-html.pf-v5-theme-dark .toolbar {
-  background-color: var(--ocp-bg-elevated) !important;
-  border-color: var(--ocp-border) !important;
+html.pf-v5-theme-dark .nav-panel-explore {
+  background-color: transparent !important;
+  border: none !important;
   color: var(--ocp-text) !important;
   box-shadow: none !important;
 }
 
 html.pf-v5-theme-dark .nav {
-  box-shadow: inset -1px 0 0 var(--ocp-border) !important;
+  padding: 0.75rem 0.5rem 1.5rem !important;
 }
 
 html.pf-v5-theme-dark .toolbar {
-  box-shadow: 0 1px 0 var(--ocp-border) !important;
+  background-color: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  color: var(--ocp-text) !important;
+  padding-top: 0.75rem !important;
+  padding-bottom: 0.75rem !important;
 }
 
 html.pf-v5-theme-dark .nav .title,
@@ -131,57 +154,82 @@ html.pf-v5-theme-dark .toolbar a,
 html.pf-v5-theme-dark .breadcrumbs,
 html.pf-v5-theme-dark .breadcrumbs a,
 html.pf-v5-theme-dark .edit-this-page a {
-  color: var(--ocp-text) !important;
+  color: var(--ocp-text-muted) !important;
+}
+
+html.pf-v5-theme-dark .nav .nav-link,
+html.pf-v5-theme-dark .nav .nav-text {
+  border-radius: var(--ocp-radius-sm);
+  padding: 0.35rem 0.65rem !important;
+  margin: 0.1rem 0;
+  transition: background 0.12s ease, color 0.12s ease;
+}
+
+html.pf-v5-theme-dark .nav .nav-link:hover,
+html.pf-v5-theme-dark .nav .nav-text:hover {
+  background: var(--ocp-bg-hover) !important;
+  color: #fff !important;
 }
 
 html.pf-v5-theme-dark .nav .nav-item.is-current-page > .nav-link,
 html.pf-v5-theme-dark .nav .nav-item.is-current-page > .nav-text {
   color: #fff !important;
   font-weight: 600;
-  border-left: 3px solid var(--ocp-link);
-  padding-left: 0.35rem;
+  background: var(--ocp-bg-surface) !important;
+  border-left: none;
+  padding-left: 0.65rem !important;
+  box-shadow: inset 3px 0 0 var(--ocp-link);
 }
 
 html.pf-v5-theme-dark .nav-panel-explore {
-  background: var(--ocp-bg-hover) !important;
+  background: var(--ocp-bg-elevated) !important;
+  border-radius: var(--ocp-radius-md) !important;
+  margin: 0.5rem !important;
 }
 
 html.pf-v5-theme-dark .nav-panel-explore .context {
   color: var(--ocp-text-muted) !important;
-  box-shadow: 0 -1px 0 var(--ocp-border) !important;
+  box-shadow: 0 -1px 0 var(--ocp-border-subtle) !important;
 }
 
 html.pf-v5-theme-dark .nav-panel-explore .components {
-  background: var(--ocp-bg-elevated) !important;
+  background: transparent !important;
   box-shadow: none !important;
 }
 
 html.pf-v5-theme-dark .nav-panel-explore .component .version a {
   border-color: var(--ocp-border) !important;
+  border-radius: var(--ocp-radius-sm) !important;
   color: var(--ocp-text) !important;
 }
 
-/* TOC */
+/* TOC — soft pills */
 html.pf-v5-theme-dark aside.toc.sidebar,
 html.pf-v5-theme-dark .toc.sidebar {
   background-color: transparent !important;
   color: var(--ocp-text) !important;
-  border-color: var(--ocp-border) !important;
+  border: none !important;
 }
 
 html.pf-v5-theme-dark .toc .toc-menu h3 {
   color: var(--ocp-heading) !important;
+  font-weight: 600;
+  letter-spacing: 0.01em;
 }
 
 html.pf-v5-theme-dark .toc .toc-menu a,
 html.pf-v5-theme-dark .sidebar.toc .toc-menu a {
   color: var(--ocp-text-muted) !important;
-  border-left-color: var(--ocp-border) !important;
+  border-left: none !important;
+  border-radius: var(--ocp-radius-sm);
+  padding: 0.35rem 0.65rem !important;
+  margin: 0.15rem 0;
 }
 
 html.pf-v5-theme-dark .toc .toc-menu a.is-active {
   color: #fff !important;
-  border-left-color: var(--ocp-link) !important;
+  background: var(--ocp-bg-surface) !important;
+  box-shadow: inset 3px 0 0 var(--ocp-link);
 }
 
 html.pf-v5-theme-dark .toc .toc-menu a:hover,
@@ -190,13 +238,26 @@ html.pf-v5-theme-dark .toc .toc-menu a:focus {
   color: #fff !important;
 }
 
-/* Document */
-html.pf-v5-theme-dark .main,
-html.pf-v5-theme-dark #content,
-html.pf-v5-theme-dark .content,
-html.pf-v5-theme-dark .doc {
+/* Main workspace — rounded content “card” like OCP Overview */
+html.pf-v5-theme-dark .main {
   background-color: transparent !important;
+}
+
+html.pf-v5-theme-dark #content,
+html.pf-v5-theme-dark .content {
+  background-color: transparent !important;
+}
+
+html.pf-v5-theme-dark article.doc,
+html.pf-v5-theme-dark .doc {
+  background-color: var(--ocp-bg-elevated) !important;
   color: var(--ocp-text) !important;
+  border: 1px solid var(--ocp-border-subtle);
+  border-radius: var(--ocp-radius-xl) !important;
+  padding: 2rem 2.25rem 2.5rem !important;
+  margin: 0.75rem 1rem 1.5rem !important;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.03) inset;
+  max-width: none;
 }
 
 html.pf-v5-theme-dark .doc h1,
@@ -210,10 +271,17 @@ html.pf-v5-theme-dark .doc > h1.page {
   color: var(--ocp-heading) !important;
 }
 
+html.pf-v5-theme-dark .doc > h1.page {
+  margin-top: 0 !important;
+  padding-bottom: 0.75rem !important;
+  border-bottom: 1px solid var(--ocp-border-subtle) !important;
+}
+
 html.pf-v5-theme-dark .doc h1.sect0,
 html.pf-v5-theme-dark .doc h2:not(.discrete) {
   background: transparent !important;
-  border-bottom-color: var(--ocp-border) !important;
+  border-bottom-color: var(--ocp-border-subtle) !important;
+  padding-top: 1.25rem !important;
 }
 
 html.pf-v5-theme-dark .doc a,
@@ -239,12 +307,13 @@ html.pf-v5-theme-dark .doc td code,
 html.pf-v5-theme-dark .doc li code,
 html.pf-v5-theme-dark .doc code:not(.hljs):not([data-lang]) {
   color: #f0f0f0 !important;
-  background: var(--ocp-bg-hover) !important;
-  border: 1px solid var(--ocp-border);
-  border-radius: 3px;
+  background: var(--ocp-bg-surface) !important;
+  border: 1px solid var(--ocp-border-subtle);
+  border-radius: 6px;
+  padding: 0.1em 0.4em;
 }
 
-/* Code blocks — override site.css #ededed */
+/* Code blocks — soft cards */
 html.pf-v5-theme-dark .doc pre,
 html.pf-v5-theme-dark .doc pre.highlight,
 html.pf-v5-theme-dark .doc .listingblock pre,
@@ -261,16 +330,22 @@ html.pf-v5-theme-dark .doc .console-output pre.highlight code {
   background-color: var(--ocp-bg-code) !important;
   color: #f0f0f0 !important;
   box-shadow: none !important;
-  border: 1px solid var(--ocp-border) !important;
-  border-radius: 3px;
+  border: 1px solid var(--ocp-border-subtle) !important;
+  border-radius: var(--ocp-radius-md) !important;
+}
+
+html.pf-v5-theme-dark .doc .listingblock,
+html.pf-v5-theme-dark .doc .literalblock {
+  margin: 1.25rem 0 !important;
 }
 
 html.pf-v5-theme-dark .doc .listingblock .content,
 html.pf-v5-theme-dark .doc .literalblock .content {
   background: transparent !important;
+  border-radius: var(--ocp-radius-md);
 }
 
-/* HLJS tokens tuned for OpenShift dark */
+/* HLJS tokens */
 html.pf-v5-theme-dark .hljs-comment,
 html.pf-v5-theme-dark .hljs-quote {
   color: #8a8d90 !important;
@@ -307,20 +382,32 @@ html.pf-v5-theme-dark .hljs-name {
   color: #7ee787 !important;
 }
 
-/* Tables */
+/* Tables — rounded card wrapper feel */
+html.pf-v5-theme-dark .doc table.tableblock {
+  border-collapse: separate !important;
+  border-spacing: 0 !important;
+  border: 1px solid var(--ocp-border-subtle) !important;
+  border-radius: var(--ocp-radius-md) !important;
+  overflow: hidden;
+  background: var(--ocp-bg-surface) !important;
+}
+
 html.pf-v5-theme-dark .doc table.tableblock thead th {
-  background: var(--ocp-bg-elevated) !important;
+  background: var(--ocp-bg-code) !important;
   color: var(--ocp-heading) !important;
-  border-bottom: 2px solid var(--ocp-border) !important;
+  border-bottom: 1px solid var(--ocp-border-subtle) !important;
+  padding: 0.75rem 1rem !important;
 }
 
 html.pf-v5-theme-dark .doc table.tableblock > :not(thead) th,
 html.pf-v5-theme-dark .doc table.tableblock td {
-  border-color: var(--ocp-border) !important;
+  border-color: var(--ocp-border-subtle) !important;
   background: transparent !important;
   color: var(--ocp-text) !important;
+  padding: 0.65rem 1rem !important;
 }
 
+/* Nested content cards (admonitions, examples, sidebars) */
 html.pf-v5-theme-dark .doc .sidebarblock,
 html.pf-v5-theme-dark .doc .exampleblock > .content,
 html.pf-v5-theme-dark .doc .quoteblock,
@@ -329,13 +416,29 @@ html.pf-v5-theme-dark .doc .admonitionblock > table,
 html.pf-v5-theme-dark .doc .admonitionblock td.content,
 html.pf-v5-theme-dark .doc details,
 html.pf-v5-theme-dark .tabset > .content {
-  background: var(--ocp-bg-elevated) !important;
-  border-color: var(--ocp-border) !important;
+  background: var(--ocp-bg-surface) !important;
+  border: 1px solid var(--ocp-border-subtle) !important;
+  border-radius: var(--ocp-radius-md) !important;
   color: var(--ocp-text) !important;
+  overflow: hidden;
 }
 
 html.pf-v5-theme-dark .doc .exampleblock > .content {
-  border: 0.25rem solid var(--ocp-border) !important;
+  border-width: 1px !important;
+  padding: 1rem 1.25rem !important;
+}
+
+html.pf-v5-theme-dark .doc .admonitionblock {
+  margin: 1.25rem 0 !important;
+}
+
+html.pf-v5-theme-dark .doc .admonitionblock > table {
+  border-collapse: separate !important;
+  border-spacing: 0 !important;
+}
+
+html.pf-v5-theme-dark .doc .admonitionblock td.icon {
+  border-radius: var(--ocp-radius-md) 0 0 var(--ocp-radius-md) !important;
 }
 
 html.pf-v5-theme-dark .doc .admonitionblock.note td.icon,
@@ -352,33 +455,58 @@ html.pf-v5-theme-dark .doc .admonitionblock.caution td.icon {
 }
 
 html.pf-v5-theme-dark .doc hr {
-  border-color: var(--ocp-border) !important;
+  border: none !important;
+  border-top: 1px solid var(--ocp-border-subtle) !important;
+  margin: 1.75rem 0 !important;
 }
 
 html.pf-v5-theme-dark .footer,
 html.pf-v5-theme-dark footer.footer,
-html.pf-v5-theme-dark .nav-footer,
+html.pf-v5-theme-dark .nav-footer {
+  background-color: transparent !important;
+  color: var(--ocp-text-muted) !important;
+  border: none !important;
+  padding: 1.25rem 1.5rem !important;
+}
+
 html.pf-v5-theme-dark .pagination a {
   background-color: var(--ocp-bg-elevated) !important;
-  color: var(--ocp-text-muted) !important;
-  border-color: var(--ocp-border) !important;
+  color: var(--ocp-link) !important;
+  border: 1px solid var(--ocp-border-subtle) !important;
+  border-radius: 999px !important;
+  padding: 0.45rem 1rem !important;
 }
 
 html.pf-v5-theme-dark .footer a,
-html.pf-v5-theme-dark .pagination a {
-  color: var(--ocp-link) !important;
+html.pf-v5-theme-dark .pagination a:hover {
+  color: var(--ocp-link-hover) !important;
 }
 
 html.pf-v5-theme-dark .page-versions .version-menu {
   background-color: var(--ocp-bg-elevated) !important;
-  border-color: var(--ocp-border) !important;
+  border: 1px solid var(--ocp-border) !important;
+  border-radius: var(--ocp-radius-md) !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  overflow: hidden;
 }
 
 html.pf-v5-theme-dark .page-versions .version-menu a {
   color: var(--ocp-text) !important;
 }
 
-/* Copy button stays Red Hat red in both themes */
+/* Copy button */
 html.pf-v5-theme-dark .listingblock pre .lab-copy-btn {
   background: #c9190b !important;
+  border-radius: var(--ocp-radius-sm) !important;
+}
+
+/* Soften body/frame around the article card */
+@media screen and (min-width: 1024px) {
+  html.pf-v5-theme-dark .body {
+    background: var(--ocp-bg) !important;
+  }
+
+  html.pf-v5-theme-dark .nav {
+    margin-top: 0.5rem;
+  }
 }
