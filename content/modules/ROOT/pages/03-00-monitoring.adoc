@@ -33,7 +33,7 @@ Pods `Running`.
 ====
 [source,bash]
 ----
-oc apply -f examples/cluster-monitoring-config.yaml
+oc apply -f manifests/cluster-monitoring-config.yaml
 oc get pods -n openshift-user-workload-monitoring
 ----
 ====

@@ -47,7 +47,7 @@ helm upgrade -i gpu-operator \
   oci://ghcr.io/run-ai/fake-gpu-operator/fake-gpu-operator \
   --namespace gpu-operator \
   --version 0.2.0 \
-  -f examples/fake-gpu-values.yaml
+  -f manifests/fake-gpu-values.yaml
 ----
 
 == Configurar (consola)
@@ -58,7 +58,7 @@ Fake GPU no trae un plugin de consola propio. La topología se edita en el Confi
 . *Resources*: `ConfigMap`
 . Abre `topology` en `gpu-operator`
 . Pestaña *YAML*
-. En `data.topology.yml` deja el recorte H200 (ya viene de `examples/fake-gpu-values.yaml`):
+. En `data.topology.yml` deja el recorte H200 (ya viene de `manifests/fake-gpu-values.yaml`):
 
 [source,yaml]
 ----
@@ -119,6 +119,6 @@ El modelo Qwen usa *solo* `cpu-workshop`.
 ====
 [source,bash]
 ----
-oc apply -f examples/hardware-profiles.yaml
+oc apply -f manifests/hardware-profiles.yaml
 ----
 ====

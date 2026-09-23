@@ -1,28 +1,29 @@
-# YAML de apoyo del workshop
+# Manifests
 
-Ejecuta los `oc apply` desde la raíz del repo.
+Kubernetes / OpenShift manifests and helper scripts for the workshop.
+Run `oc apply` / scripts from the **repo root**.
 
-| Archivo | Módulo |
+| Path | Module |
 |---|---|
-| `oauth-htpasswd.yaml` | Patch OAuth htpasswd (opcional; el lab usa `oc patch`) |
-| `subscriptions.yaml` | Operadores previos (incluye Connectivity Link) |
-| `gatewayclass.yaml` | GatewayClass (módulo 4) |
-| `kuadrant.yaml` | Instancia Kuadrant (módulo 4) |
-| `rhoai-operator.yaml` | Operator RHOAI |
+| `operators/` | Prerequisite operators (module 2), one directory per Operator |
+| `oauth-htpasswd.yaml` | Optional OAuth htpasswd patch |
+| `gatewayclass.yaml` | GatewayClass (module 4) |
+| `kuadrant.yaml` | Kuadrant instance (module 4) |
+| `rhoai-operator.yaml` | RHOAI Operator |
 | `default-dsc.yaml` | DataScienceCluster |
-| `odh-dashboard-config-patch.yaml` | Flags del dashboard (mejor usar `oc patch`) |
-| `maas-postgres.yaml` | Postgres MaaS |
-| `apply-maas-gateway.sh` | Gateway MaaS |
-| `model-catalog-qwen.yaml` | Catalog HF |
-| `fake-gpu-values.yaml` | Fake GPU: 1× H200 141GB + slices MIG |
-| `hardware-profiles.yaml` | Perfiles `cpu-workshop`, `fake-h200`, `fake-h200-mig` |
+| `odh-dashboard-config-patch.yaml` | Dashboard flags |
+| `maas-postgres.yaml` | MaaS Postgres |
+| `apply-maas-gateway.sh` | MaaS Gateway |
+| `model-catalog-qwen.yaml` | Model Catalog (HF) |
+| `fake-gpu-values.yaml` | Fake GPU topology |
+| `hardware-profiles.yaml` | Hardware profiles |
 | `llminferenceservice-qwen3-06b.yaml` | llm-d CPU + MaaSModelRef |
-| `patch-llmisvc-cpu.sh` | Parche wizard → vLLM CPU |
-| `maas-subscription.yaml` | Auth policy + subscription (`qwenqwen3-06b`) |
-| `fix-maas-authorino-ca.sh` | Authorino + service-CA (evita AUTH_FAILURE) |
-| `fix-maas-usage-user-label.sh` | TelemetryPolicy `user` label → Usage UI muestra tokens |
-| `fix-playground-maas.sh` | Playground: API key MaaS + max_tokens=1024 |
-| `observability/` | Tempo, OTEL, COO, Loki, MinIO (módulo 11) |
-| `apply-maas-observability.sh` | Instala stack observabilidad MaaS |
-| `evalhub/` | Postgres + EvalHub CR + MLflow lab (módulo 12) |
-| `apply-evalhub.sh` | TrustyAI + MLflow + EvalHub (UI Evaluations) |
+| `patch-llmisvc-cpu.sh` | Force vLLM CPU after wizard |
+| `maas-subscription.yaml` | Auth policy + subscription |
+| `fix-maas-authorino-ca.sh` | Authorino + service CA |
+| `fix-maas-usage-user-label.sh` | Usage UI user label |
+| `fix-playground-maas.sh` | Playground API key + max_tokens |
+| `observability/` | Tempo, OTEL, COO, Loki, MinIO (module 11) |
+| `apply-maas-observability.sh` | Observability stack installer |
+| `evalhub/` | EvalHub + MLflow (module 12) |
+| `apply-evalhub.sh` | TrustyAI + MLflow + EvalHub |

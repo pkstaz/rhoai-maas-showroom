@@ -61,7 +61,7 @@ Si el `LLMInferenceService` se llama `qwenqwen3-06b` (prefijo del wizard):
 
 [source,bash]
 ----
-bash examples/patch-llmisvc-cpu.sh qwenqwen3-06b llm
+bash manifests/patch-llmisvc-cpu.sh qwenqwen3-06b llm
 ----
 
 El script hace `replicas: 0` → parche CPU → `replicas: 1`.
@@ -124,7 +124,7 @@ oc patch llminferenceservice qwenqwen3-06b -n llm --type=merge -p '{"spec":{"rep
 ----
 oc delete llminferenceservice --all -n llm --ignore-not-found
 oc delete maasmodelref --all -n llm --ignore-not-found
-oc apply -f examples/llminferenceservice-qwen3-06b.yaml
+oc apply -f manifests/llminferenceservice-qwen3-06b.yaml
 ----
 
 Imagen `registry.redhat.io/rhaiis/vllm-cpu-rhel9:3.5.0`, 1–2 CPU, 8 Gi, gateway `maas-default-gateway`.
@@ -151,4 +151,4 @@ oc label llminferenceservice qwenqwen3-06b -n llm opendatahub.io/genai-asset=tru
 
 En GenAI Studio → *Playground*, prueba el modelo cuando esté Ready (usa `/no_think`).
 
-IMPORTANT: El vLLM CPU del lab usa `max_model_len=2048`. Si el Playground falla con `max_tokens=4096 cannot be greater than max_model_len`, baja a ≤ 1024. Tras la subscription (módulo 9), el módulo 10 documenta `examples/fix-playground-maas.sh` (API key real + `VLLM_MAX_TOKENS=1024`).
+IMPORTANT: El vLLM CPU del lab usa `max_model_len=2048`. Si el Playground falla con `max_tokens=4096 cannot be greater than max_model_len`, baja a ≤ 1024. Tras la subscription (módulo 9), el módulo 10 documenta `manifests/fix-playground-maas.sh` (API key real + `VLLM_MAX_TOKENS=1024`).

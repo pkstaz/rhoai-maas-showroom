@@ -5,4 +5,4 @@ resources:
   - postgres.yaml
   - evalhub.yaml
 # mlflow.yaml (redhat-ods-applications) and mlflow-workspace-rbac.yaml (needs DSP ns)
-# are applied by examples/apply-evalhub.sh
+# are applied by manifests/apply-evalhub.sh

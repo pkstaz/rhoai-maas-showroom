@@ -40,7 +40,7 @@ oc get maasmodelref -n llm -o wide
 ====
 [source,bash]
 ----
-oc apply -f examples/maas-subscription.yaml
+oc apply -f manifests/maas-subscription.yaml
 oc get maasmodelref -n llm -o wide
 ----
 ====

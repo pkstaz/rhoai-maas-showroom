@@ -111,7 +111,7 @@ Abre la ruta `rhods-dashboard` / `rhoai` como `admin` (no `kubeadmin`).
 ====
 [source,bash]
 ----
-oc apply -f examples/default-dsc.yaml
+oc apply -f manifests/default-dsc.yaml
 oc get dsc default-dsc -w
 ----
 ====

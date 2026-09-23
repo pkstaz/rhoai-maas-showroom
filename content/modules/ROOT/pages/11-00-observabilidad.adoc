@@ -37,7 +37,7 @@ Desde la raíz del repo:
 
 [source,bash]
 ----
-bash examples/apply-maas-observability.sh
+bash manifests/apply-maas-observability.sh
 ----
 
 Espera CSVs `Succeeded`, LokiStack Ready y el patch de `usageLogging`. En un OpenTLC de 1 nodo puede tardar *10–20 min*.
@@ -50,7 +50,7 @@ Si el script se corta en un `oc wait` (`no matching resources found`), vuelve a 
 
 [source,bash]
 ----
-oc apply -k examples/observability/tempo
+oc apply -k manifests/observability/tempo
 oc wait csv -n openshift-tempo-operator \
   -l operators.coreos.com/tempo-product.openshift-tempo-operator="" \
   --for=jsonpath='{.status.phase}'=Succeeded --timeout=300s
@@ -60,7 +60,7 @@ oc wait csv -n openshift-tempo-operator \
 
 [source,bash]
 ----
-oc apply -k examples/observability/opentelemetry
+oc apply -k manifests/observability/opentelemetry
 oc wait csv -n openshift-opentelemetry-operator \
   -l operators.coreos.com/opentelemetry-product.openshift-opentelemetry-operator="" \
   --for=jsonpath='{.status.phase}'=Succeeded --timeout=300s
@@ -70,7 +70,7 @@ oc wait csv -n openshift-opentelemetry-operator \
 
 [source,bash]
 ----
-oc apply -k examples/observability/coo
+oc apply -k manifests/observability/coo
 oc wait csv -n openshift-cluster-observability-operator \
   -l operators.coreos.com/cluster-observability-operator.openshift-cluster-observability="" \
   --for=jsonpath='{.status.phase}'=Succeeded --timeout=300s
@@ -117,7 +117,7 @@ El operator crea TelemetryPolicy + Istio Telemetry (labels `model`, `subscriptio
 
 [source,bash]
 ----
-oc apply -k examples/observability/loki
+oc apply -k manifests/observability/loki
 oc wait csv -n openshift-operators-redhat \
   -l operators.coreos.com/loki-operator.openshift-operators-redhat="" \
   --for=jsonpath='{.status.phase}'=Succeeded --timeout=300s
@@ -129,7 +129,7 @@ StorageClass por defecto del OpenTLC: `gp3-csi` (ya en el manifiesto).
 
 [source,bash]
 ----
-oc apply -k examples/observability/usage-logging
+oc apply -k manifests/observability/usage-logging
 oc wait --for=condition=available deployment/minio -n redhat-ods-monitoring --timeout=300s
 oc wait lokistack/usage -n redhat-ods-monitoring \
   --for=jsonpath='{.status.conditions[?(@.type=="Ready")].status}'=True --timeout=600s
@@ -165,7 +165,7 @@ Fuerza la label (CPU o GPU; es del gateway, no del runtime):
 
 [source,bash]
 ----
-bash examples/fix-maas-usage-user-label.sh
+bash manifests/fix-maas-usage-user-label.sh
 ----
 
 Luego genera tráfico (Playground o `curl` del módulo 10), espera ~1 min y refresca *Usage*. Deberías ver tokens con `user=admin` (o el username de la API key).

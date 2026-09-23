@@ -79,7 +79,7 @@ git clone https://github.com/pkstaz/rhoai-maas-showroom.git
 cd rhoai-maas-showroom
 ----
 
-Los `oc apply -f examples/...` de los módulos siguientes se ejecutan desde ese directorio.
+Los `oc apply -f manifests/...` de los módulos siguientes se ejecutan desde ese directorio.
 
 Helm 3, en `$HOME` (el Web Terminal no tiene `sudo`):
 

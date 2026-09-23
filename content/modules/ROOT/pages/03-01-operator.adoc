@@ -28,7 +28,7 @@ CSV `Succeeded`, pods `Running`.
 ====
 [source,bash]
 ----
-oc apply -f examples/rhoai-operator.yaml
+oc apply -f manifests/rhoai-operator.yaml
 oc get csv -n redhat-ods-operator -w
 ----
 ====

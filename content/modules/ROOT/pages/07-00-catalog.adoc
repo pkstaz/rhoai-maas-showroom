@@ -33,7 +33,7 @@ oc get configmap model-catalog-sources -n rhoai-model-registries -o yaml
 ====
 [source,bash]
 ----
-oc apply -f examples/model-catalog-qwen.yaml
+oc apply -f manifests/model-catalog-qwen.yaml
 oc delete pod -n rhoai-model-registries -l component=model-catalog --ignore-not-found
 ----
 ====

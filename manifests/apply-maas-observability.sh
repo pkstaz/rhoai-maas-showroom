@@ -4,7 +4,7 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-OBS="${ROOT}/examples/observability"
+OBS="${ROOT}/manifests/observability"
 
 # Wait until a CSV whose name matches REGEX exists in NS, then until Succeeded.
 wait_csv() {

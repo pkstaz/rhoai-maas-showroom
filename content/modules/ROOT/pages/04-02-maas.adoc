@@ -10,7 +10,7 @@ Orden:
 
 [source,bash]
 ----
-oc apply -f examples/maas-postgres.yaml
+oc apply -f manifests/maas-postgres.yaml
 oc get pods -n redhat-ai-gateway-infra
 ----
 
@@ -20,7 +20,7 @@ Espera el pod de Postgres `Running`. El YAML crea el Secret `maas-db-config`.
 
 [source,bash]
 ----
-bash examples/apply-maas-gateway.sh
+bash manifests/apply-maas-gateway.sh
 oc get gateway maas-default-gateway -n openshift-ingress
 ----
 

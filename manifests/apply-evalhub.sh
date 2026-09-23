@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Enable TrustyAI + MLflow + EvalHub so Develop & train → Evaluations works in the UI.
 # Order matters: MLflow CR must be Ready before EvalHub (RHOAIENG-67534).
-# Usage: bash examples/apply-evalhub.sh
+# Usage: bash manifests/apply-evalhub.sh
 set -euo pipefail
 
 export PATH="/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin:${PATH:-}"
@@ -41,7 +41,7 @@ oc patch odhdashboardconfig odh-dashboard-config -n redhat-ods-applications --ty
 }'
 
 echo "=== 3. MLflow instance (sqlite + PVC lab) — BEFORE EvalHub ==="
-oc apply -f examples/evalhub/mlflow.yaml
+oc apply -f manifests/evalhub/mlflow.yaml
 
 echo "Waiting MLflow pods..."
 for i in $(seq 1 36); do
@@ -62,7 +62,7 @@ echo "MLFLOW_TRACKING_URI=${MLFLOW_URI}"
 echo "MLFLOW_WORKSPACE=${DSP_NS}"
 
 echo "=== 4. EvalHub namespace + Postgres + CR ==="
-oc apply -k examples/evalhub
+oc apply -k manifests/evalhub
 
 oc patch evalhub evalhub -n evalhub --type=merge -p "{
   \"spec\": {
@@ -75,7 +75,7 @@ oc patch evalhub evalhub -n evalhub --type=merge -p "{
 
 echo "=== 5. RBAC: EvalHub SA → MLflow workspace ${DSP_NS} ==="
 if [[ "${DSP_NS}" == "llm" ]] && oc get ns llm >/dev/null 2>&1; then
-  oc apply -f examples/evalhub/mlflow-workspace-rbac.yaml
+  oc apply -f manifests/evalhub/mlflow-workspace-rbac.yaml
 elif oc get ns "${DSP_NS}" >/dev/null 2>&1; then
   oc -n "${DSP_NS}" create rolebinding "evalhub-mlflow-workspace-${DSP_NS}" \
     --clusterrole=edit \
@@ -83,7 +83,7 @@ elif oc get ns "${DSP_NS}" >/dev/null 2>&1; then
     --dry-run=client -o yaml | oc apply -f -
 else
   echo "WARN: namespace ${DSP_NS} missing — create the DSP first, then:"
-  echo "  oc apply -f examples/evalhub/mlflow-workspace-rbac.yaml"
+  echo "  oc apply -f manifests/evalhub/mlflow-workspace-rbac.yaml"
 fi
 
 echo "Waiting Postgres + EvalHub..."

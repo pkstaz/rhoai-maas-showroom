@@ -2,7 +2,7 @@
 # Patch a wizard-created LLMInferenceService to use vLLM CPU (no CUDA).
 # Always Stop → patch → Start; editing a running service leaves pods Pending.
 # Usage:
-#   bash examples/patch-llmisvc-cpu.sh [name] [namespace]
+#   bash manifests/patch-llmisvc-cpu.sh [name] [namespace]
 # Defaults: name=qwenqwen3-06b namespace=llm
 set -euo pipefail
 

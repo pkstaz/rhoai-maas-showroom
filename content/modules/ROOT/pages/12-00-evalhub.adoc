@@ -33,7 +33,7 @@ Este módulo deja *Develop & train → Evaluations* usable desde la web (TrustyA
 
 [source,bash]
 ----
-bash examples/apply-evalhub.sh
+bash manifests/apply-evalhub.sh
 ----
 
 Aplica operators → *MLflow Ready* → EvalHub → RBAC al workspace `llm`. Hard refresh del dashboard (`Cmd+Shift+R`).
@@ -71,7 +71,7 @@ oc patch odhdashboardconfig odh-dashboard-config -n redhat-ods-applications --ty
 
 [source,bash]
 ----
-oc apply -f examples/evalhub/mlflow.yaml
+oc apply -f manifests/evalhub/mlflow.yaml
 oc get pods -n redhat-ods-applications | grep -i mlflow
 ----
 
@@ -81,8 +81,8 @@ Espera el deploy `mlflow` con `readyReplicas=1` *antes* del paso 4.
 
 [source,bash]
 ----
-oc apply -k examples/evalhub
-oc apply -f examples/evalhub/mlflow-workspace-rbac.yaml
+oc apply -k manifests/evalhub
+oc apply -f manifests/evalhub/mlflow-workspace-rbac.yaml
 oc get evalhub,pods,route -n evalhub
 ----
 
@@ -185,6 +185,6 @@ Tiempo orientativo: *35–50 min* (+ waits de operators).
 ====
 [source,bash]
 ----
-bash examples/apply-evalhub.sh
+bash manifests/apply-evalhub.sh
 ----
 ====

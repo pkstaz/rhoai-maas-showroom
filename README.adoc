@@ -21,8 +21,8 @@ antora generate default-site.yml
 ----
 
 El contenido está en `content/modules/ROOT/pages/`.
-Los manifiestos de apoyo en `content/modules/ROOT/examples/`.
+Los manifiestos de apoyo están en `manifests/` (raíz del repo).
 
 == Licencia
 
-Apache License 2.0 para los ejemplos. El workshop describe productos Red Hat; sigue las suscripciones de tu cluster.
+Apache License 2.0 para los manifiestos. El workshop describe productos Red Hat; sigue las suscripciones de tu cluster.

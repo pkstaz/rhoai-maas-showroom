@@ -8,7 +8,7 @@ Si `/v1/models` o el chat responden `AUTH_FAILURE` / `Exception thrown while gen
 
 [source,bash]
 ----
-bash examples/fix-maas-authorino-ca.sh
+bash manifests/fix-maas-authorino-ca.sh
 ----
 
 == API key
@@ -71,7 +71,7 @@ Tras tener una subscription y API key que funcionen con `curl`:
 
 [source,bash]
 ----
-bash examples/fix-playground-maas.sh
+bash manifests/fix-playground-maas.sh
 ----
 
 Luego: *Gen AI Studio* → *Playground* → proyecto `llm` → *New chat* → elige el modelo MaaS (`…/publishers/llm/models/qwenqwen3-06b`) → mensaje con `/no_think`.

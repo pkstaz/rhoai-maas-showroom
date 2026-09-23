@@ -61,6 +61,6 @@ En el dashboard deben verse *Catalog* / *Models as a Service* (el nombre exacto 
 ====
 [source,bash]
 ----
-oc apply -f examples/odh-dashboard-config-patch.yaml
+oc apply -f manifests/odh-dashboard-config-patch.yaml
 ----
 ====

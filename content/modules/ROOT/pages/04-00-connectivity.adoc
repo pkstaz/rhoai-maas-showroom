@@ -6,7 +6,7 @@ El Operator de Connectivity Link queda en `openshift-operators` (módulo 2). Al 
 
 [source,bash]
 ----
-oc apply -f examples/gatewayclass.yaml
+oc apply -f manifests/gatewayclass.yaml
 oc wait --for=condition=Accepted gatewayclass/openshift-default --timeout=2m
 oc rollout status -n openshift-ingress deploy/istiod-openshift-gateway --timeout=5m
 oc delete pod -n openshift-operators \
@@ -41,7 +41,7 @@ spec:
 [source,bash]
 ----
 oc create namespace kuadrant-system
-oc apply -f examples/kuadrant.yaml
+oc apply -f manifests/kuadrant.yaml
 oc wait kuadrant/kuadrant -n kuadrant-system --for=condition=Ready --timeout=5m
 ----
 

@@ -1,34 +1,13 @@
 = Operadores previos
 
-Instala estas dependencias *antes* de OpenShift AI. Canal y namespace: los que propone el catálogo (deja los valores por defecto salvo que la tabla indique otra cosa).
+Antes de OpenShift AI hace falta un conjunto *fijo* de operadores de plataforma.
+Sin ellos no podrás exponer MaaS por Gateway con TLS, usar AI Pipelines, repartir inferencia con llm-d ni reservar GPU con Kueue.
 
-== Orden de instalación
+Canal y namespace: los que propone el *Software Catalog*, salvo que la tabla indique otra cosa.
 
-Instala uno, espera *Succeeded*, sigue al siguiente:
+== Validar instalados y pendientes
 
-[cols="1,2"]
-|===
-|Operador |Detalle
-
-|*cert-manager Operator for Red Hat OpenShift*
-|Certificados TLS para rutas e ingress del lab.
-
-|*Red Hat OpenShift Pipelines*
-|Pipelines (Tekton) usados más adelante en el flujo.
-
-|*Red Hat Connectivity Link*
-|Solo el Operator, namespace `openshift-operators` (All namespaces). *No* crees todavía la instancia Kuadrant ni el `GatewayClass` (módulo 4, después de OpenShift AI).
-
-|*Leader Worker Set Operator*
-|Para llm-d. Namespace `openshift-lws-operator`, canal `stable-v1.0`.
-
-|*Red Hat build of Kueue*
-|GPU Booking (colas y cuotas de GPU).
-|===
-
-== Verificar
-
-Estado de los operadores requeridos (`OK` = CSV `Succeeded`, `PENDIENTE` = aún no instalado o sin CSV):
+Ejecuta esto *antes* de instalar (y otra vez al final). `OK` = CSV `Succeeded`; `PENDIENTE` = aún no está o no terminó:
 
 [source,bash]
 ----
@@ -56,13 +35,71 @@ check "Leader Worker Set" "leaderworker|lws"
 check "Kueue" "kueue"
 ----
 
-Todos deben quedar en `OK`.
+== Operadores requeridos
 
-.Alternativa YAML
-[%collapsible]
-====
+[cols="1,2"]
+|===
+|Operador |Para qué sirve
+
+|*cert-manager Operator for Red Hat OpenShift*
+|Emite y renueva certificados TLS. Los usa el stack de *Gateway API* / *AI Gateway* para HTTPS en las rutas que exponen *Models as a Service* (y endpoints relacionados del lab).
+
+|*Red Hat OpenShift Pipelines*
+|Base Tekton para habilitar *AI Pipelines* en OpenShift AI (pipelines de datos / ML desde la consola más adelante).
+
+|*Red Hat Connectivity Link*
+|Capa de *Gateway API* + políticas (Kuadrant): enrutado, auth y límites delante del *AI Gateway* / MaaS. Instala *solo el Operator* ahora (`openshift-operators`, All namespaces). El `GatewayClass` y la instancia Kuadrant van en el módulo 4, *después* de OpenShift AI.
+
+|*Leader Worker Set Operator*
+|Coordina pods *líder + workers* para inferencia distribuida. llm-d lo usa cuando un modelo no cabe en un solo pod y hay que repartirlo. Namespace `openshift-lws-operator`, canal `stable-v1.0`.
+
+|*Red Hat build of Kueue*
+|*GPU Booking*: colas y cuotas para que los jobs de GPU no saturen el cluster.
+|===
+
+== Orden de instalación
+
+En la consola: *Ecosystem* → *Software Catalog*. Instala uno, espera *Succeeded*, sigue al siguiente (mismo orden que la tabla).
+
+== Manifiestos por operador
+
+Si prefieres CLI (o para repetir en otro cluster), aplica *uno por uno* desde la raíz del repo. Espera `Succeeded` entre cada apply (reutiliza el comando de validación).
+
+=== cert-manager
+
 [source,bash]
 ----
-oc apply -f examples/subscriptions.yaml
+oc apply -f manifests/operators/cert-manager/
 ----
-====
+
+=== OpenShift Pipelines
+
+[source,bash]
+----
+oc apply -f manifests/operators/pipelines/
+----
+
+=== Connectivity Link
+
+[source,bash]
+----
+oc apply -f manifests/operators/connectivity-link/
+----
+
+=== Leader Worker Set
+
+[source,bash]
+----
+oc apply -f manifests/operators/leader-worker-set/
+----
+
+=== Kueue
+
+[source,bash]
+----
+oc apply -f manifests/operators/kueue/
+----
+
+== Verificar
+
+Vuelve a ejecutar el comando de *Validar instalados y pendientes*. Todos deben quedar en `OK`.

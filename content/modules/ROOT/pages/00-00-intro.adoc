@@ -25,7 +25,7 @@ Los waits largos son el Operator de OpenShift AI y la carga del modelo.
 . Vista inicial de observabilidad MaaS (COO / Perses / usage dashboards — xref:11-00-observabilidad.adoc[módulo 11])
 . Smoke de evaluación con EvalHub (xref:12-00-evalhub.adoc[módulo 12])
 
-Los YAML de `examples/` se clonan en el Web Terminal **después** de entrar como `admin` (módulo 1).
+Los YAML de `manifests/` se clonan en el Web Terminal **después** de entrar como `admin` (módulo 1).
 
 == Qué necesitas
 
