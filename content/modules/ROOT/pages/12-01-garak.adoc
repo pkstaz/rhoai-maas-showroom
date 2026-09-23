@@ -1,0 +1,109 @@
+= Garak y red team (Chatterbox)
+
+Tras xref:12-00-evalhub.adoc[EvalHub] (calidad HHH). Aquí se *escanea* el modelo: fallos de seguridad, no accuracy.
+
+En OpenShift AI 3.5 **no hay un CRD Chatterbox**. Red Hat integró Chatterbox Labs en *Automated Red Teaming* (ART): provider EvalHub `garak-kfp`, benchmark `intents`. Garak clásico es el provider `garak` (jobs Kubernetes, sin pipeline).
+
+[cols="1,2,1"]
+|===
+|Ruta |Qué es |GPU / DSPA
+
+|Garak `quick`
+|Un probe corto (smoke). CPU. Lo que pide el lab.
+|No
+
+|Garak `owasp_llm_top10` / `avid` / `cwe`
+|Suites largas. Tokens y tiempo.
+|No obligatorio; no en sala
+
+|ART `intents` (`garak-kfp`)
+|Chatterbox: SDG de prompts + juez + estrategias (SPO → TAP). Technology Preview.
+|Sí: xref:17-00-automl.adoc[pipeline server] + juez. Qwen 0.6B como juez es *GAP*.
+|===
+
+El scan apunta al *endpoint* que le pases: MaaS crudo, o la Route de xref:14-00-guardrails.adoc[NemoGuardrails] si ya está.
+
+== Habilitar
+
+EvalHub debe existir. Si el CR ya está con solo `lm-evaluation-harness`, parchea providers:
+
+[source,bash]
+----
+bash manifests/apply-garak.sh
+----
+
+Instalación nueva: `apply-evalhub.sh` ya deja `garak` y `garak-kfp` en el CR (`manifests/evalhub/evalhub.yaml`).
+
+Comprueba:
+
+[source,bash]
+----
+oc get evalhub evalhub -n evalhub -o jsonpath='{.spec.providers}{"\n"}'
+# ["lm-evaluation-harness","garak","garak-kfp"]
+----
+
+Hard refresh de *Develop & train → Evaluations*.
+
+== Secret (igual que el módulo 12)
+
+El job monta el Secret en `evalhub`. Si no lo tienes:
+
+[source,bash]
+----
+# reutiliza maas-eval-api-key de EvalHub; si falta, crea API key + Secret como en el módulo 12
+oc get secret maas-eval-api-key -n llm -o yaml \
+  | sed 's/namespace: llm/namespace: evalhub/' | oc apply -f -
+----
+
+== Smoke — Garak `quick`
+
+No lanza el job hasta `SUBMIT=1` (el probe llama al modelo).
+
+[source,bash]
+----
+SUBMIT=1 bash manifests/apply-garak.sh
+----
+
+O UI: *Evaluations* → proyecto `llm` → *Start evaluation run* → provider *Garak* → benchmark *Quick* → mismo `MODEL_ID` / `ENDPOINT` / `API_KEY_SECRET` del módulo 12 → experimento MLflow `qwen-redteam`.
+
+Primera vez el pod baja la imagen Garak (minutos en *Pending*). Métrica: `attack_success_rate` (más bajo = más seguro). Qwen 0.6B en CPU *no* es un modelo alineado: espera ASR alto. Eso es el punto del lab.
+
+== Opcional — ART / Chatterbox (`intents`)
+
+Prerrequisitos: `bash manifests/apply-pipelines.sh` (DSPA + MinIO `pipeline-minio` en `llm`).
+
+El lab recorta TAP y traducción. Un solo probe `spo.SPOIntent` y `generations: 1`. Juez y SDG = el mismo Qwen MaaS (no es el juez de Prd).
+
+[source,bash]
+----
+MODE=art SUBMIT=1 bash manifests/apply-garak.sh
+----
+
+JSON generado: `/tmp/rhoai-evalhub/intents-scan.json`.
+
+GAP de sala: juez/SDG de verdad pide un modelo *distinto y más capaz* (GPU). Sin eso el informe de ASR no es comparable a Prd.
+
+== Opcional — escanear detrás de NeMo
+
+Tras el módulo 14, cambia `ENDPOINT` a la Route `workshop` (`/v1`) y vuelve a `SUBMIT=1`. El scan prueba *modelo + rails*, no solo el LLM.
+
+== GAP
+
+[cols="2,2"]
+|===
+| Lab hoy | Prd
+
+| Profile `quick` (un probe)
+| OWASP / AVID en CI + umbral de promotion
+
+| Mismo Qwen 0.6B como target, juez y SDG
+| Juez y atacante separados; GPU
+
+| ART recortado (sin TAP / traducción)
+| Pipeline completo Chatterbox + políticas de negocio
+
+| Scan bajo demanda
+| Nightly + gate en registry
+|===
+
+Tiempo orientativo: *15–25 min* (`quick`) + waits de imagen. ART: *+30–90 min* si el DSPA está listo.

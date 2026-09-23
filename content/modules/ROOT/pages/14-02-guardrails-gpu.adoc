@@ -66,4 +66,4 @@ Self-check (LLM-as-judge) aumenta latencia y tokens; no va en el smoke de CPU.
 
 == GAP
 
-Un rail de PII no es red-team. Colang a medida, umbrales por equipo y MCP Gateway quedan para Prd.
+Un rail de PII no es red-team. Tras NeMo, xref:12-01-garak.adoc[Garak `quick`] contra la Route `workshop`. Colang a medida y MCP Gateway quedan para Prd.

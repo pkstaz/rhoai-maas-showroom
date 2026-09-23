@@ -56,4 +56,4 @@ La pestaña *Settings → Guardrails* del Playground (*No guardrail configuratio
 
 == GAP
 
-Rails de negocio en Colang, MCP Gateway (`spec.template.pod.mcpGateway`) y red-team quedan fuera de estas sesiones.
+Rails de negocio en Colang y MCP Gateway (`spec.template.pod.mcpGateway`) quedan fuera. El red-team de lab es xref:12-01-garak.adoc[Garak / ART].

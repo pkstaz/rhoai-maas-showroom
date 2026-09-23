@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Enable TrustyAI + MLflow + EvalHub so Develop & train → Evaluations works in the UI.
+# Enable TrustyAI + MLflow + EvalHub (lm-eval, Garak, garak-kfp) for Evaluations.
 # Order matters: MLflow CR must be Ready before EvalHub (RHOAIENG-67534).
 # Usage: bash manifests/apply-evalhub.sh
 set -euo pipefail

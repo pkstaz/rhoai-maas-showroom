@@ -11,7 +11,7 @@ El run serio pide GPU o CPU grande; el lab deja el *pipeline server* y un CSV ir
 
 == Instalar (MinIO + DSPA)
 
-`managedPipelines: {}` registra las definiciones AutoML y AutoRAG en el pipeline server.
+`managedPipelines: {}` registra las definiciones AutoML y AutoRAG en el pipeline server. El mismo DSPA lo usa xref:12-01-garak.adoc[ART / Chatterbox] (`garak-kfp`).
 
 [source,bash]
 ----

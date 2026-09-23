@@ -1,4 +1,4 @@
-# Minimal EvalHub for workshop UI Evaluations (lm-evaluation-harness + MLflow).
+# Workshop EvalHub: quality (lm-evaluation-harness) + Garak + ART (garak-kfp).
 # MLFLOW_TRACKING_URI must include the /mlflow static-prefix or EvalHub probes
 # workspaces_enabled=false and CreateEvaluationJob fails with
 # "Workspace context is required for this request."
@@ -18,6 +18,8 @@ spec:
     secret: evalhub-db-credentials
   providers:
     - lm-evaluation-harness
+    - garak
+    - garak-kfp
   collections: []
   env:
     - name: MLFLOW_TRACKING_URI

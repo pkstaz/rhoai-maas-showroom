@@ -176,7 +176,7 @@ Tras el job, *Observe & monitor → Usage* mostrará el spike de tokens.
 
 == Siguiente
 
-xref:13-00-finops.adoc[FinOps]: planes *free* / *team* y HTTP 429.
+xref:12-01-garak.adoc[Garak / red team]: provider `garak` + ART Chatterbox (`garak-kfp`). Luego xref:13-00-finops.adoc[FinOps].
 
 
 == API (backup)

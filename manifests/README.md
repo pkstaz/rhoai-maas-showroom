@@ -28,8 +28,9 @@ Run `oc apply` / scripts from the **repo root**.
 | `fix-playground-maas.sh` | Playground API key + max_tokens |
 | `observability/` | Tempo, OTEL, COO, Loki, MinIO (module 11) |
 | `apply-maas-observability.sh` | Observability stack installer |
-| `evalhub/` | EvalHub + MLflow (module 12) |
+| `evalhub/` | EvalHub + MLflow + Garak/ART providers (modules 12–12.1) |
 | `apply-evalhub.sh` | TrustyAI + MLflow + EvalHub |
+| `apply-garak.sh` | Enable Garak + `garak-kfp`; `SUBMIT=1` smoke `quick`; `MODE=art` Chatterbox |
 | `finops/` | Subscriptions free/team (module 13) |
 | `guardrails/` | `NemoGuardrails` CPU (+ MaaS template) (module 14) |
 | `apply-guardrails.sh` | TrustyAI + NemoGuardrails (`MODE=maas` opcional) |
