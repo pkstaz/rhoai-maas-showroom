@@ -74,9 +74,26 @@ oc patch evalhub evalhub -n evalhub --type=merge -p "{
 }" 2>/dev/null || true
 
 echo "=== 5. RBAC: EvalHub SA → MLflow workspace ${DSP_NS} ==="
+# roleRef is immutable: recreate the RoleBinding if it already exists with another ref.
+ensure_mlflow_workspace_rbac() {
+  local ns="$1"
+  local rb="evalhub-mlflow-workspace-${ns}"
+  if oc get rolebinding "${rb}" -n "${ns}" >/dev/null 2>&1; then
+    local kind name
+    kind=$(oc get rolebinding "${rb}" -n "${ns}" -o jsonpath='{.roleRef.kind}')
+    name=$(oc get rolebinding "${rb}" -n "${ns}" -o jsonpath='{.roleRef.name}')
+    if [[ "${kind}/${name}" != "ClusterRole/edit" ]]; then
+      echo "Recreating ${rb} (roleRef was ${kind}/${name}, need ClusterRole/edit)"
+      oc delete rolebinding "${rb}" -n "${ns}"
+    fi
+  fi
+}
+
 if [[ "${DSP_NS}" == "llm" ]] && oc get ns llm >/dev/null 2>&1; then
+  ensure_mlflow_workspace_rbac llm
   oc apply -f manifests/evalhub/mlflow-workspace-rbac.yaml
 elif oc get ns "${DSP_NS}" >/dev/null 2>&1; then
+  ensure_mlflow_workspace_rbac "${DSP_NS}"
   oc -n "${DSP_NS}" create rolebinding "evalhub-mlflow-workspace-${DSP_NS}" \
     --clusterrole=edit \
     --serviceaccount=evalhub:evalhub-service \
