@@ -12,6 +12,35 @@ Documentación:
 
 Orden: *NFD Operator* → instancia `NodeFeatureDiscovery` → *NVIDIA GPU Operator* → `ClusterPolicy` → GPU Administrator plugin → MIG (opcional) → hardware profile.
 
+== Validar operadores
+
+Ejecuta esto *antes* de instalar (y otra vez al final). `OK` = CSV `Succeeded`; `PENDIENTE` = aún no está o no terminó.
+Si ya hay `OK`, omite esa instalación y sigue al CR (`NodeFeatureDiscovery` / `ClusterPolicy`).
+
+[source,bash]
+----
+printf '%-42s %-14s\n' "OPERADOR" "ESTADO"
+printf '%-42s %-14s\n' "------------------------------------------" "--------------"
+check() {
+  local name="$1" pattern="$2"
+  local line phase
+  line=$(oc get csv -A --no-headers 2>/dev/null | grep -iE "$pattern" | head -1)
+  if [ -z "$line" ]; then
+    printf '%-42s %-14s\n' "$name" "PENDIENTE"
+  else
+    phase=$(echo "$line" | awk '{print $NF}')
+    if [ "$phase" = "Succeeded" ]; then
+      printf '%-42s %-14s\n' "$name" "OK"
+    else
+      printf '%-42s %-14s\n' "$name" "$phase"
+    fi
+  fi
+}
+check "Node Feature Discovery" "nfd"
+# certified = NVIDIA real (excluye el CSV falso gpu-operator-fake del Fake GPU)
+check "NVIDIA GPU Operator" "gpu-operator-certified"
+----
+
 == Validar candidatos (antes / después de NFD)
 
 Antes de NFD puede no haber labels. Tras NFD + ClusterPolicy deberías ver GPU allocatable.
@@ -31,18 +60,16 @@ oc get nodes -o json | jq -r '
 
 == NFD Operator (recomendado / requerido)
 
+Si el validador ya muestra `OK` para *Node Feature Discovery*, salta a <<nfd-cr>>.
+
 . Consola → *Ecosystem* → *Software Catalog*
 . Busca `Node Feature Discovery`
 . Instala en el namespace recomendado (suele ser `openshift-nfd`)
 . Espera *Succeeded*
 
-Verificar CSV:
+Vuelve a ejecutar el comando de *Validar operadores* hasta ver `OK`.
 
-[source,bash]
-----
-oc get csv -n openshift-nfd
-----
-
+[#nfd-cr]
 == NodeFeatureDiscovery (CR)
 
 El ejemplo oficial sale del CSV del Operator (la imagen `operand` depende de la versión de OpenShift). Consíguelo y aplícalo:
@@ -68,16 +95,16 @@ En nodos con GPU real debería verse `true` en esa columna.
 
 == NVIDIA GPU Operator
 
+Si el validador ya muestra `OK` para *NVIDIA GPU Operator*, salta a <<clusterpolicy>>.
+
 . Consola → *Ecosystem* → *Software Catalog*
 . Busca `NVIDIA GPU Operator`
 . Instala en el namespace recomendado (suele ser `nvidia-gpu-operator`)
 . Espera *Succeeded*
 
-[source,bash]
-----
-oc get csv -n nvidia-gpu-operator
-----
+Vuelve a ejecutar el comando de *Validar operadores* hasta ver `OK` en ambos.
 
+[#clusterpolicy]
 == ClusterPolicy
 
 Igual que NFD: el manifiesto de ejemplo depende de la versión del Operator. Extráelo del CSV y aplícalo (nombre típico `gpu-cluster-policy`):
