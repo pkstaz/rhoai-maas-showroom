@@ -24,20 +24,25 @@ else
 fi
 ----
 
-== Orden de instalación (UI)
+== Instalar OpenShift AI
+
+Puedes instalarlo desde la consola web (*Ecosystem* → *Software Catalog*) o por terminal. Usa los mismos parámetros en ambos casos.
+
+=== Desde la consola
 
 . Consola OpenShift → *Ecosystem* → *Software Catalog*
 . Busca `Red Hat OpenShift AI`
 . Elige el Operator *Red Hat* (no Community)
-. Channel: `stable-3.5`
-. Version: `{rhoai-version}`
-. *Install*
-. Installation mode: *All namespaces*
-. Installed Namespace: `redhat-ods-operator` (recomendado)
-. Update approval: *Automatic*
-. Espera *Succeeded* (varios minutos)
+. Configura:
++
+* *Channel:* `stable-3.5`
+* *Version:* `{rhoai-version}`
+* *Installation mode:* *All namespaces*
+* *Installed Namespace:* `redhat-ods-operator` (recomendado)
+* *Update approval:* *Automatic*
+. *Install* y espera *Succeeded* (varios minutos)
 
-== Manifiesto (CLI)
+=== Instalar por terminal
 
 Desde la raíz del repo:
 
@@ -46,7 +51,7 @@ Desde la raíz del repo:
 oc apply -f manifests/rhoai-operator.yaml
 ----
 
-Puedes seguir el CSV con:
+Para seguir el progreso del CSV:
 
 [source,bash]
 ----

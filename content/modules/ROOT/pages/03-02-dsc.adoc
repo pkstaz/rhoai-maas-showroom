@@ -1,84 +1,91 @@
 = DataScienceCluster
 
-Activa solo lo que usa este lab. En la pestaña *YAML* del create, reemplaza todo el manifiesto por el de abajo.
+El `DataScienceCluster` (`default-dsc`) activa los componentes de OpenShift AI que usa este lab.
+Deja en `Managed` solo lo necesario; el resto queda `Removed` (o `Unmanaged` en el caso de Kueue, que ya instalaste como Operator en pre-requisitos).
 
-* `Managed`: `dashboard`, `workbenches`, `kserve`, `aipipelines`, `modelregistry`, `aigateway`, `ogx`
-* `Unmanaged`: `kueue`
-* `Removed`: el resto (`sparkoperator`, `feastoperator`, `trustyai`, `ray`, `mlflowoperator`, `trainer`, `nim`, `llamastackoperator`, `trainingoperator`, …)
-* `aigateway.modelsAsAService` queda en `Removed` hasta Connectivity Link + gateway + Postgres
+NOTE: `ogx` en `Managed` es requisito del *Gen AI Studio → Playground*. Sin OGX, la UI puede listar endpoints pero no ofrece Playground.
 
-NOTE: `ogx` en `Managed` es requisito del *Gen AI Studio → Playground*. Sin OGX, la UI de Gen AI Studio puede listar endpoints pero no ofrece Playground.
+== Componentes de este lab
 
-== YAML final
+[cols="1,1,2"]
+|===
+|Componente |Estado |Para qué sirve
 
-Pestaña *YAML* → pega esto → *Create*:
+|`dashboard`
+|Managed
+|Consola web de OpenShift AI (ruta `rhods-dashboard` / `rhoai`).
 
-[source,yaml]
+|`workbenches`
+|Managed
+|Notebooks / workbenches en `rhods-notebooks`.
+
+|`kserve`
+|Managed
+|Serving de modelos (InferenceServices / llm-d). Subcomponentes NIM, model cache y `modelsAsService` quedan `Removed`.
+
+|`aipipelines`
+|Managed
+|AI Pipelines (Argo) sobre OpenShift Pipelines.
+
+|`modelregistry`
+|Managed
+|Model Registry (namespace `rhoai-model-registries`).
+
+|`aigateway`
+|Managed
+|AI Gateway. `modelsAsAService` queda `Removed` hasta Connectivity Link + gateway + Postgres (módulo 4).
+
+|`ogx`
+|Managed
+|Motor del *Gen AI Studio → Playground*.
+
+|`kueue`
+|Unmanaged
+|Usa el Operator de Kueue ya instalado (GPU Booking); el DSC no gestiona el Operator.
+
+|`sparkoperator`
+|Removed
+|No se usa en este lab.
+
+|`feastoperator`
+|Removed
+|Feature store; fuera de alcance.
+
+|`trustyai`
+|Removed
+|EvalHub / TrustyAI se habilitan más adelante (módulo 12).
+
+|`ray`
+|Removed
+|Distributed training Ray; fuera de alcance.
+
+|`mlflowoperator`
+|Removed
+|MLflow se activa con EvalHub (módulo 12).
+
+|`trainer` / `trainingoperator`
+|Removed
+|Training operators; fuera de alcance.
+
+|`llamastackoperator`
+|Removed
+|Llama Stack; fuera de alcance.
+|===
+
+== Instalar por terminal
+
+Desde la raíz del repo (crea o actualiza `default-dsc`):
+
+[source,bash]
 ----
-apiVersion: datasciencecluster.opendatahub.io/v2
-kind: DataScienceCluster
-metadata:
-  name: default-dsc
-  labels:
-    app.kubernetes.io/name: datasciencecluster
-spec:
-  components:
-    ogx:
-      managementState: Managed
-    sparkoperator:
-      managementState: Removed
-    kserve:
-      wva:
-        managementState: Removed
-      rawDeploymentServiceConfig: Headless
-      nim:
-        airGapped: false
-        managementState: Removed
-      modelCache:
-        managementState: Removed
-      modelsAsService:
-        managementState: Removed
-      managementState: Managed
-    modelregistry:
-      registriesNamespace: rhoai-model-registries
-      managementState: Managed
-    feastoperator:
-      managementState: Removed
-    trustyai:
-      eval:
-        lmeval:
-          permitCodeExecution: deny
-          permitOnline: deny
-      mcpGuardrailsMode: false
-      managementState: Removed
-    aipipelines:
-      argoWorkflowsControllers:
-        managementState: Managed
-      managementState: Managed
-    ray:
-      managementState: Removed
-    kueue:
-      autoCreateQueues: false
-      defaultClusterQueueName: default
-      defaultLocalQueueName: default
-      managementState: Unmanaged
-    workbenches:
-      workbenchNamespace: rhods-notebooks
-      managementState: Managed
-    mlflowoperator:
-      managementState: Removed
-    dashboard:
-      managementState: Managed
-    trainer:
-      managementState: Removed
-    llamastackoperator:
-      managementState: Removed
-    aigateway:
-      managementState: Managed
-      modelsAsAService:
-        managementState: Removed
-    trainingoperator:
-      managementState: Removed
+oc apply -f manifests/default-dsc.yaml
+----
+
+Para seguir el estado:
+
+[source,bash]
+----
+oc get dsc default-dsc -w
 ----
 
 == Verificar
@@ -105,13 +112,3 @@ oc get route -n redhat-ods-applications
 ----
 
 Abre la ruta `rhods-dashboard` / `rhoai` como `admin` (no `kubeadmin`).
-
-.Alternativa YAML
-[%collapsible]
-====
-[source,bash]
-----
-oc apply -f manifests/default-dsc.yaml
-oc get dsc default-dsc -w
-----
-====
