@@ -72,6 +72,80 @@ NOTE: `ogx` en `Managed` es requisito del *Gen AI Studio → Playground*. Sin OG
 |Llama Stack; fuera de alcance.
 |===
 
+== Manifiesto
+
+.default-dsc.yaml (click para expandir)
+[%collapsible]
+====
+[source]
+----
+apiVersion: datasciencecluster.opendatahub.io/v2
+kind: DataScienceCluster
+metadata:
+  name: default-dsc
+  labels:
+    app.kubernetes.io/name: datasciencecluster
+spec:
+  components:
+    ogx:
+      managementState: Managed
+    sparkoperator:
+      managementState: Removed
+    kserve:
+      wva:
+        managementState: Removed
+      rawDeploymentServiceConfig: Headless
+      nim:
+        airGapped: false
+        managementState: Removed
+      modelCache:
+        managementState: Removed
+      modelsAsService:
+        managementState: Removed
+      managementState: Managed
+    modelregistry:
+      registriesNamespace: rhoai-model-registries
+      managementState: Managed
+    feastoperator:
+      managementState: Removed
+    trustyai:
+      eval:
+        lmeval:
+          permitCodeExecution: deny
+          permitOnline: deny
+      mcpGuardrailsMode: false
+      managementState: Removed
+    aipipelines:
+      argoWorkflowsControllers:
+        managementState: Managed
+      managementState: Managed
+    ray:
+      managementState: Removed
+    kueue:
+      autoCreateQueues: false
+      defaultClusterQueueName: default
+      defaultLocalQueueName: default
+      managementState: Unmanaged
+    workbenches:
+      workbenchNamespace: rhods-notebooks
+      managementState: Managed
+    mlflowoperator:
+      managementState: Removed
+    dashboard:
+      managementState: Managed
+    trainer:
+      managementState: Removed
+    llamastackoperator:
+      managementState: Removed
+    aigateway:
+      managementState: Managed
+      modelsAsAService:
+        managementState: Removed
+    trainingoperator:
+      managementState: Removed
+----
+====
+
 == Instalar por terminal
 
 Desde la raíz del repo (crea o actualiza `default-dsc`):
@@ -81,34 +155,36 @@ Desde la raíz del repo (crea o actualiza `default-dsc`):
 oc apply -f manifests/default-dsc.yaml
 ----
 
-Para seguir el estado:
-
-[source,bash]
-----
-oc get dsc default-dsc -w
-----
-
 == Verificar
 
-[source,bash]
-----
-oc get dsc
-oc get pods -n redhat-ods-applications
-----
-
-Espera a que `default-dsc` esté `Ready` (5–15 min). Condición `OGXReady=True` y pod del operator OGX en `redhat-ods-applications`:
+Espera a que el DSC quede listo (puede tardar 5–15 min) y muestra un resumen legible:
 
 [source,bash]
 ----
-oc get dsc default-dsc -o jsonpath='{.status.conditions[?(@.type=="OGXReady")].status}{"\n"}'
-oc get pods -n redhat-ods-applications -l name=ogx-k8s-operator
+printf '%-36s %-12s %s\n' "RECURSO" "ESTADO" "DETALLE"
+printf '%-36s %-12s %s\n' "------------------------------------" "------------" "----------------"
+
+oc wait --for=condition=Ready dsc/default-dsc --timeout=900s >/dev/null 2>&1 && \
+  printf '%-36s %-12s %s\n' "DataScienceCluster/default-dsc" "OK" "Ready=True" || \
+  printf '%-36s %-12s %s\n' "DataScienceCluster/default-dsc" "PENDIENTE" "$(oc get dsc default-dsc -o jsonpath='{.status.conditions[?(@.type=="Ready")].reason}' 2>/dev/null || echo 'sin Ready')"
+
+ogx=$(oc get dsc default-dsc -o jsonpath='{.status.conditions[?(@.type=="OGXReady")].status}' 2>/dev/null)
+if [ "$ogx" = "True" ]; then
+  printf '%-36s %-12s %s\n' "OGXReady" "OK" "True"
+else
+  printf '%-36s %-12s %s\n' "OGXReady" "PENDIENTE" "${ogx:-desconocido}"
+fi
+
+pods=$(oc get pods -n redhat-ods-applications --no-headers 2>/dev/null | awk '$3=="Running"{c++} END{print c+0}')
+total=$(oc get pods -n redhat-ods-applications --no-headers 2>/dev/null | wc -l | tr -d ' ')
+printf '%-36s %-12s %s\n' "Pods redhat-ods-applications" "OK" "${pods}/${total} Running"
 ----
 
-Debe existir el dashboard:
+== URL del dashboard
 
 [source,bash]
 ----
-oc get route -n redhat-ods-applications
+echo "https://$(oc get route -n redhat-ods-applications -o jsonpath='{range .items[*]}{.metadata.name}{"\t"}{.spec.host}{"\n"}{end}' | awk '/dashboard|rhoai/{print $2; exit}')"
 ----
 
-Abre la ruta `rhods-dashboard` / `rhoai` como `admin` (no `kubeadmin`).
+Abre esa URL como `admin` (no `kubeadmin`).
