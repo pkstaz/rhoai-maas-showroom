@@ -1,154 +1,68 @@
 = Desplegar Qwen3-0.6B (llm-d, CPU, MaaS)
 
-Despliega *desde el catálogo* / GenAI Studio con llm-d, perfil CPU, y publícalo en MaaS.
+Despliega Qwen en *CPU* con un manifiesto limpio (sin wizard): `LLMInferenceService` + `MaaSModelRef`.
+Queda visible en el AI Hub / Gen AI Studio (*AI asset endpoints*) y publicado en MaaS.
 
-Usa el hardware profile `cpu-workshop`, no `fake-h200`.
+Requisitos: MaaS encendido (módulo 4), profile `cpu-workshop` (módulo 3), gateway `maas-default-gateway`.
+Manifiesto: `manifests/llminferenceservice-qwen3-06b.yaml`.
 
-El wizard de llm-d arranca por defecto con imagen *vLLM CUDA*. En un cluster sin CUDA (solo Fake GPU) el pod entra en `CrashLoopBackOff` (`Failed to infer device type`). Hay que forzar *vLLM CPU*.
+== Qué crea el manifiesto
 
-== Proyecto
+[cols="1,2"]
+|===
+|Recurso |Detalle
 
-. Dashboard → *Data Science Projects* → *Create*
-. Name: `llm`
+|Namespace `llm`
+|Proyecto de Data Science + acceso al gateway MaaS.
 
-[source,bash]
-----
-oc label namespace llm \
-  opendatahub.io/dashboard=true \
-  opendatahub.io/generated-namespace=true \
-  maas.opendatahub.io/gateway-access=true \
-  --overwrite
-----
+|`LLMInferenceService/qwen3-06b`
+|llm-d + imagen `vllm-cpu-rhel9:3.5.0`, `max-model-len=2048`, label `opendatahub.io/genai-asset=true`.
 
-== UI (wizard)
+|`MaaSModelRef/qwen3-06b`
+|Publica el modelo en Models as a Service.
+|===
 
-. Catalog → abre *Qwen3-0.6B*
-. *Deploy*
-. Project: `llm`
-. Serving: *Distributed Inference* / *llm-d*
-. Hardware profile: `cpu-workshop`
-. Replicas: `1`
-. Publicar en *Models as a Service*
-. Marca *Add as AI asset endpoint* (sin esto, Gen AI Studio → *AI asset endpoints* no lista el modelo)
-. Si el formulario muestra *Additional environment variables* / *Additional serving runtime arguments*, añade:
+== Instalar por terminal
 
-Environment variables::
-
-* `HF_HUB_DISABLE_XET` = `1`
-* `VLLM_CPU_KVCACHE_SPACE` = `4`
-* `HF_HOME` = `/tmp/hf_home`
-
-Serving runtime arguments::
-
-* `--max-model-len=2048`
-* `--enable-force-include-usage`
-
-. *Deploy*
-
-URI del modelo: `hf://Qwen/Qwen3-0.6B`
-
-NOTE: En muchos builds de 3.5 el wizard *no* deja cambiar la imagen. Los env/args ayudan, pero *no* evitan el crash CUDA. Aplica el parche CPU del siguiente apartado.
-
-== Parche CPU (obligatorio tras el wizard)
-
-El Deployment del wizard usa `registry.redhat.io/rhaii/vllm-cuda-rhel9`. Cámbialo a CPU.
-
-IMPORTANT: Cualquier cambio en el `LLMInferenceService` (imagen, env, args, resources) hazlo con el modelo *parado*. Si editas en caliente, los pods suelen quedarse en `Pending` / rollout a medias. Orden: *Stop* → editar → *Start*.
-
-=== Opción A — script (nombre típico del wizard)
-
-Si el `LLMInferenceService` se llama `qwenqwen3-06b` (prefijo del wizard):
+Desde la raíz del repo:
 
 [source,bash]
 ----
-bash manifests/patch-llmisvc-cpu.sh qwenqwen3-06b llm
-----
-
-El script hace `replicas: 0` → parche CPU → `replicas: 1`.
-
-=== Opción B — UI dashboard + YAML
-
-. Dashboard OpenShift AI → proyecto `llm` → el modelo → *Stop*
-. Espera a que no queden pods del serving en `llm`
-. *Home* → *Search* → `LLMInferenceService` → namespace `llm`
-. Abre el recurso → pestaña *YAML*
-. En `spec.template.containers` (contenedor `main`) deja:
-
-[source,yaml]
-----
-- name: main
-  image: registry.redhat.io/rhaiis/vllm-cpu-rhel9:3.5.0
-  command:
-    - python
-    - -m
-    - vllm.entrypoints.openai.api_server
-  args:
-    - "--served-model-name={{.Name}}"
-    - --model=/mnt/models
-    - --max-model-len=2048
-    - --enable-ssl-refresh
-    - --ssl-certfile=/var/run/kserve/tls/tls.crt
-    - --ssl-keyfile=/var/run/kserve/tls/tls.key
-    - --enable-force-include-usage
-  env:
-    - name: HF_HOME
-      value: /tmp/hf_home
-    - name: HF_HUB_DISABLE_XET
-      value: "1"
-    - name: VLLM_CPU_KVCACHE_SPACE
-      value: "4"
-  resources:
-    requests:
-      cpu: "1"
-      memory: 8Gi
-    limits:
-      cpu: "2"
-      memory: 8Gi
-----
-
-. *Save*
-. Dashboard → el modelo → *Start* (o `spec.replicas: 1`)
-
-Stop/Start por CLI:
-
-[source,bash]
-----
-oc patch llminferenceservice qwenqwen3-06b -n llm --type=merge -p '{"spec":{"replicas":0}}'
-# … edita el YAML …
-oc patch llminferenceservice qwenqwen3-06b -n llm --type=merge -p '{"spec":{"replicas":1}}'
-----
-
-=== Opción C — manifiesto limpio (sin wizard)
-
-[source,bash]
-----
-oc delete llminferenceservice --all -n llm --ignore-not-found
-oc delete maasmodelref --all -n llm --ignore-not-found
 oc apply -f manifests/llminferenceservice-qwen3-06b.yaml
 ----
 
-Imagen `registry.redhat.io/rhaiis/vllm-cpu-rhel9:3.5.0`, 1–2 CPU, 8 Gi, gateway `maas-default-gateway`.
+== Esperar Ready
 
-== Verificar
+[source,bash]
+----
+printf '%-36s %-12s %s\n' "RECURSO" "ESTADO" "DETALLE"
+printf '%-36s %-12s %s\n' "------------------------------------" "------------" "----------------"
+
+oc wait --for=condition=Ready llminferenceservice/qwen3-06b -n llm --timeout=900s >/dev/null 2>&1 && \
+  printf '%-36s %-12s %s\n' "LLMInferenceService/qwen3-06b" "OK" "Ready" || \
+  printf '%-36s %-12s %s\n' "LLMInferenceService/qwen3-06b" "PENDIENTE" "$(oc get llminferenceservice qwen3-06b -n llm -o jsonpath='{.status.conditions[?(@.type=="Ready")].reason}' 2>/dev/null || echo '?')"
+
+img=$(oc get deploy -n llm -o jsonpath='{range .items[*]}{.spec.template.spec.containers[0].image}{"\n"}{end}' 2>/dev/null | grep -m1 vllm || true)
+echo "$img" | grep -q 'vllm-cpu' && \
+  printf '%-36s %-12s %s\n' "Imagen serving" "OK" "vllm-cpu" || \
+  printf '%-36s %-12s %s\n' "Imagen serving" "REVISAR" "${img:-sin deploy}"
+
+oc get maasmodelref qwen3-06b -n llm --no-headers 2>/dev/null | grep -qi Ready && \
+  printf '%-36s %-12s %s\n' "MaaSModelRef/qwen3-06b" "OK" "Ready" || \
+  printf '%-36s %-12s %s\n' "MaaSModelRef/qwen3-06b" "PENDIENTE" "espera subscription (módulo 9) o reconciliación"
+----
+
+== Verificar en UI
+
+* *Gen AI Studio* → *AI asset endpoints* (proyecto `llm`): debe listar el modelo (`opendatahub.io/genai-asset=true`).
+* *Models as a Service*: el `MaaSModelRef` `qwen3-06b` (pasa a `Ready` tras la subscription del módulo 9).
 
 [source,bash]
 ----
 oc get llminferenceservice -n llm
 oc get pods -n llm
-oc get deploy -n llm -o custom-columns=\
-'NAME:.metadata.name,IMAGE:.spec.template.spec.containers[0].image'
 oc get maasmodelref -n llm -o wide
+oc get llminferenceservice qwen3-06b -n llm -o jsonpath='{.metadata.labels.opendatahub\.io/genai-asset}{"\n"}'
 ----
 
-`LLMInferenceService` `Ready`. Pod `Running`. Imagen del `*-kserve` = `vllm-cpu-rhel9` (no `vllm-cuda`).
-
-Gen AI Studio → *AI asset endpoints* solo lista modelos con la etiqueta `opendatahub.io/genai-asset=true` (checkbox del wizard o CLI abajo). Proyecto seleccionado: `llm`.
-
-[source,bash]
-----
-oc label llminferenceservice qwenqwen3-06b -n llm opendatahub.io/genai-asset=true --overwrite
-----
-
-En GenAI Studio → *Playground*, prueba el modelo cuando esté Ready (usa `/no_think`).
-
-IMPORTANT: El vLLM CPU del lab usa `max_model_len=2048`. Si el Playground falla con `max_tokens=4096 cannot be greater than max_model_len`, baja a ≤ 1024. Tras la subscription (módulo 9), el módulo 10 documenta `manifests/fix-playground-maas.sh` (API key real + `VLLM_MAX_TOKENS=1024`).
+NOTE: El vLLM CPU del lab usa `max_model_len=2048`. En Playground / chat usa `max_tokens` ≤ 1024 y `/no_think`.

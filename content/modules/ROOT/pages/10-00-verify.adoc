@@ -57,7 +57,7 @@ curl -sk "https://${MAAS_URL}/v1/chat/completions" \
   }" | jq
 ----
 
-El `id` suele ser `publishers/llm/models/qwenqwen3-06b`.
+El `id` suele ser `publishers/llm/models/qwen3-06b`.
 
 == UI — Models as a Service
 
@@ -74,7 +74,7 @@ Tras tener una subscription y API key que funcionen con `curl`:
 bash manifests/fix-playground-maas.sh
 ----
 
-Luego: *Gen AI Studio* → *Playground* → proyecto `llm` → *New chat* → elige el modelo MaaS (`…/publishers/llm/models/qwenqwen3-06b`) → mensaje con `/no_think`.
+Luego: *Gen AI Studio* → *Playground* → proyecto `llm` → *New chat* → elige el modelo MaaS (`…/publishers/llm/models/qwen3-06b`) → mensaje con `/no_think`.
 
 NOTE: Si el dashboard regenera el `OGXServer`, puede volver `fake` / `4096`. Vuelve a ejecutar el script.
 

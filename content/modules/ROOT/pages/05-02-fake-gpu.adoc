@@ -133,3 +133,23 @@ Verificar:
 ----
 oc get hardwareprofile -n redhat-ods-applications fake-h200 fake-h200-mig
 ----
+
+== Dashboard Fake GPU (DCGM)
+
+Grafana dashboard + `ServiceMonitor` para el exporter del Fake GPU Operator
+(https://github.com/rhpds/gpu-resource-mgmt-automation/tree/main/workloads/fake-gpu-operator/dashboard[fuente rhpds]).
+
+[source,bash]
+----
+oc apply -k manifests/fake-gpu-dashboard
+----
+
+Verificar:
+
+[source,bash]
+----
+oc get cm -n gpu-operator | grep -i dcgm
+oc get servicemonitor -n gpu-operator nvidia-dcgm-exporter
+----
+
+Abre el dashboard DCGM en la consola de monitoring / Grafana del cluster (el ConfigMap aporta el JSON del panel).

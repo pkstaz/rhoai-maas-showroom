@@ -1,0 +1,4 @@
+---
+resources:
+  - nvidia-dcgm-exporter-dashboard-cm.yaml
+  - nvidia-dcgm-exporter-service-monitor.yaml

@@ -131,7 +131,7 @@ printf '│ API_KEY_SECRET = %-44s │\n' "${API_KEY_SECRET}"
 printf '└──────────────────────────────────────────────────────────────┘\n'
 ----
 
-En el formulario: *Endpoint URL* = `ENDPOINT`, *Model name* = `MODEL_ID` (id MaaS, p. ej. `publishers/llm/models/qwenqwen3-06b`), *API key secret name* = `API_KEY_SECRET` (nombre del Secret, no el `sk-oai-…`).
+En el formulario: *Endpoint URL* = `ENDPOINT`, *Model name* = `MODEL_ID` (id MaaS, p. ej. `publishers/llm/models/qwen3-06b`), *API key secret name* = `API_KEY_SECRET` (nombre del Secret, no el `sk-oai-…`).
 
 == UI — lanzar la evaluación
 
@@ -179,12 +179,3 @@ Si la UI no lista el modelo, usa API/CLI con `benchmark_id` del provider (p. ej.
 |===
 
 Tiempo orientativo: *35–50 min* (+ waits de operators).
-
-.Alternativa YAML
-[%collapsible]
-====
-[source,bash]
-----
-bash manifests/apply-evalhub.sh
-----
-====

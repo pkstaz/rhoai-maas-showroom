@@ -2,24 +2,34 @@
 
 Fuente Hugging Face, *un solo modelo*: `{qwen-model}`.
 
-== UI (preferido)
+== Qué se configura
 
-. Dashboard OpenShift AI → *Settings* → *Model resources and operations* → *Model catalog settings*
-. *Add a source*
-. Name: `Qwen`
-. Source type: *Hugging Face repository*
-. Organization: `Qwen`
-. Include models: `Qwen/Qwen3-0.6B`
-. Enable source: *on*
-. *Add* / *Save*
+[cols="1,2"]
+|===
+|Campo |Valor
+
+|Catalog name
+|`Qwen`
+
+|Type
+|Hugging Face (`hf`)
+
+|Include models
+|`Qwen/Qwen3-0.6B`
+
+|ConfigMap
+|`model-catalog-sources` en `rhoai-model-registries`
+|===
+
+== Instalar por terminal
+
+[source,bash]
+----
+oc apply -f manifests/model-catalog-qwen.yaml
+oc delete pod -n rhoai-model-registries -l component=model-catalog --ignore-not-found
+----
 
 Espera 1–2 minutos a que sincronice.
-
-== Comprobar en UI
-
-. *Catalog* (AI Hub / Model catalog)
-. Filtro `Qwen3` o label de la fuente `Qwen`
-. Debe aparecer *Qwen3-0.6B*
 
 == Verificar
 
@@ -28,12 +38,4 @@ Espera 1–2 minutos a que sincronice.
 oc get configmap model-catalog-sources -n rhoai-model-registries -o yaml
 ----
 
-.Alternativa YAML
-[%collapsible]
-====
-[source,bash]
-----
-oc apply -f manifests/model-catalog-qwen.yaml
-oc delete pod -n rhoai-model-registries -l component=model-catalog --ignore-not-found
-----
-====
+En el dashboard: *Catalog* / AI Hub → filtro `Qwen3` → debe aparecer *Qwen3-0.6B*.

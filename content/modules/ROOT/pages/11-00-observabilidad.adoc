@@ -44,7 +44,7 @@ Espera CSVs `Succeeded`, LokiStack Ready y el patch de `usageLogging`. En un Ope
 
 Si el script se corta en un `oc wait` (`no matching resources found`), vuelve a lanzarlo: es idempotente y el wait ahora espera a que aparezca el CSV.
 
-== Paso a paso (UI + CLI)
+== Paso a paso (CLI)
 
 === 1. Tempo Operator
 
@@ -149,9 +149,13 @@ oc get persesdashboard -n redhat-ods-monitoring | grep usage-logs
 
 == UI — dashboards
 
-. Dashboard OpenShift AI → *Observe & monitor* → *Dashboard* (o *Observability*)
-. Abre los dashboards MaaS / usage (admin y user)
-. Genera tráfico con el Playground o el `curl` del módulo 10; espera unos minutos a que Loki muestre requests
+. Dashboard OpenShift AI → *Observe & monitor* → *Dashboard*
+. Abre *Usage* (tokens / requests / rate limits por subscription) y los dashboards MaaS
+. Genera tráfico con el Playground o el `curl` del módulo 10; espera unos minutos
+
+NOTE: El panel *Usage* es *Technology Preview* en RHOAI 3.5. Sirve para *showback* y atribución de consumo (export CSV).
+*No* es un motor de billing con precio en dólares por token: eso no está en la subscription ni en el dashboard GA.
+Para coste operativo en el lab usa rate limits (módulo 9) + Usage/Loki.
 
 IMPORTANT: *GPU utilization* = *No data* es normal en este lab. El `{qwen-model}` corre con imagen **vLLM CPU** (`rhaii/vllm-cpu-rhel9`) y **sin** `nvidia.com/gpu` en el `LLMInferenceService`. Fake/NVIDIA GPU (módulo 5) y DCGM están para perfiles/hardware; no alimentan el panel de GPU de este serving. Mira tokens, latencia y logs de usage en su lugar.
 

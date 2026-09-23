@@ -19,7 +19,7 @@ Run `oc apply` / scripts from the **repo root**.
 | `fake-gpu-values.yaml` | Fake GPU topology |
 | `hardware-profile-cpu.yaml` | CPU hardware profile `cpu-workshop` (module 3)
 | `hardware-profile-nvidia.yaml` | GPU profile `nvidia-gpu` (module 5 NVIDIA)
-| `hardware-profiles-fake.yaml` | Fake GPU profiles `fake-h200` / `fake-h200-mig` (module 5 Fake)
+| `fake-gpu-dashboard/` | DCGM Grafana dashboard + ServiceMonitor for Fake GPU (module 5)
 | `llminferenceservice-qwen3-06b.yaml` | llm-d CPU + MaaSModelRef |
 | `patch-llmisvc-cpu.sh` | Force vLLM CPU after wizard |
 | `maas-subscription.yaml` | Auth policy + subscription |

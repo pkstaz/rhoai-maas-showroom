@@ -1,46 +1,51 @@
 = Suscripción MaaS
 
-Para consumir el modelo por el gateway hace falta *subscription* y *authorization policy*. Sin los dos, la `MaaSModelRef` no queda `Ready`.
+Para consumir el modelo por el gateway hacen falta *subscription* y *authorization policy*.
+Sin las dos, la `MaaSModelRef` no queda `Ready`.
 
-== UI
+Este lab usa el modelo `qwen3-06b` del manifiesto CLI (módulo 8).
 
-. Dashboard OpenShift AI → *Models as a Service* → *Subscriptions*
-. *Create subscription*
-. Name: `qwen-authenticated`
-. Groups: `system:authenticated`
-. Model: el `MaaSModelRef` en `llm` (suele llamarse `qwenqwen3-06b` si salió del wizard)
-. Rate limits (dos ventanas, más realistas para el lab):
+== Qué se crea
 
-* `500` tokens / `30s` — ráfaga por petición
-* `5000` tokens / `5m` — uso sostenido en el workshop
+[cols="1,2"]
+|===
+|Recurso |Detalle
 
-. *Create*
+|`MaaSSubscription/qwen-authenticated`
+|Grupo `system:authenticated`; rate limits 500/30s y 5000/5m sobre `qwen3-06b`.
 
-. *Authorization policies* → *Create authorization policy*
-. Name: `qwen-authenticated-access`
-. Group: `system:authenticated`
-. Mismos model refs que la subscription
-. *Create*
+|`MaaSAuthPolicy/qwen-authenticated-access`
+|Autoriza al mismo grupo sobre el mismo model ref.
+|===
 
-IMPORTANT: El nombre de la subscription (`qwen-authenticated`, o `demo` si la creaste a mano) debe coincidir al pedir la API key en el módulo 10. Si `jq` imprime `null`, lista suscripciones con `oc get maassubscription -n models-as-a-service`.
+NOTE: En RHOAI 3.5 *no* hay un campo de “precio por token” / billing en dólares en la subscription.
+El control de coste operativo es por *token rate limits*. El dashboard *Usage* (Technology Preview, módulo 11) sirve para *showback* / atribución de consumo (export CSV), no para facturación oficial.
+
+== Instalar por terminal
+
+[source,bash]
+----
+oc apply -f manifests/maas-subscription.yaml
+----
 
 == Verificar
 
 [source,bash]
 ----
-oc get maassubscription -n models-as-a-service
-oc get maasauthpolicy -n models-as-a-service
-oc get maasmodelref -n llm -o wide
+printf '%-42s %-12s\n' "RECURSO" "ESTADO"
+printf '%-42s %-12s\n' "------------------------------------------" "------------"
+
+oc get maassubscription qwen-authenticated -n models-as-a-service --no-headers 2>/dev/null \
+  && printf '%-42s %-12s\n' "MaaSSubscription/qwen-authenticated" "OK" \
+  || printf '%-42s %-12s\n' "MaaSSubscription/qwen-authenticated" "PENDIENTE"
+
+oc get maasauthpolicy qwen-authenticated-access -n models-as-a-service --no-headers 2>/dev/null \
+  && printf '%-42s %-12s\n' "MaaSAuthPolicy/qwen-authenticated-access" "OK" \
+  || printf '%-42s %-12s\n' "MaaSAuthPolicy/qwen-authenticated-access" "PENDIENTE"
+
+phase=$(oc get maasmodelref qwen3-06b -n llm -o jsonpath='{.status.phase}' 2>/dev/null)
+[ "$phase" = "Ready" ] && printf '%-42s %-12s\n' "MaaSModelRef/qwen3-06b" "OK" \
+  || printf '%-42s %-12s\n' "MaaSModelRef/qwen3-06b" "${phase:-PENDIENTE}"
 ----
 
-`MaaSModelRef` en fase `Ready`.
-
-.Alternativa YAML
-[%collapsible]
-====
-[source,bash]
-----
-oc apply -f manifests/maas-subscription.yaml
-oc get maasmodelref -n llm -o wide
-----
-====
+IMPORTANT: El nombre `qwen-authenticated` es el que usa el módulo 10 al pedir la API key.

@@ -12,6 +12,7 @@ spec:
     modelAsService: true
     genAiStudio: true
     disableLMEval: false
+    observabilityDashboard: true
     notebookController:
       enabled: true
       notebookNamespace: rhods-notebooks

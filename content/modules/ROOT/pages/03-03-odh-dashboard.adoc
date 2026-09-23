@@ -28,6 +28,9 @@ NOTE: *Gen AI Studio → Playground* también exige `ogx: Managed` en el `DataSc
 
 |`disableLMEval: false`
 |Habilita el menú *Evaluations* (EvalHub; se usa en el módulo 12).
+
+|`observabilityDashboard: true`
+|Habilita *Observe & monitor* / dashboards (incl. *Usage* MaaS, Technology Preview).
 |===
 
 == Instalar por terminal
@@ -42,7 +45,8 @@ oc patch odhdashboardconfig odh-dashboard-config -n redhat-ods-applications --ty
       "disableKueue": false,
       "modelAsService": true,
       "genAiStudio": true,
-      "disableLMEval": false
+      "disableLMEval": false,
+      "observabilityDashboard": true
     }
   }
 }'
