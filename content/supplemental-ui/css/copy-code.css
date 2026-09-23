@@ -11,7 +11,8 @@
 
 .doc .listingblock pre.has-copy-button > code {
   display: block;
-  padding-top: 2.5rem !important;
+  /* Room on the right so the first line does not run under the button */
+  padding-right: 5.75rem !important;
 }
 
 .listingblock pre .lab-copy-btn {
@@ -19,8 +20,9 @@
   align-items: center;
   justify-content: center;
   position: absolute !important;
-  top: 0.5rem !important;
-  right: 0.5rem !important;
+  /* Align with the first code line (same top inset as typical pre padding) */
+  top: 0.75rem !important;
+  right: 0.75rem !important;
   left: auto !important;
   bottom: auto !important;
   z-index: 10;
@@ -39,7 +41,7 @@
   font-weight: 700;
   letter-spacing: 0.02em;
   line-height: 1;
-  padding: 0.45rem 0.75rem !important;
+  padding: 0.35rem 0.7rem !important;
   cursor: pointer;
   white-space: nowrap !important;
 }
