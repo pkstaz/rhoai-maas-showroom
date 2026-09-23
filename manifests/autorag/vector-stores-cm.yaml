@@ -1,0 +1,20 @@
+# Surfaces the lab pgvector on Gen AI Studio → AI asset endpoints → Vector stores.
+# Requires spec.dashboardConfig.externalVectorStores: true
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: gen-ai-aa-vector-stores
+  namespace: redhat-ods-applications
+data:
+  workshop-pgvector: |
+    {
+      "name": "workshop-pgvector",
+      "description": "Lab pgvector in project llm (AutoRAG / Playground Knowledge)",
+      "provider": "pgvector",
+      "host": "pgvector.llm.svc.cluster.local",
+      "port": 5432,
+      "database": "vectordb",
+      "collection": "workshop",
+      "namespace": "llm",
+      "secretName": "pgvector"
+    }

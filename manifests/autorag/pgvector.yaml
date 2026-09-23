@@ -1,0 +1,81 @@
+# Lab pgvector for AutoRAG / Playground Knowledge (remote store).
+# Image includes the pgvector extension (not the RHEL postgres used elsewhere).
+apiVersion: v1
+kind: Secret
+metadata:
+  name: pgvector
+  namespace: llm
+  labels:
+    opendatahub.io/dashboard: "true"
+    opendatahub.io/managed: "true"
+    opendatahub.io/connection-type: postgresql
+type: Opaque
+stringData:
+  POSTGRES_USER: pgvector
+  POSTGRES_DB: vectordb
+  # workshop-only
+  # gitleaks:allow
+  POSTGRES_PASSWORD: pgvector-workshop # pragma: allowlist secret
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pgvector-data
+  namespace: llm
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pgvector
+  namespace: llm
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: pgvector
+  template:
+    metadata:
+      labels:
+        app: pgvector
+    spec:
+      containers:
+        - name: pgvector
+          image: pgvector/pgvector:pg16
+          envFrom:
+            - secretRef:
+                name: pgvector
+          ports:
+            - containerPort: 5432
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/postgresql/data
+          resources:
+            requests:
+              cpu: 50m
+              memory: 256Mi
+            limits:
+              cpu: "1"
+              memory: 1Gi
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: pgvector-data
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: pgvector
+  namespace: llm
+spec:
+  selector:
+    app: pgvector
+  ports:
+    - name: postgresql
+      port: 5432
+      targetPort: 5432

@@ -1,0 +1,78 @@
+= FinOps y cuotas MaaS
+
+Dos planes sobre el mismo modelo: *free* (cuota baja, prioridad 1) y *team* (cuota alta, prioridad 50).
+El plan `qwen-authenticated` del módulo 9 se queda como baseline.
+
+RHOAI 3.5 **no** factura en dólares. El control operativo es `tokenRateLimits`. *Usage* (módulo 11) es showback, no chargeback.
+
+== Qué crea
+
+[cols="1,2"]
+|===
+|Recurso |Detalle
+
+|`MaaSSubscription/qwen-free`
+|80 tokens / 30s, 400 / 5m, `priority: 1`
+
+|`MaaSSubscription/qwen-team`
+|2000 / 30s, 20000 / 5m, `priority: 50`
+
+|Auth policies
+|Mismo grupo `system:authenticated` sobre `qwen3-06b`
+|===
+
+== Instalar por terminal
+
+[source,bash]
+----
+oc apply -f manifests/finops/maas-subscription-free.yaml
+oc apply -f manifests/finops/maas-subscription-team.yaml
+----
+
+== Verificar
+
+[source,bash]
+----
+printf '%-42s %-12s\n' "RECURSO" "ESTADO"
+oc get maassubscription -n models-as-a-service
+oc get maasauthpolicy -n models-as-a-service
+----
+
+== Demo 429 (plan free)
+
+[source,bash]
+----
+CLUSTER_DOMAIN=$(oc get ingresses.config/cluster -o jsonpath='{.spec.domain}')
+MAAS_URL="maas.${CLUSTER_DOMAIN}"
+
+API_KEY=$(curl -sk -X POST "https://${MAAS_URL}/maas-api/v1/api-keys" \
+  -H "Authorization: Bearer $(oc whoami -t)" \
+  -H "Content-Type: application/json" \
+  -d '{"name":"finops-free","subscription":"qwen-free","expiresIn":"2h"}' \
+  | jq -r '.key')
+
+MODEL_ID=$(curl -sk "https://${MAAS_URL}/v1/models" \
+  -H "Authorization: Bearer ${API_KEY}" | jq -r '.data[0].id')
+
+for i in $(seq 1 30); do
+  CODE=$(curl -sk -o /dev/null -w '%{http_code}' \
+    "https://${MAAS_URL}/v1/chat/completions" \
+    -H "Authorization: Bearer ${API_KEY}" \
+    -H "Content-Type: application/json" \
+    -d '{"model":"'"${MODEL_ID}"'","messages":[{"role":"user","content":"/no_think ping"}],"max_tokens":64}')
+  echo "request $i -> HTTP $CODE"
+  [ "$CODE" = "429" ] && break
+done
+----
+
+`429` = Limitador aplica la subscription. En *Observe & monitor → Usage* compara tokens por subscription.
+
+== GAP
+
+| Lab | Prd |
+|---|---|
+| Rate limits + CSV de Usage | Presupuesto por BU, chargeback, alertas *antes* del 429 |
+
+== Siguiente
+
+xref:14-00-guardrails.adoc[Guardrails]: perímetro (auth/cuotas) vs contenido (`NemoGuardrails`).

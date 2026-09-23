@@ -93,4 +93,4 @@ Tienes:
 
 xref:11-00-observabilidad.adoc[Observabilidad MaaS]: gateway, serving, rate limits y FinOps básico.
 
-Luego xref:12-00-evalhub.adoc[EvalHub]: smoke de calidad del modelo.
+Luego xref:12-00-evalhub.adoc[EvalHub] y xref:13-00-finops.adoc[FinOps].

@@ -61,7 +61,7 @@ NOTE: `ogx` en `Managed` es requisito del *Gen AI Studio → Playground*. Sin OG
 
 |`mlflowoperator`
 |Removed
-|MLflow se activa con EvalHub (módulo 12).
+|MLflow se activa con EvalHub (módulo 12) y lo reutilizan Prompt Registry / EvalHub.
 
 |`trainer` / `trainingoperator`
 |Removed
@@ -69,7 +69,11 @@ NOTE: `ogx` en `Managed` es requisito del *Gen AI Studio → Playground*. Sin OG
 
 |`llamastackoperator`
 |Removed
-|Llama Stack; fuera de alcance.
+|Llama Stack legado; el lab usa `ogx`.
+
+|`mcplifecycleoperator`
+|Removed (módulo 20 → Managed)
+|MCP Catalog / `MCPServer` (Technology Preview; docs piden OCP 4.22+).
 |===
 
 == Manifiesto

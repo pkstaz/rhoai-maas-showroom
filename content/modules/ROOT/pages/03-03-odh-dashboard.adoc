@@ -31,6 +31,9 @@ NOTE: *Gen AI Studio → Playground* también exige `ogx: Managed` en el `DataSc
 
 |`observabilityDashboard: true`
 |Habilita *Observe & monitor* / dashboards (incl. *Usage* MaaS, Technology Preview).
+
+|`guardrails` / `automl` / `autorag` / `mcpCatalog` / `promptManagement` / `agentsCatalog` / `agentOps`
+|Se activan en los módulos 14–21 (no aquí).
 |===
 
 == Instalar por terminal

@@ -1,0 +1,59 @@
+= Guardrails (NemoGuardrails)
+
+El módulo 9 controla *quién* llama al modelo. Este módulo controla *qué* puede decir (PII, secretos, nombres).
+
+En OpenShift AI 3.5 el CRD nativo es `NemoGuardrails` (`trustyai.opendatahub.io/v1alpha1`), gestionado por TrustyAI. No usa FMS / `GuardrailsOrchestrator` (legacy). Va incluido en RHOAI; no hace falta suscripción NVIDIA.
+
+== Dos rutas
+
+[cols="1,2,2"]
+|===
+|Ruta |Qué hace |GPU
+
+|xref:14-01-guardrails-cpu.adoc[CPU]
+|Presidio (email, PERSON, teléfono) + regex en el *mismo pod*. Endpoint `/v1/guardrail/checks`, sin LLM.
+|No. Siempre.
+
+|xref:14-02-guardrails-gpu.adoc[Con LLM / GPU]
+|Mismo CR; `engine: openai` hacia MaaS Qwen (CPU) o un vLLM CUDA. `/v1/chat/completions` con rails de input y output.
+|Opcional (solo si el *modelo* corre en GPU).
+|===
+
+Haz *siempre* la ruta CPU. La de LLM se añade con `MODE=maas`.
+
+== Flags
+
+[source,bash]
+----
+oc patch dsc default-dsc --type=merge -p '{
+  "spec":{"components":{"trustyai":{"managementState":"Managed"}}}
+}'
+----
+
+TrustyAI ya queda Managed si corriste EvalHub (módulo 12).
+
+== Script
+
+[source,bash]
+----
+bash manifests/apply-guardrails.sh
+# MODE=maas bash manifests/apply-guardrails.sh
+----
+
+Manifiesto CPU: `manifests/guardrails/nemo-config-cpu.yaml`.
+
+== Playground
+
+NeMo expone su *propia Route* (`workshop` en `llm`). No es el shield OGX de FMS.
+
+* Verificación de lab: `curl` a `/v1/guardrail/checks` (módulo 14.1)
+* Chat guardado: `/v1/chat/completions` tras `MODE=maas` (módulo 14.2)
+* Opcional: *AI asset endpoints → Create endpoint* apuntando a esa Route si tienes `aiAssetCustomEndpoints: true`
+
+El flag `dashboardConfig.guardrails` no despliega el CR; solo enseña opciones de UI.
+
+La pestaña *Settings → Guardrails* del Playground (*No guardrail configuration found*) es otra cosa: config de cluster admin para el chat. El lab verifica NeMo por Route/`curl`, no por esa pestaña. *Save as new agent* (módulo 21) no depende de ella.
+
+== GAP
+
+Rails de negocio en Colang, MCP Gateway (`spec.template.pod.mcpGateway`) y red-team quedan fuera de estas sesiones.

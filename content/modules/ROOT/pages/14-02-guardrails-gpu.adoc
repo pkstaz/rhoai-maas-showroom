@@ -1,0 +1,69 @@
+= Guardrails con LLM (MaaS / GPU)
+
+El CR sigue siendo `NemoGuardrails`. Aquí NeMo *habla con un modelo* OpenAI-compatible (`engine: openai`) y aplica rails de input *y* output.
+
+El Qwen CPU del módulo 8 basta. GPU solo si apuntas a un vLLM CUDA (mismo patrón, otra `openai_api_base`).
+
+`/v1/chat/completions` de NeMo **no** es un proxy transparente: puede recortar el payload. Para tool calling usa `/v1/guardrail/checks` + el endpoint MaaS por separado.
+
+== Instalar
+
+Requisitos: módulo 9 (`qwen-authenticated`) y módulo 10 (inferencia OK).
+
+[source,bash]
+----
+MODE=maas bash manifests/apply-guardrails.sh
+----
+
+El script:
+
+. Crea una API key MaaS (`nemo-workshop`) si no pasas `API_KEY`
+. Secret `nemo-maas-token` en `llm`
+. ConfigMap `nemo-workshop-maas` con `openai_api_base=https://maas.<domain>/v1`
+. Reaplica `NemoGuardrails/workshop` con esa config como `default`
+
+Variables opcionales: `API_KEY`, `MODEL_ID`, `MAAS_V1_URL`.
+
+== Verificar
+
+[source,bash]
+----
+oc get nemoguardrails workshop -n llm
+oc get cm nemo-workshop-maas -n llm -o jsonpath='{.data.config\.yaml}' | head -20
+----
+
+== Chat con rails
+
+[source,bash]
+----
+GUARDRAILS_ROUTE=https://$(oc get route workshop -n llm -o jsonpath='{.status.ingress[0].host}')
+TOKEN=$(oc whoami -t)
+MODEL_ID=$(oc get cm nemo-workshop-maas -n llm -o jsonpath='{.data.config\.yaml}' \
+  | awk -F'"' '/model_name/{print $2; exit}')
+
+# Debe responder el modelo
+curl -sk -X POST "${GUARDRAILS_ROUTE}/v1/chat/completions" \
+  -H "Authorization: Bearer ${TOKEN}" \
+  -H "Content-Type: application/json" \
+  -d '{"model":"'"${MODEL_ID}"'","messages":[{"role":"user","content":"/no_think ping"}],"max_tokens":32}' | jq
+
+# Email → bloqueado (input rail)
+curl -sk -X POST "${GUARDRAILS_ROUTE}/v1/chat/completions" \
+  -H "Authorization: Bearer ${TOKEN}" \
+  -H "Content-Type: application/json" \
+  -d '{"model":"'"${MODEL_ID}"'","messages":[{"role":"user","content":"My email is user@example.com"}]}' | jq
+----
+
+== GPU
+
+Si tienes NVIDIA y un `LLMInferenceService` CUDA:
+
+. Pon `openai_api_base` al predictor interno (`https://<svc>.llm.svc.cluster.local:8443/v1`)
+. `OPENAI_API_KEY` = token del SA / MaaS
+. El CR no cambia de kind
+
+Self-check (LLM-as-judge) aumenta latencia y tokens; no va en el smoke de CPU.
+
+== GAP
+
+Un rail de PII no es red-team. Colang a medida, umbrales por equipo y MCP Gateway quedan para Prd.

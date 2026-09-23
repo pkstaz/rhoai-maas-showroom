@@ -1,0 +1,55 @@
+# Fallback when MCPServer CRD is missing (OpenShift < 4.22).
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: openshift-mcp
+  namespace: llm
+  labels:
+    app: openshift-mcp
+    opendatahub.io/dashboard: "true"
+    opendatahub.io/genai-asset: "true"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: openshift-mcp
+  template:
+    metadata:
+      labels:
+        app: openshift-mcp
+        opendatahub.io/dashboard: "true"
+        opendatahub.io/genai-asset: "true"
+    spec:
+      serviceAccountName: mcp-viewer
+      containers:
+        - name: mcp
+          image: quay.io/containers/kubernetes_mcp_server:latest
+          args:
+            - --sse-port=8080
+          ports:
+            - containerPort: 8080
+              name: http
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 256Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: openshift-mcp
+  namespace: llm
+  labels:
+    app: openshift-mcp
+    opendatahub.io/dashboard: "true"
+    opendatahub.io/genai-asset: "true"
+spec:
+  selector:
+    app: openshift-mcp
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080

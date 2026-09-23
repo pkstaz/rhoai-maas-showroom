@@ -1,0 +1,20 @@
+apiVersion: modelregistry.opendatahub.io/v1beta1
+kind: ModelRegistry
+metadata:
+  name: workshop
+  namespace: rhoai-model-registries
+  annotations:
+    openshift.io/display-name: "Workshop registry"
+spec:
+  grpc:
+    port: 9090
+  rest:
+    port: 8080
+  postgres:
+    host: model-registry-db
+    port: 5432
+    database: model-registry
+    username: modelregistryuser
+    passwordSecret:
+      name: model-registry-db
+      key: database-password

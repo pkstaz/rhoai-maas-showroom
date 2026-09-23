@@ -1,23 +1,23 @@
 = Introducción
 
-Este workshop instala *OpenShift AI {rhoai-version}* en un cluster vacío y deja un modelo *{qwen-model}* publicado en *Models as a Service* (MaaS), servido con *llm-d* en CPU.
+Este workshop instala *OpenShift AI {rhoai-version}* en un cluster vacío y deja un modelo *{qwen-model}* publicado en *Models as a Service* (MaaS), servido con *llm-d* en CPU. Después del vertical slice (módulos 1–12) habilita FinOps, guardrails, registry, AutoML/AutoRAG, Prompt Registry, MCP, AgentOps y el plugin de Skills.
 
-El fake GPU no ejecuta CUDA. Sirve para que el cluster anuncie `nvidia.com/gpu` (perfiles, GPU Booking). La inferencia de Qwen corre en CPU.
+El fake GPU no ejecuta CUDA. Sirve para que el cluster anuncie `nvidia.com/gpu` (perfiles, GPU Booking). La inferencia de Qwen corre en CPU. Guardrails, AutoRAG y AgentOps tienen *ruta CPU* y *ruta GPU* cuando el cluster las tiene.
 
 == Tiempo
 
-* Modo rápido (seguir los clics): *~2 horas*
-* Modo explicativo (preguntas, waits, troubleshooting): *~4 horas*
-* Contexto Lab → Prd (xref:00-01-lab-a-prd.adoc[módulo 0.1]) + observabilidad (xref:11-00-observabilidad.adoc[módulo 11]) + EvalHub (xref:12-00-evalhub.adoc[módulo 12]): *+60–90 min* extra de lectura y discusión
+* Módulos 1–10 (plataforma + MaaS): *~2 h* rápido / *~4 h* explicativo
+* Módulos 0.1 + 11–12 (mapa Lab→Prd, observabilidad, EvalHub): *+60–90 min*
+* Módulos 13–22 (gobierno, Gen AI Studio, MCP, agentes, Skills): *+2–3 h* según CPU vs GPU
 
-Los waits largos son el Operator de OpenShift AI y la carga del modelo.
+Los waits largos son el Operator de OpenShift AI, la carga del modelo y (si hay GPU) AutoRAG / un vLLM CUDA detrás de NeMo.
 
 == Qué vas a dejar funcionando
 
 . Web Terminal en la consola
 . User-workload monitoring
 . OpenShift AI {rhoai-version} + dashboard
-. MaaS (gateway, API keys, cuotas)
+. MaaS (gateway, API keys, cuotas *free* / *team*)
 . GPU opcional: NVIDIA GPU Operator y/o Fake GPU (menús independientes en el módulo 5)
 . GPU Config Plugin (solo Fake) y/o MIG nativo (NVIDIA real)
 . GPU Booking Console Plugin
@@ -25,12 +25,20 @@ Los waits largos son el Operator de OpenShift AI y la carga del modelo.
 . Inferencia CPU con llm-d, publicada en MaaS
 . Vista inicial de observabilidad MaaS (COO / Perses / usage dashboards — xref:11-00-observabilidad.adoc[módulo 11])
 . Smoke de evaluación con EvalHub (xref:12-00-evalhub.adoc[módulo 12])
+. NemoGuardrails (CPU Presidio/regex; opcional proxy MaaS / GPU)
+. Model Registry de lab
+. AI Pipelines + AutoML smoke + AutoRAG (CPU = Knowledge/pgvector; GPU = optimization run)
+. Prompt Registry (MLflow) y MCP Catalog (OpenShift MCP)
+. AgentOps: catálogo + *Save as new agent* en Playground (A2A `workshop-faq` opcional)
+. Console plugin de Skills
+
+*Gen AI Studio → AI asset endpoints* (proyecto `llm`) debe listar: *Models* (Qwen), *MCPs*, *Vector stores* y *Agents*.
 
 Los YAML de `manifests/` se clonan en el Web Terminal **después** de entrar como `admin` (módulo 1).
 
 == Qué necesitas
 
-* Cluster OpenShift *4.20+* (llm-d requiere 4.20)
+* Cluster OpenShift *4.20+* (llm-d requiere 4.20). El MCP Lifecycle Operator documentado pide *4.22+*; en 4.20 el lab usa un Deployment de fallback.
 * Entras como `kubeadmin` (así arranca el cluster)
 * Después del Web Terminal, usuario `admin` con `cluster-admin`: OpenShift AI no acepta `kubeadmin` en el dashboard
 * Storage class por defecto
@@ -39,7 +47,7 @@ Los YAML de `manifests/` se clonan en el Web Terminal **después** de entrar com
 
 == Regla del lab
 
-En cada módulo: *UI primero*. El YAML está al final, colapsado.
+En cada módulo: *comando / `oc apply` primero*. Los manifiestos viven en `manifests/` (un directorio por tema). La UI es *verificación* al final, no el camino de instalación.
 
 No instales OpenShift Serverless / Service Mesh *2*. Este lab usa Gateway API; el Ingress Operator instala solo Service Mesh *3* al crear el `GatewayClass`. GPU (módulo 5): single-node con GPU → solo NVIDIA; single-node CPU → solo Fake; nodos GPU+CPU separados → puedes ambos (Fake nunca en el nodo con GPU real).
 
@@ -49,4 +57,4 @@ Lee xref:00-01-lab-a-prd.adoc[Lab → Prd, RACI y GAPs] antes del hands-on si fa
 
 Sigue el menú de la izquierda, de arriba hacia abajo. En *Pre-requisitos* deja operadores y el monitoreo de user workloads *antes* del Operator de OpenShift AI. El Operator de Connectivity Link se instala con esos operadores; el `GatewayClass` y la instancia Kuadrant van *después* de OpenShift AI. No enciendas `modelsAsAService` hasta tener gateway y base de datos.
 
-Después de xref:10-00-verify.adoc[probar inferencia], continúa con xref:11-00-observabilidad.adoc[observabilidad MaaS] y luego xref:12-00-evalhub.adoc[EvalHub].
+Después de xref:10-00-verify.adoc[probar inferencia], continúa con xref:11-00-observabilidad.adoc[observabilidad MaaS], xref:12-00-evalhub.adoc[EvalHub], xref:13-00-finops.adoc[FinOps], xref:14-00-guardrails.adoc[Guardrails] y el resto del menú (registry, ruteo, AutoML, AutoRAG, prompts, MCP, AgentOps, Skills).

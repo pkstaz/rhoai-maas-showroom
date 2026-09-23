@@ -1,0 +1,48 @@
+= Model Registry
+
+El DSC ya tiene `modelregistry: Managed` (namespace `rhoai-model-registries`). Este módulo crea *una instancia* de lab (Postgres efímero). No sustituye Hugging Face del módulo 7: el serving sigue siendo `hf://Qwen/Qwen3-0.6B`.
+
+Firma Cosign / promotion GitOps = GAP (tabla 0.1).
+
+== Qué crea
+
+[cols="1,2"]
+|===
+|Recurso |Detalle
+
+|Postgres `model-registry-db`
+|Backend MLMD en `rhoai-model-registries`
+
+|`ModelRegistry/workshop`
+|API REST/gRPC del registry
+|===
+
+== Instalar
+
+[source,bash]
+----
+bash manifests/apply-registry.sh
+# o: oc apply -k manifests/registry
+----
+
+== Verificar
+
+[source,bash]
+----
+oc get modelregistry,pods -n rhoai-model-registries
+----
+
+`Available=True`. Dashboard → *AI hub → Registry* → instancia `workshop`.
+
+== Qué hacer en el lab
+
+. Abrir el registry `workshop`
+. Registrar *metadata* de Qwen (nombre, versión `0.6b-cpu-lab`, origen HF) — no hace falta re-subir pesos
+. Contraste: catálogo HF (descubrimiento) vs registry (gobierno de versiones)
+
+== GAP
+
+| Lab | Prd |
+|---|---|
+| Postgres en el mismo cluster, sin TLS | DB gestionada + CA |
+| Sin firma de artefactos | Cosign / sigstore + RHACS |

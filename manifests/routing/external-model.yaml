@@ -1,0 +1,25 @@
+# Placeholder for a second MaaS model (external OpenAI-compatible).
+# Replace endpoint + secret before apply. See módulo 16.
+apiVersion: v1
+kind: Secret
+metadata:
+  name: external-model-api-key
+  namespace: llm
+type: Opaque
+stringData:
+  api-key: REPLACE_ME
+---
+apiVersion: maas.opendatahub.io/v1alpha1
+kind: ExternalModel
+metadata:
+  name: workshop-external
+  namespace: llm
+  labels:
+    opendatahub.io/dashboard: "true"
+    opendatahub.io/genai-asset: "true"
+spec:
+  displayName: "External OpenAI-compatible (lab)"
+  url: https://REPLACE_ME/v1
+  credentialRef:
+    name: external-model-api-key
+    key: api-key

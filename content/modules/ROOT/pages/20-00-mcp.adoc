@@ -1,0 +1,41 @@
+= MCP Catalog (OpenShift MCP)
+
+El *MCP Lifecycle Operator* (`mcplifecycleoperator`) despliega `MCPServer` CRs.
+El catálogo del dashboard (`mcpCatalog: true`) permite *Deploy* cuando el CRD existe.
+
+Este lab despliega **OpenShift / Kubernetes MCP** (`quay.io/containers/kubernetes_mcp_server`) en `llm` con SA `mcp-viewer` (ClusterRole `view`).
+
+IMPORTANT: La documentación de 3.5 pide OpenShift *4.22+* para el operator. El resto del workshop corre en *4.20+*. Si el CRD no aparece, `apply-mcp.sh` despliega el mismo servidor como `Deployment` y el Playground sigue usando el ConfigMap.
+
+== Instalar
+
+[source,bash]
+----
+bash manifests/apply-mcp.sh
+----
+
+El script: DSC Managed → flag `mcpCatalog` → `MCPServer/openshift-mcp` → ConfigMap `gen-ai-aa-mcp-servers`.
+
+== Verificar
+
+[source,bash]
+----
+oc get dsc default-dsc -o jsonpath='{.status.installedComponents.mcplifecycleoperator}{"\n"}'
+oc get crd mcpservers.mcp.x-k8s.io
+oc get mcpserver,pods -n llm
+oc get cm gen-ai-aa-mcp-servers -n redhat-ods-applications -o yaml
+----
+
+`MCPServer` Ready y URL interna `http://openshift-mcp.llm.svc.cluster.local:8080/mcp`.
+
+== UI
+
+* *AI hub → MCP servers → Catalog* → busca Kubernetes/OpenShift (el deploy YAML ya está aplicado)
+* *Gen AI studio → AI asset endpoints* → pestaña *MCPs* → `OpenShift-MCP`
+* Playground → pestaña *MCP* → checkbox + View tools. Pregunta: `How many pods in namespace llm?`
+
+Qwen 0.6B es flojo para tool calling. El valor del lab es *ver el MCP en AI assets*; un modelo con `--enable-auto-tool-choice` (GPU) usa las tools de verdad.
+
+== GAP
+
+Operator TP, API `v1alpha1` sin compatibilidad. El SA `view` de cluster es amplio; en Prd recorta a un Role.

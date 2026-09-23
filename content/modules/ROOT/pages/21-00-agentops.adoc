@@ -1,0 +1,94 @@
+= AgentOps (catálogo + agente)
+
+Habilita *Agents Catalog* y *Agent Ops* (Developer Preview).
+
+Hay *dos* “agentes” distintos:
+
+[cols="1,2"]
+|===
+|Dónde |Qué es
+
+|*Playground* → *Save as new agent*
+|La config actual del chat (modelo, prompt, Knowledge, MCP, Guardrails) queda guardada como agente reutilizable. *Load agent* la vuelve a cargar. Esto es lo que pide el lab.
+
+|*AI asset endpoints* → *Agents*
+|Un workload A2A (`workshop-faq`) desplegado con YAML. Complementario; no sustituye *Save as new agent*.
+|===
+
+`agentConfigManagement: true` enseña *Save as new agent* y *Load agent* en Settings.
+
+== Flags
+
+[source,bash]
+----
+oc patch odhdashboardconfig odh-dashboard-config -n redhat-ods-applications --type merge -p '{
+  "spec":{"dashboardConfig":{
+    "agentsCatalog":true,
+    "agentOps":true,
+    "agentConfigManagement":true,
+    "genAiStudio":true
+  }}
+}'
+----
+
+Hard refresh. Menú *Agents Catalog*.
+
+== Playground — *Save as new agent*
+
+Esto registra el agente *desde el Playground*. El botón está abajo a la derecha del panel *Settings* (no hay *Add / Register agent*).
+
+. *Gen AI studio → Playground* → proyecto `llm`
+. Elige el modelo (p. ej. `maas-vllm-inference-1/…`)
+. Opcional: pestañas *Prompt*, *Knowledge*, *MCP*
+. Abajo a la derecha: *Save as new agent*
+. Nombre: `workshop-faq-agent` (o el que uses en sala)
+. Comprueba: arriba a la derecha *Load agent* → debe listar ese nombre
+. Chat de humo: `What is fake GPU in this workshop?`
+
+*Load agent* restaura un agente ya guardado; no es el alta.
+
+La pestaña *Guardrails* puede decir *No guardrail configuration found*. Eso es config de *cluster admin* para el Playground (no el CR `NemoGuardrails` del módulo 14). *Save as new agent* funciona igual sin esa pestaña.
+
+== Opcional — workload A2A (`workshop-faq`)
+
+Para que *AI asset endpoints → Agents* liste un servicio, no basta *Save as new agent*. Fuente: `manifests/agents/workshop-agent/` (Python stdlib, Agent Card + JSON-RPC).
+
+=== Registry interno (por defecto)
+
+[source,bash]
+----
+# Opcional: inyectar MaaS para que el agente llame a Qwen
+export MAAS_URL="https://maas.$(oc get ingresses.config/cluster -o jsonpath='{.spec.domain}')"
+export API_KEY   # del módulo 10
+export MODEL_ID=publishers/llm/models/qwen3-06b
+
+bash manifests/apply-agent.sh
+----
+
+=== quay.io
+
+[source,bash]
+----
+cd manifests/agents/workshop-agent
+podman build -t quay.io/<TU_USER>/workshop-faq:lab .
+podman login quay.io
+podman push quay.io/<TU_USER>/workshop-faq:lab
+
+QUAY_IMAGE=quay.io/<TU_USER>/workshop-faq:lab bash manifests/apply-agent.sh
+----
+
+El cluster debe poder pull de ese repo (público o pull secret).
+
+=== Verificar
+
+[source,bash]
+----
+oc get deploy,svc,route workshop-faq -n llm
+curl -sk "https://$(oc get route workshop-faq -n llm -o jsonpath='{.spec.host}')/.well-known/agent.json" | jq
+----
+
+Labels `kagenti.io/type=agent` y `protocol.kagenti.io/a2a=true` disparan `AgentCard` si el operator Kagenti está en el cluster. Si no hay CRD, el Deployment basta para AI assets.
+
+== GAP
+
+Sin Kagenti Operator el A2A `workshop-faq` no tiene AgentCard firmado ni SPIFFE. *Save as new agent* solo versiona la config del Playground, no publica un microservicio.

@@ -1,0 +1,45 @@
+# Standalone NeMo Guardrails: Presidio + regex inside the pod. No LLM, no GPU.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nemo-workshop-cpu
+  namespace: llm
+data:
+  config.yaml: |
+    rails:
+      config:
+        sensitive_data_detection:
+          input:
+            entities:
+              - EMAIL_ADDRESS
+              - PERSON
+              - PHONE_NUMBER
+        regex_detection:
+          input:
+            patterns:
+              - "\\\\b(password|secret|api[_-]?key|token)\\\\b"
+              - "\\\\d{3}-\\\\d{2}-\\\\d{4}"
+            case_insensitive: true
+      input:
+        flows:
+          - detect sensitive data on input
+          - regex check input
+  rails.co: |
+    # Built-in rails only (Presidio + regex)
+---
+apiVersion: trustyai.opendatahub.io/v1alpha1
+kind: NemoGuardrails
+metadata:
+  name: workshop
+  namespace: llm
+  annotations:
+    security.opendatahub.io/enable-auth: "true"
+spec:
+  nemoConfigs:
+    - name: cpu
+      configMaps:
+        - nemo-workshop-cpu
+      default: true
+  env:
+    - name: OPENAI_API_KEY
+      value: not-used

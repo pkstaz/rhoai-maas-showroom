@@ -1,0 +1,38 @@
+# Tight quota for FinOps demo (HTTP 429). Pair with the team plan.
+apiVersion: maas.opendatahub.io/v1alpha1
+kind: MaaSAuthPolicy
+metadata:
+  name: qwen-free-access
+  namespace: models-as-a-service
+  annotations:
+    openshift.io/display-name: "Qwen free access"
+spec:
+  modelRefs:
+    - name: qwen3-06b
+      namespace: llm
+  subjects:
+    groups:
+      - name: system:authenticated
+    users: []
+---
+apiVersion: maas.opendatahub.io/v1alpha1
+kind: MaaSSubscription
+metadata:
+  name: qwen-free
+  namespace: models-as-a-service
+  annotations:
+    openshift.io/display-name: "Qwen free (lab)"
+spec:
+  owner:
+    groups:
+      - name: system:authenticated
+    users: []
+  priority: 1
+  modelRefs:
+    - name: qwen3-06b
+      namespace: llm
+      tokenRateLimits:
+        - limit: 80
+          window: 30s
+        - limit: 400
+          window: 5m

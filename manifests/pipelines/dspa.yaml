@@ -1,0 +1,23 @@
+apiVersion: datasciencepipelinesapplications.opendatahub.io/v1
+kind: DataSciencePipelinesApplication
+metadata:
+  name: dspa
+  namespace: llm
+spec:
+  dspVersion: v2
+  apiServer:
+    deploy: true
+    managedPipelines: {}
+  database:
+    mariaDB:
+      deploy: true
+  objectStorage:
+    externalStorage:
+      host: pipeline-minio.llm.svc.cluster.local:9000
+      bucket: mlpipeline
+      scheme: http
+      region: us-east-1
+      s3CredentialsSecret:
+        secretName: pipeline-minio
+        accessKey: AWS_ACCESS_KEY_ID
+        secretKey: AWS_SECRET_ACCESS_KEY

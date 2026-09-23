@@ -1,0 +1,69 @@
+= AutoRAG y vector stores
+
+AutoRAG (Technology Preview) busca el mejor patrón RAG (chunking, embeddings, retrieval, generación).
+Un *optimization run* completo pide foundation 7B+ *con tool calling* y GPU. En CPU el lab deja:
+
+* Pipeline server (módulo 17)
+* pgvector remoto en `llm`
+* ConfigMap `gen-ai-aa-vector-stores` → pestaña *Vector stores* en *AI asset endpoints*
+* Playground *Knowledge* (upload o store existente)
+
+== CPU vs GPU
+
+[cols="1,2"]
+|===
+|Cluster |Qué hacer
+
+|Solo CPU / Fake GPU
+|pgvector + Playground Knowledge. *No* lances un optimization AutoRAG con Llama-8B.
+
+|NVIDIA Ready
+|Mismo pgvector + un modelo con `--enable-auto-tool-choice` y un embedding; luego *Gen AI studio → AutoRAG → Create run* (preset Lightweight).
+|===
+
+== Instalar store
+
+[source,bash]
+----
+bash manifests/apply-autorag-store.sh
+----
+
+Si aún no corriste el módulo 17:
+
+[source,bash]
+----
+bash manifests/apply-pipelines.sh
+----
+
+Semilla S3: `local/autorag/docs/policy.md` y `local/autorag/testdata.json` (job `pipeline-minio-buckets`).
+
+== Verificar
+
+[source,bash]
+----
+oc get deploy,svc pgvector -n llm
+oc get cm gen-ai-aa-vector-stores -n redhat-ods-applications -o yaml
+----
+
+Dashboard:
+
+* *Gen AI studio → AI asset endpoints* → proyecto `llm` → pestaña *Vector stores* → `workshop-pgvector`
+* *Playground → Knowledge → Use an existing vector store*
+
+== Playground RAG (CPU)
+
+. Playground → modelo Qwen MaaS
+. *Knowledge* → upload `policy.md` (inline) **o** el store `workshop-pgvector` si OGX ya indexó
+. Pregunta: `Does fake GPU run CUDA?`
+
+El modelo 0.6B alucina; el valor del lab es *ver el store en AI assets*, no un RAG de producción.
+
+== Optimization (solo GPU)
+
+UI: *Gen AI studio → AutoRAG*. Connection OGX (base URL + API key del `OGXServer`). Vector DB = pgvector. Documentos = bucket `autorag`. Test JSON = `testdata.json`. Preset Lightweight.
+
+Foundation models necesitan tool calling en vLLM. Qwen CPU del módulo 8 *no* es un buen generador AutoRAG.
+
+== GAP
+
+Inline Milvus no vale para AutoRAG. Prd: Milvus/pgvector gestionado, embeddings dedicados, gates de fidelidad.

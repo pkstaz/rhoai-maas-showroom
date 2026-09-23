@@ -174,6 +174,11 @@ Sin `tokenizer` en los parameters, el job falla al tratar el id MaaS como repo d
 
 Tras el job, *Observe & monitor → Usage* mostrará el spike de tokens.
 
+== Siguiente
+
+xref:13-00-finops.adoc[FinOps]: planes *free* / *team* y HTTP 429.
+
+
 == API (backup)
 
 Si la UI no lista el modelo, usa API/CLI con `benchmark_id` del provider (p. ej. el id interno de HHH / `bigbench_hhh_alignment_multiple_choice`) y `limit: 5`.

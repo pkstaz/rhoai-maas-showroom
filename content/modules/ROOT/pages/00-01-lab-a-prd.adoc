@@ -64,11 +64,20 @@ En *Lab* usamos un cluster efímero y un modelo pequeño en CPU. En *Prd* el mis
 | Evaluación automatizada
 | xref:12-00-evalhub.adoc[Módulo 12] (UI Evaluations + MLflow lab)
 
-| Registry + firma
-| *No* — ver GAPs
+| FinOps (cuotas)
+| xref:13-00-finops.adoc[Módulo 13] (subscriptions *free* / *team*)
 
 | Guardrails de contenido
-| *No* — ver GAPs
+| xref:14-00-guardrails.adoc[Módulo 14] — `NemoGuardrails` CPU; LLM/MaaS opcional
+
+| Registry + firma
+| xref:15-00-registry.adoc[Módulo 15] (Registry de lab; firma Cosign sigue GAP)
+
+| AutoML / AutoRAG
+| xref:17-00-automl.adoc[17] / xref:18-00-autorag.adoc[18]
+
+| Prompt Registry / MCP / Agents
+| xref:19-00-prompt-registry.adoc[19] / xref:20-00-mcp.adoc[20] / xref:21-00-agentops.adoc[21]
 |===
 
 == Lab vs Prd
@@ -150,18 +159,18 @@ Ajustad las celdas a vuestra organización. El objetivo del workshop es *discuti
 | Área | Lab hoy | Prd objetivo | Prioridad Gantt
 
 | Evaluación
-| Prueba manual en Playground
+| EvalHub smoke `limit: 5` (módulo 12)
 | Suite automatizada + gates de promotion
 | Alta
 
 | Model Registry / firma
-| Deploy desde catalog/HF
-| Registry, cosign, promotion firmada
+| Registry de lab (módulo 15); deploy sigue siendo HF
+| Cosign, promotion firmada
 | Alta
 
 | Guardrails de contenido
-| Auth + rate limit perimetral
-| Filtros de prompt/respuesta, políticas
+| NemoGuardrails Presidio/regex (módulo 14)
+| Colang, MCP Gateway, red team
 | Media–Alta
 
 | FinOps
@@ -194,7 +203,7 @@ Ajustad las celdas a vuestra organización. El objetivo del workshop es *discuti
 . PoC gobierno de acceso: subscriptions, auth policies, cuotas (módulos 9–10)
 . Decisión registry + firma de modelos (¿Model Registry RHOAI? ¿pipeline Cosign?)
 . Mapa GPU: fake → real, booking → quotas productivas
-. Segunda capacitación: suites EvalHub + MLflow, AIPipelines, guardrails avanzados
+. Segunda capacitación: NeMo Guardrails, AIPipelines productivos, firma Cosign, agentes Kagenti
 
 == Qué sigue en el lab hands-on
 
@@ -202,5 +211,6 @@ Ajustad las celdas a vuestra organización. El objetivo del workshop es *discuti
 . Módulos 2–10 — instalar la plataforma y dejar Qwen publicado en MaaS
 . xref:11-00-observabilidad.adoc[Observabilidad MaaS] — después de probar inferencia
 . xref:12-00-evalhub.adoc[EvalHub] — después de observabilidad
+. xref:13-00-finops.adoc[FinOps] → xref:14-00-guardrails.adoc[Guardrails] → registry / ruteo / AutoML / AutoRAG / prompts / MCP / AgentOps / Skills
 
 Tiempo orientativo de este módulo: *20–30 min* de lectura y discusión en sala.

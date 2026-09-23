@@ -1,0 +1,38 @@
+# Higher quota / higher priority. Does not replace qwen-authenticated (módulo 9).
+apiVersion: maas.opendatahub.io/v1alpha1
+kind: MaaSAuthPolicy
+metadata:
+  name: qwen-team-access
+  namespace: models-as-a-service
+  annotations:
+    openshift.io/display-name: "Qwen team access"
+spec:
+  modelRefs:
+    - name: qwen3-06b
+      namespace: llm
+  subjects:
+    groups:
+      - name: system:authenticated
+    users: []
+---
+apiVersion: maas.opendatahub.io/v1alpha1
+kind: MaaSSubscription
+metadata:
+  name: qwen-team
+  namespace: models-as-a-service
+  annotations:
+    openshift.io/display-name: "Qwen team (lab)"
+spec:
+  owner:
+    groups:
+      - name: system:authenticated
+    users: []
+  priority: 50
+  modelRefs:
+    - name: qwen3-06b
+      namespace: llm
+      tokenRateLimits:
+        - limit: 2000
+          window: 30s
+        - limit: 20000
+          window: 5m

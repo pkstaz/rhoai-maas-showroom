@@ -1,0 +1,12 @@
+# Registers MCP servers for Gen AI Studio Playground (MCP tab) and AI asset endpoints.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: gen-ai-aa-mcp-servers
+  namespace: redhat-ods-applications
+data:
+  OpenShift-MCP: |
+    {
+      "url": "http://openshift-mcp.llm.svc.cluster.local:8080/mcp",
+      "description": "OpenShift / Kubernetes MCP server (read-only view) deployed in project llm."
+    }

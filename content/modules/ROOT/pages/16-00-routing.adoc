@@ -1,0 +1,56 @@
+= Multi-modelo y ruteo
+
+Un gateway MaaS (`maas-default-gateway`) puede publicar *varios* `MaaSModelRef`. El cliente elige el `model` id; Kuadrant aplica auth y rate limit por subscription.
+
+== Qué ya tienes
+
+* Un modelo in-cluster: `qwen3-06b` (llm-d CPU)
+* Una o más subscriptions (módulos 9 y 13)
+
+== Segundo modelo (elige una)
+
+=== A. Otro LLMInferenceService (mismo patrón que el 8)
+
+Copia `manifests/llminferenceservice-qwen3-06b.yaml`, cambia `metadata.name` y el `MaaSModelRef`. En GPU usa imagen CUDA + profile `nvidia-gpu`.
+
+=== B. External model (OpenAI-compatible)
+
+Manifiesto: `manifests/routing/external-model.yaml`.
+
+[source,bash]
+----
+# Edita url + api-key (Azure, TMM, otro vLLM)
+oc apply -f manifests/routing/external-model.yaml
+----
+
+NOTE: Si `oc apply` rechaza `ExternalModel`, ejecuta `oc explain externalmodel` y ajusta el manifiesto al CRD de tu cluster (el grupo es `maas.opendatahub.io`).
+
+Flag opcional:
+
+[source,bash]
+----
+oc patch odhdashboardconfig odh-dashboard-config -n redhat-ods-applications --type merge -p '{
+  "spec":{"dashboardConfig":{"externalModels":true}}
+}'
+----
+
+== Verificar ruteo
+
+[source,bash]
+----
+oc get maasmodelref -A
+oc get httproute -n redhat-ai-gateway-infra
+curl -sk "https://${MAAS_URL}/v1/models" -H "Authorization: Bearer ${API_KEY}" | jq
+----
+
+`/v1/models` lista todos los refs autorizados para esa API key. El body `{"model":"<id>"}` selecciona el backend.
+
+== Discusión
+
+| MaaS RHOAI | AI Gateway dedicado |
+|---|---|
+| Un cluster, policies Kuadrant, Usage | Multi-cluster, brokers, fallback entre proveedores |
+
+== Siguiente
+
+xref:17-00-automl.adoc[AutoML] (pipeline server compartido con AutoRAG).

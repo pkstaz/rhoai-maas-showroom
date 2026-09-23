@@ -1,0 +1,48 @@
+= Skills Plugin
+
+Plugin de consola OpenShift que ejecuta *skills* (Markdown) como Jobs, con chat y opcionalmente MLflow.
+
+Repo: https://github.com/eformat/openshift-skills-plugin
+
+== Instalar
+
+[source,bash]
+----
+bash manifests/apply-skills.sh
+----
+
+Equivalente:
+
+[source,bash]
+----
+git clone --depth 1 https://github.com/eformat/openshift-skills-plugin.git /tmp/openshift-skills-plugin
+helm upgrade --install skills-plugin /tmp/openshift-skills-plugin/chart/ \
+  -n skills-plugin --create-namespace
+
+oc patch consoles.operator.openshift.io cluster --type=json \
+  -p '[{"op":"add","path":"/spec/plugins/-","value":"skills-plugin"}]'
+
+oc adm policy add-cluster-role-to-user skills-plugin-admin admin
+----
+
+== Verificar
+
+[source,bash]
+----
+oc get pods -n skills-plugin
+oc get consoleplugin skills-plugin
+----
+
+Hard refresh de la *consola OpenShift* (no solo el dashboard RHOAI). Perspectiva Administrator → *Skills*.
+
+== Demo mínima
+
+. *Skills Settings* → endpoint MaaS (`https://maas.<cluster-domain>/v1` o `/maas-api`) + API key del módulo 10
+. *Skills Manager* → sube un skill Markdown (el repo del plugin trae ejemplos en `demo/`)
+. *Skills Chat* / *Schedule* → lanza el skill (RBAC del Job: least privilege; no uses `cluster-admin` fuera del lab)
+
+MLflow del plugin va *disabled* por defecto. Si lo activas, genera `mlflow.oauth.cookieSecret` como indica el README del chart.
+
+== Relación con el lab
+
+Skills vive en la consola OpenShift, no en Gen AI Studio. Usa el mismo MaaS. No sustituye AgentOps.

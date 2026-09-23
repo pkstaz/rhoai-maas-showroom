@@ -1,0 +1,47 @@
+= Prompt Registry
+
+Los system prompts del Playground se versionan en **MLflow Prompt Registry** (Technology Preview).
+MLflow ya está del módulo 12 (`mlflow` en `redhat-ods-applications`, workspace `llm`).
+
+== Flags
+
+[source,bash]
+----
+oc patch odhdashboardconfig odh-dashboard-config -n redhat-ods-applications --type merge -p '{
+  "spec": {
+    "dashboardConfig": {
+      "promptManagement": true,
+      "globalProjectPrompts": true,
+      "genAiStudio": true
+    },
+    "globalMLflowNamespaces": ["llm"]
+  }
+}'
+
+oc label ns llm opendatahub.io/global-mlflow-workspace=mlflow --overwrite
+----
+
+Hasta 60 s para RBAC `mlflow-view`.
+
+== Verificar
+
+[source,bash]
+----
+oc get odhdashboardconfig odh-dashboard-config -n redhat-ods-applications \
+  -o jsonpath='{.spec.dashboardConfig.promptManagement}{"\n"}{.spec.globalMLflowNamespaces}{"\n"}'
+oc get rolebindings -n llm | grep mlflow-view || true
+----
+
+== Usar
+
+. *Gen AI studio → Playground* → proyecto `llm` → pestaña *Prompt*
+. Instructions, por ejemplo: `You MUST answer in one short sentence. Use /no_think.`
+. Name: `workshop-system` → *Save*
+. *Gen AI studio → Prompts*: lista versionada
+. En otro chat: *Load prompt* → `workshop-system`
+
+Placeholders `{{variable}}` se rellenan en la UI antes de inferir.
+
+== GAP
+
+Un namespace global. Prd: curaduría por equipo, revisión, y no secretos dentro del prompt.

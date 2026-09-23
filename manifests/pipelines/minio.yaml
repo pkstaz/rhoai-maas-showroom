@@ -1,0 +1,110 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: pipeline-minio
+  namespace: llm
+type: Opaque
+stringData:
+  AWS_ACCESS_KEY_ID: minio
+  # workshop-only
+  # gitleaks:allow
+  AWS_SECRET_ACCESS_KEY: minio123 # pragma: allowlist secret
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pipeline-minio-data
+  namespace: llm
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pipeline-minio
+  namespace: llm
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: pipeline-minio
+  template:
+    metadata:
+      labels:
+        app: pipeline-minio
+    spec:
+      containers:
+        - name: minio
+          image: quay.io/minio/minio:latest
+          command: ["minio", "server", "/data", "--console-address", ":9001"]
+          env:
+            - name: MINIO_ROOT_USER
+              value: minio
+            - name: MINIO_ROOT_PASSWORD
+              value: minio123
+          ports:
+            - containerPort: 9000
+              name: api
+            - containerPort: 9001
+              name: console
+          volumeMounts:
+            - name: data
+              mountPath: /data
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: pipeline-minio-data
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: pipeline-minio
+  namespace: llm
+spec:
+  selector:
+    app: pipeline-minio
+  ports:
+    - name: api
+      port: 9000
+      targetPort: 9000
+    - name: console
+      port: 9001
+      targetPort: 9001
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: pipeline-minio-buckets
+  namespace: llm
+spec:
+  ttlSecondsAfterFinished: 120
+  template:
+    spec:
+      restartPolicy: OnFailure
+      containers:
+        - name: mc
+          image: quay.io/minio/mc:latest
+          env:
+            - name: MC_HOST_local
+              value: http://minio:minio123@pipeline-minio.llm.svc.cluster.local:9000
+          command:
+            - /bin/sh
+            - -c
+            - |
+              mc mb --ignore-existing local/mlpipeline
+              mc mb --ignore-existing local/automl
+              mc mb --ignore-existing local/autorag
+              mc cp /data/iris.csv local/automl/iris.csv
+              mc cp /data/policy.md local/autorag/docs/policy.md
+              mc cp /data/testdata.json local/autorag/testdata.json
+          volumeMounts:
+            - name: seed
+              mountPath: /data
+      volumes:
+        - name: seed
+          configMap:
+            name: pipeline-minio-seed

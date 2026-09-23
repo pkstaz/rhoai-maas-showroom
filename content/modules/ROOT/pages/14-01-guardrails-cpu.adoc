@@ -1,0 +1,58 @@
+= Guardrails CPU (Presidio + regex)
+
+Sin GPU y sin LLM. Los detectores corren dentro del pod `NemoGuardrails`.
+
+CRD: `NemoGuardrails/workshop` en `llm`.
+Manifiesto: `manifests/guardrails/nemo-config-cpu.yaml`.
+
+== Instalar
+
+[source,bash]
+----
+bash manifests/apply-guardrails.sh
+# o: oc apply -k manifests/guardrails
+----
+
+== Verificar
+
+[source,bash]
+----
+oc get nemoguardrails workshop -n llm
+oc get pods,route -n llm | grep -iE 'nemo|workshop'
+----
+
+`PHASE=Ready`. La Route se llama `workshop` (mismo nombre que el CR).
+
+== Probar `/v1/guardrail/checks`
+
+[source,bash]
+----
+GUARDRAILS_ROUTE=https://$(oc get route workshop -n llm -o jsonpath='{.status.ingress[0].host}')
+TOKEN=$(oc whoami -t)
+
+# Debe pasar
+curl -sk -X POST "${GUARDRAILS_ROUTE}/v1/guardrail/checks" \
+  -H "Authorization: Bearer ${TOKEN}" \
+  -H "Content-Type: application/json" \
+  -d '{"model":"test","messages":[{"role":"user","content":"What is the capital of France?"}]}' | jq
+
+# PII (email) → status: blocked
+curl -sk -X POST "${GUARDRAILS_ROUTE}/v1/guardrail/checks" \
+  -H "Authorization: Bearer ${TOKEN}" \
+  -H "Content-Type: application/json" \
+  -d '{"model":"test","messages":[{"role":"user","content":"Contact me at ada@example.com"}]}' | jq
+
+# Regex (secret/password)
+curl -sk -X POST "${GUARDRAILS_ROUTE}/v1/guardrail/checks" \
+  -H "Authorization: Bearer ${TOKEN}" \
+  -H "Content-Type: application/json" \
+  -d '{"model":"test","messages":[{"role":"user","content":"the api_key is abc"}]}' | jq
+----
+
+`status: success` = pasa. `status: blocked` = rail de Presidio o regex.
+
+`OPENAI_API_KEY` en el CR vale `not-used`: el quickstart lo exige aunque no haya modelo.
+
+== Siguiente
+
+xref:14-02-guardrails-gpu.adoc[Con LLM]: el mismo CR delante de MaaS Qwen (`/v1/chat/completions`).

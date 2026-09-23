@@ -1,0 +1,115 @@
+# A2A workshop agent. Image is filled by apply-agent.sh (internal registry or quay.io).
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: workshop-faq
+  namespace: llm
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: workshop-faq
+  namespace: llm
+  labels:
+    app: workshop-faq
+    kagenti.io/type: agent
+    protocol.kagenti.io/a2a: "true"
+    opendatahub.io/dashboard: "true"
+    opendatahub.io/genai-asset: "true"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: workshop-faq
+  template:
+    metadata:
+      labels:
+        app: workshop-faq
+        kagenti.io/type: agent
+        protocol.kagenti.io/a2a: "true"
+        opendatahub.io/dashboard: "true"
+        opendatahub.io/genai-asset: "true"
+    spec:
+      serviceAccountName: workshop-faq
+      containers:
+        - name: agent
+          image: image-registry.openshift-image-registry.svc:5000/llm/workshop-faq:lab
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+              name: http
+          env:
+            - name: PORT
+              value: "8080"
+            - name: HOST
+              value: "0.0.0.0"
+            - name: AGENT_ENDPOINT
+              value: http://workshop-faq.llm.svc.cluster.local:8080/
+            - name: MAAS_URL
+              valueFrom:
+                secretKeyRef:
+                  name: workshop-faq-maas
+                  key: MAAS_URL
+                  optional: true
+            - name: MAAS_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: workshop-faq-maas
+                  key: MAAS_API_KEY
+                  optional: true
+            - name: MODEL_ID
+              valueFrom:
+                secretKeyRef:
+                  name: workshop-faq-maas
+                  key: MODEL_ID
+                  optional: true
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 3
+            periodSeconds: 10
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 256Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: workshop-faq
+  namespace: llm
+  labels:
+    app: workshop-faq
+    kagenti.io/type: agent
+    protocol.kagenti.io/a2a: "true"
+    opendatahub.io/dashboard: "true"
+    opendatahub.io/genai-asset: "true"
+spec:
+  selector:
+    app: workshop-faq
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: workshop-faq
+  namespace: llm
+  labels:
+    opendatahub.io/dashboard: "true"
+    opendatahub.io/genai-asset: "true"
+spec:
+  to:
+    kind: Service
+    name: workshop-faq
+  port:
+    targetPort: http
+  tls:
+    termination: edge
+    insecureEdgeTerminationPolicy: Redirect

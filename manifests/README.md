@@ -30,3 +30,18 @@ Run `oc apply` / scripts from the **repo root**.
 | `apply-maas-observability.sh` | Observability stack installer |
 | `evalhub/` | EvalHub + MLflow (module 12) |
 | `apply-evalhub.sh` | TrustyAI + MLflow + EvalHub |
+| `finops/` | Subscriptions free/team (module 13) |
+| `guardrails/` | `NemoGuardrails` CPU (+ MaaS template) (module 14) |
+| `apply-guardrails.sh` | TrustyAI + NemoGuardrails (`MODE=maas` opcional) |
+| `registry/` | Postgres + ModelRegistry workshop (module 15) |
+| `apply-registry.sh` | Model Registry installer |
+| `routing/external-model.yaml` | External OpenAI-compatible model (module 16) |
+| `pipelines/` | MinIO + DSPA AutoML/AutoRAG (modules 17–18) |
+| `apply-pipelines.sh` | Pipeline server |
+| `autorag/` | pgvector + vector-stores ConfigMap (module 18) |
+| `apply-autorag-store.sh` | Vector store |
+| `mcp/` | OpenShift MCPServer + Playground CM (module 20) |
+| `apply-mcp.sh` | MCP Lifecycle Operator + server |
+| `agents/` | Workshop A2A agent source + deploy (module 21) |
+| `apply-agent.sh` | Build (internal registry or QUAY_IMAGE) + deploy |
+| `apply-skills.sh` | Console plugin https://github.com/eformat/openshift-skills-plugin |

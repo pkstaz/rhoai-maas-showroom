@@ -1,0 +1,46 @@
+= AutoML
+
+AutoML (Technology Preview) elige un modelo tabular/series con AutoGluon + AI Pipelines.
+El run serio pide GPU o CPU grande; el lab deja el *pipeline server* y un CSV iris de 15 filas para un smoke.
+
+== Prerrequisitos
+
+* `aipipelines: Managed` (ya en el DSC)
+* OpenShift Pipelines (módulo 2)
+* Proyecto `llm`
+
+== Instalar (MinIO + DSPA)
+
+`managedPipelines: {}` registra las definiciones AutoML y AutoRAG en el pipeline server.
+
+[source,bash]
+----
+bash manifests/apply-pipelines.sh
+# o: oc apply -k manifests/pipelines
+----
+
+== Verificar
+
+[source,bash]
+----
+oc get dspa dspa -n llm
+oc get pods -n llm | grep -iE 'pipeline|minio|mariadb'
+----
+
+Dashboard: *Develop & train → AutoML* (proyecto `llm`).
+
+== Smoke
+
+. AutoML → *Create optimization run*
+. Connection S3: endpoint `http://pipeline-minio.llm.svc.cluster.local:9000`, bucket `automl`, key `iris.csv`, user/pass `minio` / `minio123`
+. Task: *multiclass*, label `species`
+. Preset más corto / `time_limit` mínimo si la UI lo ofrece
+
+En CPU el job puede tardar o OOM. Si falla, basta con que el run *aparezca* y el pod del pipeline arranque: el GAP es “optimization completa en GPU / nodo de batch”.
+
+== GAP
+
+| Lab | Prd |
+|---|---|
+| CSV 15 filas en MinIO lab | Datos reales, 32 MiB–100 MB, registro en Model Registry |
+| Un proyecto, MariaDB embebida | DSPA por entorno, S3 gestionado |
