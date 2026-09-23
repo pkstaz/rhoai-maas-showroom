@@ -1,4 +1,4 @@
-= Instalar OpenShift AI {rhoai-version}
+= Instalar OpenShift AI
 
 == Qué es OpenShift AI
 
@@ -15,5 +15,6 @@ En este lab instalas la edición *Self-Managed* {rhoai-version} (canal `stable-3
 
 . xref:03-01-operator.adoc[Operator]
 . xref:03-02-dsc.adoc[DataScienceCluster]
+. xref:03-03-odh-dashboard.adoc[ODHDashboardConfig]
 
 El monitoreo de user workloads ya quedó en xref:02-01-monitoring.adoc[Pre-requisitos → Monitoreo].
