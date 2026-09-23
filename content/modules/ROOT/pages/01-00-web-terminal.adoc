@@ -1,6 +1,8 @@
-= Instalar Web Terminal
+= Web Terminal
 
 Abre una terminal dentro de la consola. El resto del lab se puede hacer desde ahí.
+
+== Instalar Web Terminal
 
 . Consola OpenShift → *Ecosystem* → *Software Catalog*
 . Busca `Web Terminal`

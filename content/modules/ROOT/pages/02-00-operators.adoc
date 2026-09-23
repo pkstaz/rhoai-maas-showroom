@@ -2,7 +2,7 @@
 
 Instala estas dependencias *antes* de OpenShift AI. Canal y namespace: los que propone el catálogo (deja los valores por defecto salvo que la tabla indique otra cosa).
 
-== Orden (UI → Software Catalog)
+== Orden de instalación
 
 Instala uno, espera *Succeeded*, sigue al siguiente:
 
