@@ -1,5 +1,7 @@
 = Desplegar modelo — externo (TMM)
 
+CAUTION: *WIP* (Work in Progress). Este módulo aún NO se valida en lab; los pasos pueden cambiar.
+
 Registra un LLM *fuera* de este cluster (TMM u otro OpenAI-compatible) como `ExternalModel` + `MaaSModelRef`.
 No hace falta GPU aquí: la inferencia corre en el cluster remoto.
 

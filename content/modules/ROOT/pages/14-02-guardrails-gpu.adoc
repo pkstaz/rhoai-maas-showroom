@@ -1,6 +1,6 @@
 = Guardrails con LLM (MaaS / GPU)
 
-CAUTION: *WIP* (Work in Progress). Este módulo aún se valida en lab; los pasos pueden cambiar.
+CAUTION: *WIP* (Work in Progress). Este módulo aún NO se valida en lab; los pasos pueden cambiar.
 
 El CR sigue siendo `NemoGuardrails`. Aquí NeMo *habla con un modelo* OpenAI-compatible (`engine: openai`) y aplica rails de input *y* output.
 

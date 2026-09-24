@@ -1,6 +1,6 @@
 = Guardrails CPU (Presidio + regex)
 
-CAUTION: *WIP* (Work in Progress). Este módulo aún se valida en lab; los pasos pueden cambiar.
+CAUTION: *WIP* (Work in Progress). Este módulo aún NO se valida en lab; los pasos pueden cambiar.
 
 Sin GPU y sin LLM. Los detectores corren dentro del pod `NemoGuardrails`.
 

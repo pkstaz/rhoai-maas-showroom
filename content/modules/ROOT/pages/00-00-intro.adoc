@@ -2,7 +2,7 @@
 
 Este workshop instala *OpenShift AI {rhoai-version}* en un cluster vacío y deja un modelo *{qwen-model}* publicado en *Models as a Service* (MaaS), servido con *llm-d* en CPU. Después del vertical slice (módulos 1–11) habilita FinOps, guardrails, registry, AutoML/AutoRAG, Prompt Registry, MCP, AgentOps y el plugin de Skills.
 
-CAUTION: Los módulos *12–22* están en *WIP* (Work in Progress): se validan en lab y pueden cambiar.
+CAUTION: Los módulos *8.2 GPU*, *8.3 modelo externo* y *12–22* están en *WIP* (Work in Progress): aún no se validan en lab y pueden cambiar.
 
 El fake GPU no ejecuta CUDA. Sirve para que el cluster anuncie `nvidia.com/gpu` (perfiles, GPU Booking). La inferencia de Qwen corre en CPU. Guardrails, AutoRAG y AgentOps tienen *ruta CPU* y *ruta GPU* cuando el cluster las tiene.
 

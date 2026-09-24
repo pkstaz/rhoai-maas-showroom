@@ -1,6 +1,6 @@
 = Skills Plugin
 
-CAUTION: *WIP* (Work in Progress). Este módulo aún se valida en lab; los pasos pueden cambiar.
+CAUTION: *WIP* (Work in Progress). Este módulo aún NO se valida en lab; los pasos pueden cambiar.
 
 Plugin de consola OpenShift que ejecuta *skills* (Markdown) como Jobs, con chat y opcionalmente MLflow.
 

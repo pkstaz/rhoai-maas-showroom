@@ -62,18 +62,20 @@ curl -sk "${EVALHUB_URL}/api/v1/evaluations/providers/garak" \
     (.benchmarks // [])[]? | "  \(.id)\t\(.name // "")"
   ' 2>/dev/null || echo "  (list after the pod restarts — hard-refresh Evaluations)"
 
-# MaaS / TMM: prefer instructor external model (module 8.3)
+# Prefer instructor external model secret (module 8.3), then Qwen lab key.
 API_KEY_SECRET="${API_KEY_SECRET:-}"
 if [[ -z "${API_KEY_SECRET}" ]]; then
-  if oc get secret tmm-api-key -n "${DSP_NS}" >/dev/null 2>&1; then
+  if oc get secret glm-53-flash-api-key -n "${DSP_NS}" >/dev/null 2>&1; then
+    API_KEY_SECRET="glm-53-flash-api-key"
+  elif oc get secret tmm-api-key -n "${DSP_NS}" >/dev/null 2>&1; then
     API_KEY_SECRET="tmm-api-key"
   else
     API_KEY_SECRET="maas-eval-api-key"
   fi
 fi
 if [[ -z "${MODEL_ID:-}" ]]; then
-  if [[ "${API_KEY_SECRET}" == "tmm-api-key" ]]; then
-    MODEL_ID="${TMM_MODEL_NAME:-}"
+  if [[ "${API_KEY_SECRET}" == "glm-53-flash-api-key" || "${API_KEY_SECRET}" == "tmm-api-key" ]]; then
+    MODEL_ID="${MODEL_NAME:-${TMM_MODEL_NAME:-glm-53-flash}}"
     ENDPOINT="${ENDPOINT:-${TMM_ENDPOINT:-}}"
   elif oc get secret "${API_KEY_SECRET}" -n "${DSP_NS}" >/dev/null 2>&1; then
     KEY=$(oc get secret "${API_KEY_SECRET}" -n "${DSP_NS}" -o jsonpath='{.data.OPENAI_API_KEY}' | base64 -d)

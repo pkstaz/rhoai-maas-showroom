@@ -1,6 +1,6 @@
 = EvalHub (evaluación del modelo)
 
-CAUTION: *WIP* (Work in Progress). Este módulo aún se valida en lab; los pasos pueden cambiar.
+CAUTION: *WIP* (Work in Progress). Este módulo aún NO se valida en lab; los pasos pueden cambiar.
 
 Prueba de calidad tras xref:11-00-observabilidad.adoc[observabilidad MaaS]. Preferido: modelo TMM del xref:08-03-deploy-external.adoc[módulo 8.3]. Fallback: Qwen CPU (módulo 8.1) + subscription del módulo 9.
 

@@ -12,14 +12,26 @@ cd "$ROOT"
 
 DSP_NS="${DSP_NS:-llm}"
 MODE="${MODE:-apply}"
-CR_NAME="${CR_NAME:-tmm-external}"
-SECRET_NAME="${SECRET_NAME:-tmm-api-key}"
 PROVIDER="${PROVIDER:-openai}"
 
 MODEL_NAME="${MODEL_NAME:-${TMM_MODEL_NAME:-}}"
 ENDPOINT="${ENDPOINT:-${TMM_ENDPOINT:-}}"
 API_KEY="${API_KEY:-${TMM_API_KEY:-}}"
 TOKENIZER="${TOKENIZER:-${TMM_TOKENIZER:-}}"
+
+# CR / secret / subscription follow the model id (glm-53-flash), not a generic tmm-* name.
+k8s_name() {
+  echo "$1" | tr '[:upper:]' '[:lower:]' | sed -E 's/[^a-z0-9.-]+/-/g; s/^-+//; s/-+$//; s/-+/-/g'
+}
+if [[ -n "${MODEL_NAME}" ]]; then
+  CR_NAME="${CR_NAME:-$(k8s_name "${MODEL_NAME}")}"
+  SECRET_NAME="${SECRET_NAME:-${CR_NAME}-api-key}"
+  SUB_NAME="${SUB_NAME:-${CR_NAME}-authenticated}"
+else
+  CR_NAME="${CR_NAME:-}"
+  SECRET_NAME="${SECRET_NAME:-}"
+  SUB_NAME="${SUB_NAME:-}"
+fi
 
 if [[ -z "${API_KEY}" ]]; then
   echo "Missing API_KEY (or TMM_API_KEY). The instructor gives a new key each lab."
@@ -66,6 +78,11 @@ metadata:
     evalhub.trustyai.opendatahub.io/tenant: "true"
 EOF
 
+if [[ -z "${SECRET_NAME}" ]]; then
+  echo "Need MODEL_NAME or SECRET_NAME (e.g. glm-53-flash-api-key)"
+  exit 1
+fi
+
 echo "=== Secret ${SECRET_NAME} (llm + evalhub if present) ==="
 for ns in "${DSP_NS}" evalhub; do
   oc get ns "${ns}" >/dev/null 2>&1 || continue
@@ -78,6 +95,10 @@ for ns in "${DSP_NS}" evalhub; do
 done
 
 if [[ "${MODE}" == "key" ]]; then
+  if [[ -z "${SECRET_NAME}" ]]; then
+    echo "MODE=key needs SECRET_NAME or MODEL_NAME (e.g. glm-53-flash-api-key)"
+    exit 1
+  fi
   echo "Updated API key in Secret ${SECRET_NAME}. CR unchanged."
   exit 0
 fi
@@ -117,10 +138,10 @@ spec:
 apiVersion: maas.opendatahub.io/v1alpha1
 kind: MaaSAuthPolicy
 metadata:
-  name: tmm-authenticated-access
+  name: ${SUB_NAME}-access
   namespace: models-as-a-service
   annotations:
-    openshift.io/display-name: "TMM authenticated access"
+    openshift.io/display-name: "${MODEL_NAME} authenticated access"
 spec:
   modelRefs:
     - name: ${CR_NAME}
@@ -133,10 +154,10 @@ spec:
 apiVersion: maas.opendatahub.io/v1alpha1
 kind: MaaSSubscription
 metadata:
-  name: tmm-authenticated
+  name: ${SUB_NAME}
   namespace: models-as-a-service
   annotations:
-    openshift.io/display-name: "TMM authenticated"
+    openshift.io/display-name: "${MODEL_NAME} authenticated"
 spec:
   owner:
     groups:

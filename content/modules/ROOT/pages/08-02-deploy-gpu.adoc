@@ -1,5 +1,7 @@
 = Desplegar modelo — GPU
 
+CAUTION: *WIP* (Work in Progress). Este módulo aún NO se valida en lab; los pasos pueden cambiar.
+
 vLLM *CUDA* en un nodo con GPU NVIDIA real. Fake GPU (módulo 5.2) *no* ejecuta este manifiesto.
 
 Requisitos: xref:05-01-nvidia-gpu.adoc[NVIDIA GPU Operator] + profile `nvidia-gpu`, MaaS (módulo 4), proyecto `llm` (lo crea xref:08-01-deploy-cpu.adoc[CPU] si aún no existe).

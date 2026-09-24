@@ -1,6 +1,6 @@
 = Garak y red team (Chatterbox)
 
-CAUTION: *WIP* (Work in Progress). Este módulo aún se valida en lab; los pasos pueden cambiar.
+CAUTION: *WIP* (Work in Progress). Este módulo aún NO se valida en lab; los pasos pueden cambiar.
 
 Tras xref:12-00-evalhub.adoc[EvalHub] (calidad HHH). Aquí se *escanea* el modelo: fallos de seguridad, no accuracy.
 

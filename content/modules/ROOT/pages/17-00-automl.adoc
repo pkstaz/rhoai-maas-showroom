@@ -1,6 +1,6 @@
 = AutoML
 
-CAUTION: *WIP* (Work in Progress). Este módulo aún se valida en lab; los pasos pueden cambiar.
+CAUTION: *WIP* (Work in Progress). Este módulo aún NO se valida en lab; los pasos pueden cambiar.
 
 AutoML (Technology Preview) elige un modelo tabular/series con AutoGluon + AI Pipelines.
 El run serio pide GPU o CPU grande; el lab deja el *pipeline server* y un CSV iris de 15 filas para un smoke.
