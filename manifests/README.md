@@ -26,7 +26,7 @@ Run `oc apply` / scripts from the **repo root**.
 | `fix-maas-authorino-ca.sh` | Authorino + service CA |
 | `fix-maas-authorino-grpc-tls.sh` | Authorino gRPC TLS (HTTP 500 en `/maas-api/v1/api-keys`) |
 | `apply-gpu-booking-hybrid.sh` | GPU Booking with Fake + real NVIDIA (discovery off) |
-| `fix-maas-gpu-utilization.sh` | DCGM → `accelerator_gpu_utilization` for Perses |
+| `fix-maas-gpu-utilization.sh` | DCGM → `accelerator_gpu_utilization` on cluster Prometheus + RHOAI MonitoringStack |
 | `fix-maas-usage-user-label.sh` | Usage UI user label |
 | `fix-playground-maas.sh` | Playground API key + max_tokens |
 | `observability/` | Tempo, OTEL, COO, Loki, MinIO (module 11) |

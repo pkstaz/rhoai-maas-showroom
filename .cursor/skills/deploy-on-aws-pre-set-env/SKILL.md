@@ -322,7 +322,7 @@ bash manifests/fix-maas-gpu-utilization.sh
 
 If a wait fails, re-run (idempotent). The usage-label patch is required for the Usage UI (`user!=""`). If `maas-controller` reconciles TelemetryPolicy, re-run the label script.
 
-The GPU utilization Perses panel queries `accelerator_gpu_utilization` (not DCGM). `fix-maas-gpu-utilization.sh` scrapes real-GPU `DCGM_FI_DEV_GPU_UTIL` into the RHOAI MonitoringStack and records that metric joined with vLLM `model_name`. Qwen CPU stays empty; filter the dashboard to **gpt-oss-20b** (or All). Generate chat traffic or the panel sits at 0.
+The GPU utilization Perses panels query `accelerator_gpu_utilization`. Cluster/model Observe dashboards use **cluster Prometheus** (DCGM is already scraped; this GPU Operator has no translation rule). LLM-d utilization uses the RHOAI MonitoringStack. `fix-maas-gpu-utilization.sh` creates both. Qwen CPU stays empty; filter to **gpt-oss-20b** (or All). Generate chat traffic or the panel sits at 0%.
 
 **Stop here.** Do not install EvalHub, FinOps, Guardrails, Registry, Pipelines DSPA, AutoRAG, MCP, or Agents unless the user asks.
 

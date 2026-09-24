@@ -14,10 +14,12 @@ spec:
     - name: rhoai-gpu-utilization
       interval: 15s
       rules:
+        # Perses unit is percent (0-100), same as raw DCGM_FI_DEV_GPU_UTIL.
+        # Join vLLM so dashboard-3 can filter model_name / k8s_pod_name.
         - record: accelerator_gpu_utilization
           expr: |
             (
-                DCGM_FI_DEV_GPU_UTIL / 100
+                DCGM_FI_DEV_GPU_UTIL
               * on (exported_pod) group_left (model_name, k8s_pod_name, exported_namespace)
                 group by (exported_pod, model_name, k8s_pod_name, exported_namespace) (
                   kserve_vllm:num_requests_running
@@ -25,7 +27,7 @@ spec:
             )
             or
             (
-                label_replace(DCGM_FI_DEV_GPU_UTIL / 100, "exported_pod", "$1", "pod", "(.*)")
+                label_replace(DCGM_FI_DEV_GPU_UTIL, "exported_pod", "$1", "pod", "(.*)")
               * on (exported_pod) group_left (model_name, k8s_pod_name, exported_namespace)
                 group by (exported_pod, model_name, k8s_pod_name, exported_namespace) (
                   kserve_vllm:num_requests_running

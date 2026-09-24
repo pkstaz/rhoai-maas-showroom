@@ -185,12 +185,15 @@ If the dashboard regenerates the OGXServer, `VLLM_API_TOKEN=fake` / `VLLM_MAX_TO
 
 ## GPU utilization dashboard (real L4)
 
-RHOAI Observe → *GPU utilization* queries `accelerator_gpu_utilization{exported_namespace,model_name}`. That series is **not** produced by the OTEL collector (it renames DCGM util to `nvidia_gpu_utilization_ratio` and drops it). DCGM **is** on the L4 (`DCGM_FI_DEV_GPU_UTIL`).
+RHOAI Observe cluster/model GPU panels query **cluster Prometheus** (`cluster-prometheus-datasource`) for `accelerator_gpu_utilization`. That name is the NVIDIA translation of `DCGM_FI_DEV_GPU_UTIL`; this GPU Operator build only ships alerts, so the series is missing until:
 
 ```bash
 bash manifests/fix-maas-gpu-utilization.sh
 ```
 
-Creates RHOBS `ServiceMonitor` + `PrometheusRule` (`monitoring.rhobs/v1`, not `monitoring.coreos.com`) in `redhat-ods-monitoring`. The platform Prometheus Operator does not scrape those CRs.
+The script applies:
 
-Qwen is CPU → no DCGM join → No data for that model is expected. Filter to gpt-oss or All. Idle L4 is **0%**, not No data; generate chat completions to see a spike. The collector targets `nvidia-gpu-operator` only.
+- `monitoring.coreos.com` `PrometheusRule` `nvidia-dcgm-accelerator` in `nvidia-gpu-operator` (namespace already has `openshift.io/cluster-monitoring=true`) so cluster Thanos serves `accelerator_gpu_utilization`.
+- RHOBS `ServiceMonitor` + `PrometheusRule` in `redhat-ods-monitoring` for the LLM-d utilization dashboard (`data-science-prometheus-datasource`), joined with vLLM `model_name`.
+
+Do not divide DCGM by 100; Perses unit is percent 0–100. Qwen is CPU → no DCGM join → No data for that model is expected. Filter to gpt-oss or All. Idle L4 is **0%**, not No data; generate chat completions to see a spike.

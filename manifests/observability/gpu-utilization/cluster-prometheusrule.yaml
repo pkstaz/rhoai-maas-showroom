@@ -1,0 +1,34 @@
+# Cluster Prometheus (openshift-monitoring) already scrapes DCGM via
+# nvidia-gpu-operator (openshift.io/cluster-monitoring=true). RHOAI Observe
+# dashboards 0/1 query accelerator_gpu_utilization on cluster-prometheus-datasource.
+# This NVIDIA GPU Operator version only ships alerts, not the DCGM→accelerator
+# translation rule (upstream 1000_prometheus_rule_openshift.yaml).
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: nvidia-dcgm-accelerator
+  namespace: nvidia-gpu-operator
+  labels:
+    app: nvidia-dcgm-exporter
+    app.kubernetes.io/name: nvidia-dcgm-accelerator
+spec:
+  groups:
+    - name: dcgm.accelerator.metrics
+      interval: 15s
+      rules:
+        - record: accelerator_gpu_utilization
+          expr: DCGM_FI_DEV_GPU_UTIL
+          labels:
+            vendor: nvidia
+        - record: accelerator_memory_used_bytes
+          expr: DCGM_FI_DEV_FB_USED
+          labels:
+            vendor: nvidia
+        - record: accelerator_power_usage_watts
+          expr: DCGM_FI_DEV_POWER_USAGE
+          labels:
+            vendor: nvidia
+        - record: accelerator_temperature_celsius
+          expr: DCGM_FI_DEV_GPU_TEMP
+          labels:
+            vendor: nvidia
