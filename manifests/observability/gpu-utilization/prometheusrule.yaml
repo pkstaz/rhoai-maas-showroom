@@ -1,0 +1,33 @@
+# Join DCGM GPU util (real NVIDIA node) with vLLM series so the Perses panel
+# dashboard-3-llm-d-utilization-admin (accelerator_gpu_utilization{exported_namespace,model_name})
+# has matching labels. Qwen CPU will still be empty; gpt-oss on L4 will plot.
+apiVersion: monitoring.rhobs/v1
+kind: PrometheusRule
+metadata:
+  name: accelerator-gpu-utilization
+  namespace: redhat-ods-monitoring
+  labels:
+    app.kubernetes.io/name: accelerator-gpu-utilization
+    platform.opendatahub.io/part-of: monitoring
+spec:
+  groups:
+    - name: rhoai-gpu-utilization
+      interval: 15s
+      rules:
+        - record: accelerator_gpu_utilization
+          expr: |
+            (
+                DCGM_FI_DEV_GPU_UTIL / 100
+              * on (exported_pod) group_left (model_name, k8s_pod_name, exported_namespace)
+                group by (exported_pod, model_name, k8s_pod_name, exported_namespace) (
+                  kserve_vllm:num_requests_running
+                )
+            )
+            or
+            (
+                label_replace(DCGM_FI_DEV_GPU_UTIL / 100, "exported_pod", "$1", "pod", "(.*)")
+              * on (exported_pod) group_left (model_name, k8s_pod_name, exported_namespace)
+                group by (exported_pod, model_name, k8s_pod_name, exported_namespace) (
+                  kserve_vllm:num_requests_running
+                )
+            )

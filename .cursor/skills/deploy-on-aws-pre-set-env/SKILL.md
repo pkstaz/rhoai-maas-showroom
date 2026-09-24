@@ -33,7 +33,7 @@ Task Progress:
 - [ ] 17. Observability
 ```
 
-Gotchas (Authorino CSV copies, Kueue AllNamespaces, Fake GPU vs NVIDIA, Authorino gRPC TLS, GPU Booking `--no-hooks`, playground OGXServer): [reference.md](reference.md).
+Gotchas (Authorino CSV copies, Kueue AllNamespaces, Fake GPU vs NVIDIA, Authorino gRPC TLS, GPU Booking hybrid config, GPU utilization recording rule, playground OGXServer): [reference.md](reference.md).
 
 ## Cluster facts (do not contradict)
 
@@ -231,7 +231,13 @@ NFD + NVIDIA GPU Operator are **already OK**. Do **not** reinstall them. Never l
 
 ## 11. GPU Booking Plugin
 
-Requires Kueue. Clone https://github.com/rhai-code/gpu-booking-app-plugin and Helm-install with **`--no-hooks`**. The post-install Job uses `registry.redhat.io/openshift4/ose-cli:latest` and ImagePullBackOffs. Enable the ConsolePlugin yourself (see [reference.md](reference.md)). Verify pods and `consoleplugin/gpu-booking-plugin`.
+Requires Kueue. Do **not** use upstream auto-discovery: it only lists `nvidia.com/gpu.present=true`, and Fake GPU forces `present=false` (status-updater reverts any patch).
+
+```bash
+bash manifests/apply-gpu-booking-hybrid.sh
+```
+
+That clones the chart, builds a static `gpu-config.json` from **real NVIDIA + Fake GPU** nodes, Helm-installs with `--no-hooks` and `gpuDiscovery.enabled=false`, and enables the ConsolePlugin. Verify pods and cards for full GPU (L4 + Fake) plus Fake MIG slices. Do not apply a GB300 (or other) GPU Config profile if you want the lab H200 topology.
 
 ## 12. Delete preinstalled Llama
 
@@ -311,9 +317,12 @@ bash manifests/fix-playground-maas.sh
 ```bash
 bash manifests/apply-maas-observability.sh
 bash manifests/fix-maas-usage-user-label.sh
+bash manifests/fix-maas-gpu-utilization.sh
 ```
 
 If a wait fails, re-run (idempotent). The usage-label patch is required for the Usage UI (`user!=""`). If `maas-controller` reconciles TelemetryPolicy, re-run the label script.
+
+The GPU utilization Perses panel queries `accelerator_gpu_utilization` (not DCGM). `fix-maas-gpu-utilization.sh` scrapes real-GPU `DCGM_FI_DEV_GPU_UTIL` into the RHOAI MonitoringStack and records that metric joined with vLLM `model_name`. Qwen CPU stays empty; filter the dashboard to **gpt-oss-20b** (or All). Generate chat traffic or the panel sits at 0.
 
 **Stop here.** Do not install EvalHub, FinOps, Guardrails, Registry, Pipelines DSPA, AutoRAG, MCP, or Agents unless the user asks.
 

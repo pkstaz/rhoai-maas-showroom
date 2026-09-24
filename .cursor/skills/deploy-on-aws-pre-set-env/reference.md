@@ -100,28 +100,30 @@ If Fake GPU pods CrashLoop on SCC, grant the Fake GPU SA privileged SCC in `gpu-
 
 Verify allocatable MIG/H200 **only** on the labeled CPU node, and that the NVIDIA-L4 (or real) node still has its original GPU Operator device plugin.
 
-## GPU Booking `--no-hooks`
+## GPU Booking (Fake GPU + real NVIDIA)
 
-```bash
-git clone https://github.com/rhai-code/gpu-booking-app-plugin.git /tmp/gpu-booking-app-plugin
-helm upgrade -i gpu-booking-plugin /tmp/gpu-booking-app-plugin/chart/ \
-  -n gpu-booking-app-plugin --create-namespace --no-hooks
+Upstream discovery is:
+
+```
+GET /api/v1/nodes?labelSelector=nvidia.com/gpu.present=true
 ```
 
-The chart Job `enable-plugin` pulls `registry.redhat.io/openshift4/ose-cli:latest` → ImagePullBackOff. Helm then hangs. If a previous `helm upgrade` is stuck, uninstall `--no-hooks` and reinstall with `--no-hooks`.
+Fake GPU Operator sets `nvidia.com/gpu.present=false` and the status-updater **reverts** `present=true` within seconds (so NVIDIA GPU Operator does not install drivers on the CPU worker). Discover therefore sees only the compact L4.
 
-Enable the plugin yourself:
+This lab installs Booking with **discovery off** and a static config that unions:
+
+- nodes with `nvidia.com/gpu.present=true` (real L4)
+- nodes with `run.ai/fake.gpu=true` or `run.ai/simulated-gpu-node-pool` (Fake H200 + MIG)
+
+The UI keys cards by `type`. Real and Fake both advertise `nvidia.com/gpu`, so full GPUs are **one** card (count = sum). MIG types from Fake are extra cards.
 
 ```bash
-oc get consoles.operator.openshift.io cluster -o jsonpath='{.spec.plugins}{"\n"}'
-# add gpu-booking-plugin if missing:
-oc patch consoles.operator.openshift.io cluster --type=json \
-  -p '[{"op":"add","path":"/spec/plugins/-","value":"gpu-booking-plugin"}]'
-oc get pods -n gpu-booking-app-plugin
-oc get consoleplugin gpu-booking-plugin
+bash manifests/apply-gpu-booking-hybrid.sh
 ```
 
-If `plugins` already lists `gpu-booking-plugin` / `gpu-config-plugin`, skip the patch.
+`--no-hooks` remains mandatory (`ose-cli:latest` ImagePullBackOff). If a previous Helm release hung, `helm uninstall gpu-booking-plugin -n gpu-booking-app-plugin --no-hooks` then re-run the script.
+
+Do not apply GPU Config profile **gb300** (or similar) if you want the lab H200 topology from `manifests/fake-gpu-values.yaml`. The booking script always reads **live** allocatable, so a GB300 profile would show 8 Fake GPUs.
 
 ## Authorino gRPC TLS (HTTP 500 on `/maas-api/v1/api-keys`)
 
@@ -215,3 +217,15 @@ If key creation returns HTTP 500, re-run `bash manifests/fix-maas-authorino-grpc
 If `oc get ogxserver -A` is empty: the secret `playground-maas-api-key` may already exist; stop, tell the user to open Playground, then re-run the script. Do not block the rest of the lab (Observability) on this.
 
 If the dashboard regenerates the OGXServer, `VLLM_API_TOKEN=fake` / `VLLM_MAX_TOKENS=4096` come back — re-run the script.
+
+## GPU utilization dashboard (real L4)
+
+RHOAI Observe → *GPU utilization* queries `accelerator_gpu_utilization{exported_namespace,model_name}`. That series is **not** produced by the OTEL collector (it renames DCGM util to `nvidia_gpu_utilization_ratio` and drops it). DCGM **is** on the L4 (`DCGM_FI_DEV_GPU_UTIL`).
+
+```bash
+bash manifests/fix-maas-gpu-utilization.sh
+```
+
+Creates RHOBS `ServiceMonitor` + `PrometheusRule` (`monitoring.rhobs/v1`, not `monitoring.coreos.com`) in `redhat-ods-monitoring`. The platform Prometheus Operator does not scrape those CRs.
+
+Qwen is CPU → no DCGM join → No data for that model is expected. Filter to gpt-oss or All. Idle L4 is **0%**, not No data; generate chat completions to see a spike. Fake GPU is not scraped (collector only targets `nvidia-gpu-operator`).

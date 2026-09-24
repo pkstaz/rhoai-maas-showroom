@@ -1,0 +1,27 @@
+# Scrape NVIDIA DCGM (real GPU) into the RHOAI MonitoringStack.
+# The OTEL collector renames DCGM_FI_DEV_GPU_UTIL to nvidia_gpu_utilization_ratio
+# and that series never lands; the Perses panel queries accelerator_gpu_utilization.
+apiVersion: monitoring.rhobs/v1
+kind: ServiceMonitor
+metadata:
+  name: nvidia-dcgm-gpu-util
+  namespace: redhat-ods-monitoring
+  labels:
+    app.kubernetes.io/name: nvidia-dcgm-gpu-util
+    platform.opendatahub.io/part-of: monitoring
+spec:
+  namespaceSelector:
+    matchNames:
+      - nvidia-gpu-operator
+  selector:
+    matchLabels:
+      app: nvidia-dcgm-exporter
+  endpoints:
+    - port: gpu-metrics
+      path: /metrics
+      interval: 15s
+      honorLabels: false
+      metricRelabelings:
+        - sourceLabels: [__name__]
+          regex: DCGM_FI_DEV_GPU_UTIL
+          action: keep
