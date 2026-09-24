@@ -65,6 +65,18 @@ case "${EVAL_URL}" in
   *) EVAL_URL="${EVAL_URL}/v1" ;;
 esac
 
+# TMM (and some MaaS frontends) serve OpenAI under a prefix, not /v1 on the FQDN.
+# IPP ExternalModel.spec.externalProviderRefs[].path is the outgoing :path.
+HOST_AND_PATH="${raw}"
+PREFIX_PATH="${HOST_AND_PATH#"${FQDN}"}"
+PREFIX_PATH="${PREFIX_PATH%%\?*}"
+if [[ -z "${PREFIX_PATH}" || "${PREFIX_PATH}" == "/" ]]; then
+  CHAT_PATH="/v1/chat/completions"
+else
+  CHAT_PATH="${PREFIX_PATH%/}/chat/completions"
+  [[ "${CHAT_PATH}" == /* ]] || CHAT_PATH="/${CHAT_PATH}"
+fi
+
 echo "=== Namespace ${DSP_NS} ==="
 oc apply -f - <<EOF
 apiVersion: v1
@@ -176,6 +188,19 @@ EOF
 
 echo "=== Apply ExternalModel + MaaSModelRef + subscription ==="
 oc apply -f /tmp/rhoai-evalhub/external-model.yaml
+
+echo "=== IPP outgoing chat path ${CHAT_PATH} ==="
+for i in $(seq 1 18); do
+  if oc get externalmodel.inference.opendatahub.io "${CR_NAME}" -n "${DSP_NS}" >/dev/null 2>&1; then
+    oc patch externalmodel.inference.opendatahub.io "${CR_NAME}" -n "${DSP_NS}" --type=json -p "[
+      {\"op\":\"replace\",\"path\":\"/spec/externalProviderRefs/0/path\",\"value\":\"${CHAT_PATH}\"}
+    ]" >/dev/null
+    echo "patched inference ExternalModel path=${CHAT_PATH}"
+    break
+  fi
+  echo "try $i waiting inference ExternalModel ${CR_NAME}..."
+  sleep 3
+done
 
 echo "=== Smoke (direct TMM, no local GPU) ==="
 code=$(curl -sk -o /tmp/rhoai-evalhub/tmm-models.json -w '%{http_code}' \
