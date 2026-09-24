@@ -26,7 +26,7 @@ helm upgrade -i gpu-config-plugin \
 ----
 
 El chart incluye un Job que añade `gpu-config-plugin` a `consoles.operator.openshift.io/cluster`.
-Si el Job falla por conflicto, habilítalo a mano:
+Ese Job usa `ose-cli:latest` y a menudo ImagePullBackOff (igual que GPU Booking). Si el plugin no aparece en `.spec.plugins`, habilítalo a mano:
 
 [source,bash]
 ----

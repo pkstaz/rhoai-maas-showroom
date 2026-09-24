@@ -24,6 +24,7 @@ Run `oc apply` / scripts from the **repo root**.
 | `patch-llmisvc-cpu.sh` | Force vLLM CPU after wizard |
 | `maas-subscription.yaml` | Auth policy + subscription |
 | `fix-maas-authorino-ca.sh` | Authorino + service CA |
+| `fix-maas-authorino-grpc-tls.sh` | Authorino gRPC TLS (HTTP 500 en `/maas-api/v1/api-keys`) |
 | `fix-maas-usage-user-label.sh` | Usage UI user label |
 | `fix-playground-maas.sh` | Playground API key + max_tokens |
 | `observability/` | Tempo, OTEL, COO, Loki, MinIO (module 11) |

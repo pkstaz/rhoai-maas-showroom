@@ -54,7 +54,7 @@ check "Kueue" "kueue"
 |Coordina pods *líder + workers* para inferencia distribuida. llm-d lo usa cuando un modelo no cabe en un solo pod y hay que repartirlo. Namespace `openshift-lws-operator`, canal `stable-v1.0`.
 
 |*Red Hat build of Kueue*
-|*GPU Booking*: colas y cuotas para que los jobs de GPU no saturen el cluster.
+|*GPU Booking*: colas y cuotas para que los jobs de GPU no saturen el cluster. Namespace `openshift-kueue-operator`, canal `stable-v1.4` (CSV `1.4.2`), *All namespaces*. OwnNamespace no está soportado.
 |===
 
 == Orden de instalación
@@ -81,6 +81,8 @@ oc apply -f manifests/operators/pipelines/
 
 === Connectivity Link
 
+Si el cluster *ya* tiene Authorino Operator standalone, desinstálalo *antes* (Subscription + CSV + `operators.operators.coreos.com` de Authorino). Connectivity Link lo reinstala vía Kuadrant. No borres `rhcl-operator`.
+
 [source,bash]
 ----
 oc apply -f manifests/operators/connectivity-link/
@@ -94,6 +96,10 @@ oc apply -f manifests/operators/leader-worker-set/
 ----
 
 === Kueue
+
+El manifiesto usa canal `stable-v1.4` y OperatorGroup All namespaces (`spec: {}`). Si el Software Catalog muestra otro canal, instálalo desde ahí y actualiza el YAML.
+
+Si la Subscription queda en `UpgradePending` sin InstallPlan (cambio de canal u OperatorGroup), bórrala y vuelve a aplicar el directorio.
 
 [source,bash]
 ----

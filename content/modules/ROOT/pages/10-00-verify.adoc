@@ -2,13 +2,21 @@
 
 El modelo en MaaS se llama con API key.
 
-== Prerrequisito: Authorino confía en maas-api
+== Prerrequisito: Authorino
 
-Si `/v1/models` o el chat responden `AUTH_FAILURE` / `Exception thrown while generating token` con una API key válida, Authorino no valida el certificado TLS de `maas-api`. Monta el service-CA:
+Dos fallos distintos:
 
+* `/v1/models` o el chat responden `AUTH_FAILURE` / `Exception thrown while generating token` con una API key válida → Authorino no confía en el TLS de `maas-api`. Monta el service-CA:
++
 [source,bash]
 ----
 bash manifests/fix-maas-authorino-ca.sh
+----
+* `POST /maas-api/v1/api-keys` devuelve *HTTP 500* (Envoy `kuadrant-auth-service` gRPC not OK) → el EnvoyFilter `openshift-ai-inference-authn-ssl` habla TLS a Authorino `:50051` y el listener de Authorino está en plaintext. No intentes quitar el TLS con DestinationRule. Activa TLS en Authorino y reinicia el gateway:
++
+[source,bash]
+----
+bash manifests/fix-maas-authorino-grpc-tls.sh
 ----
 
 == API key
@@ -32,7 +40,7 @@ API_KEY=$(curl -sk -X POST "https://${MAAS_URL}/maas-api/v1/api-keys" \
 echo "$API_KEY"
 ----
 
-Si imprime `null`, la subscription no existe o el nombre no coincide. Revisa el error completo sin `jq -r '.key'`.
+Si imprime `null`, la subscription no existe, el nombre no coincide, o el POST devolvió HTTP 500 (script de gRPC TLS arriba). Revisa el error completo sin `jq -r '.key'`.
 
 == Listar modelos y chatear
 
@@ -65,16 +73,17 @@ Dashboard → *Models as a Service* → el modelo → *Playground*. Usa `/no_thi
 
 == UI — Gen AI Studio Playground
 
-Gen AI Studio crea un `OGXServer` que por defecto usa `VLLM_API_TOKEN=fake` y `VLLM_MAX_TOKENS=4096`. Eso provoca *403* (token falso) y *invalid_prompt* (4096 > 2048).
+Gen AI Studio crea el `OGXServer` `lsd-genai-playground` *la primera vez* que abres Playground en el proyecto `llm`. Hasta entonces `oc get ogxserver -A` está vacío y el script de abajo falla `NotFound`.
 
-Tras tener una subscription y API key que funcionen con `curl`:
+. Abre *Gen AI Studio* → *Playground* → proyecto `llm` (con eso basta para crear el CR).
+. El `OGXServer` usa por defecto `VLLM_API_TOKEN=fake` y `VLLM_MAX_TOKENS=4096` → *403* y *invalid_prompt* (4096 > 2048). Con `curl` ya funcionando:
 
 [source,bash]
 ----
 bash manifests/fix-playground-maas.sh
 ----
 
-Luego: *Gen AI Studio* → *Playground* → proyecto `llm` → *New chat* → elige el modelo MaaS (`…/publishers/llm/models/qwen3-06b`) → mensaje con `/no_think`.
+. *New chat* → elige el modelo MaaS (`…/publishers/llm/models/qwen3-06b`) → mensaje con `/no_think`.
 
 NOTE: Si el dashboard regenera el `OGXServer`, puede volver `fake` / `4096`. Vuelve a ejecutar el script.
 

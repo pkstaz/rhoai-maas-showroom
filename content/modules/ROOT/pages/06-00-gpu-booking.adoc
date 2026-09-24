@@ -13,11 +13,16 @@ cd gpu-booking-app-plugin
 
 helm upgrade -i gpu-booking-plugin chart/ \
   -n gpu-booking-app-plugin \
-  --create-namespace
+  --create-namespace \
+  --no-hooks
 
 oc patch consoles.operator.openshift.io cluster --type=json \
   -p '[{"op":"add","path":"/spec/plugins/-","value":"gpu-booking-plugin"}]'
 ----
+
+El Job post-install del chart usa `registry.redhat.io/openshift4/ose-cli:latest` y suele quedar en ImagePullBackOff. `--no-hooks` instala el plugin; el `oc patch` de arriba habilita la consola. Si `gpu-booking-plugin` *ya* está en `.spec.plugins`, el patch con `add` falla por duplicado: omítelo.
+
+Si un `helm upgrade` anterior se quedó colgado esperando el Job, desinstala con `--no-hooks` y vuelve a instalar.
 
 == Verificar
 

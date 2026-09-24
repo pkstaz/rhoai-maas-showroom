@@ -8,9 +8,7 @@ kind: OperatorGroup
 metadata:
   name: openshift-kueue-operator
   namespace: openshift-kueue-operator
-spec:
-  targetNamespaces:
-    - openshift-kueue-operator
+spec: {}
 ---
 apiVersion: operators.coreos.com/v1alpha1
 kind: Subscription
@@ -18,7 +16,7 @@ metadata:
   name: kueue-operator
   namespace: openshift-kueue-operator
 spec:
-  channel: stable-v1.0
+  channel: stable-v1.4
   name: kueue-operator
   source: redhat-operators
   sourceNamespace: openshift-marketplace

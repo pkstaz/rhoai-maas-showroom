@@ -68,7 +68,9 @@ oc label ns gpu-operator \
 
 == Instalar Fake GPU (Helm)
 
-Namespace `gpu-operator` = Fake (distinto de `nvidia-gpu-operator`). Desde la raíz del repo:
+Namespace `gpu-operator` = Fake (distinto de `nvidia-gpu-operator`). Desde la raíz del repo. *Siempre* pasa `-n gpu-operator` (el proyecto actual de `oc` puede ser otro).
+
+Single-node CPU (sin NVIDIA GPU Operator):
 
 [source,bash]
 ----
@@ -77,6 +79,34 @@ helm upgrade -i gpu-operator \
   --namespace gpu-operator \
   --version 0.2.0 \
   -f manifests/fake-gpu-values.yaml
+----
+
+=== Si NVIDIA GPU Operator ya está
+
+`helm upgrade` falla: el ClusterRole `nvidia-device-plugin` ya lo posee el GPU Operator real. No lo pises. Renderiza el chart y aplica *sin* ese ClusterRole/Binding:
+
+[source,bash]
+----
+helm pull oci://ghcr.io/run-ai/fake-gpu-operator/fake-gpu-operator \
+  --version 0.2.0 --untar --destination /tmp/fake-gpu-chart
+
+helm template gpu-operator /tmp/fake-gpu-chart/fake-gpu-operator \
+  -n gpu-operator -f manifests/fake-gpu-values.yaml \
+  | awk 'BEGIN{skip=0} /^kind: ClusterRole(Binding)?$/{k=$0} /^  name: nvidia-device-plugin$/{skip=1} /^---$/{skip=0} !skip' \
+  | oc apply -n gpu-operator -f -
+----
+
+El device-plugin Fake puede programarse en el nodo con GPU *real*. Fíjalo al pool simulado:
+
+[source,bash]
+----
+oc patch ds device-plugin -n gpu-operator --type merge -p '{
+  "spec":{"template":{"spec":{"nodeSelector":{"run.ai/simulated-gpu-node-pool":"default"}}}}
+}'
+oc patch ds nvidia-dcgm-exporter -n gpu-operator --type merge -p '{
+  "spec":{"template":{"spec":{"nodeSelector":{"run.ai/simulated-gpu-node-pool":"default"}}}}
+}'
+oc delete pod -n gpu-operator -l app=device-plugin --ignore-not-found
 ----
 
 Si cambias la topología *después* del install:

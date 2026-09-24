@@ -27,7 +27,9 @@ Menús independientes (puedes hacer uno, los dos o ninguno):
 |Omite ambos. Qwen usa `cpu-workshop`.
 |===
 
-IMPORTANT: *Nunca* instales Fake GPU en un nodo que ya tenga GPU NVIDIA (mismo nodo = conflicto).
+IMPORTANT: *Nunca* instales Fake GPU en un nodo que ya tenga GPU NVIDIA (mismo nodo = conflicto). La GPU real puede estar en un *control-plane compacto* (`g6.*` / `NVIDIA-L4`, etc.): identifícala por `allocatable["nvidia.com/gpu"]`, no por el nombre del MachineSet.
+
+En el camino *híbrido* (NVIDIA + Fake) el Helm de Fake choca con el ClusterRole `nvidia-device-plugin` del GPU Operator real. Sigue el workaround en xref:05-02-fake-gpu.adoc#_si_nvidia_gpu_operator_ya_está[Fake GPU].
 
 NOTE: *Node Feature Discovery* (NFD) sí puedes usarlo con NVIDIA GPU Operator y Fake GPU a la vez. NFD solo etiqueta hardware real (p. ej. PCI `10de`); Fake GPU usa su propio label (`run.ai/simulated-gpu-node-pool`) en workers CPU y no choca con NFD. El NVIDIA GPU Operator suele desplegar o depender de NFD — déjalo en los nodos con GPU; no hace falta (ni conviene) forzar labels NVIDIA en el nodo Fake.
 
