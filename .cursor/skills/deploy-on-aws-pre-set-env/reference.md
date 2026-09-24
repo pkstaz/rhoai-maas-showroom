@@ -1,6 +1,6 @@
 # Reference — deploy-on-aws-pre-set-env
 
-Read this when executing Authorino uninstall, Kueue recovery, Fake GPU beside NVIDIA, GPU Booking `--no-hooks`, Authorino gRPC TLS, gpt-oss serving, dual MaaS subscriptions, or playground OGX.
+Read this when executing Authorino uninstall, Kueue recovery, GPU Booking `--no-hooks`, Authorino gRPC TLS, gpt-oss serving, dual MaaS subscriptions, or playground OGX. This skill does **not** install Fake GPU or GPU Config Plugin.
 
 ## Uninstall standalone Authorino
 
@@ -64,66 +64,31 @@ Wait until CSV matching `connectivity` / `rhcl` is `Succeeded`. Authorino CSV re
   ```
 - AllNamespaces copies the Kueue CSV into many namespaces. Success criterion is `kueue-operator.v1.4.2` **Succeeded**, not “only one CSV row”.
 
-## Fake GPU beside NVIDIA GPU Operator
+## Skip Fake GPU and GPU Config Plugin
 
-Helm `upgrade -i` of `fake-gpu-operator` 0.2.0 **collides** with ClusterRole `nvidia-device-plugin` owned by the real NVIDIA GPU Operator. Do not take over that ClusterRole.
+Do not install Fake GPU Operator or GPU Configuration Plugin on this pre-set AWS cluster. The compact L4 already provides one real GPU; DCGM / NVIDIA GPU Operator collection stays standard.
 
-Always target namespace `gpu-operator` explicitly. Plain `oc apply` without `-n` lands objects in the current project (`my-first-model` while it still exists).
+If a previous skill run left Fake GPU / GPU Config:
 
-```bash
-# After labeling the CPU node and creating ns gpu-operator (module 05-02):
-helm pull oci://ghcr.io/run-ai/fake-gpu-operator/fake-gpu-operator --version 0.2.0 --untar --destination /tmp/fake-gpu-chart
+- Uninstall Helm `gpu-config-plugin` with `--no-hooks`, drop ConsolePlugin `gpu-config-plugin` from `consoles.operator.openshift.io/cluster`, delete ns `gpu-config-plugin`.
+- Delete Fake workloads in ns `gpu-operator` (not `nvidia-gpu-operator`) and ClusterRoles `fake-*` / `mig-faker`. **Never** delete ClusterRole `nvidia-device-plugin` (NVIDIA-owned).
+- Unlabel the CPU worker (`run.ai/fake.gpu`, `run.ai/simulated-gpu-node-pool`, fake `nvidia.com/gpu.product` / `gpu.count` / MIG labels).
+- Delete hardwareprofiles `fake-h200`, `fake-h200-mig`, and GPU-Config-managed `unreserved-*`.
+- Reinstall GPU Booking with discovery **on** (below). Do not run `manifests/apply-gpu-booking-hybrid.sh`.
 
-helm template gpu-operator /tmp/fake-gpu-chart/fake-gpu-operator \
-  -n gpu-operator -f manifests/fake-gpu-values.yaml \
-  | awk 'BEGIN{skip=0} /^kind: ClusterRole(Binding)?$/{k=$0} /^  name: nvidia-device-plugin$/{skip=1} /^---$/{skip=0} !skip' \
-  | oc apply -n gpu-operator -f -
-```
+## GPU Booking (`--no-hooks`, auto-discovery)
 
-Skip only the **cluster-scoped** `nvidia-device-plugin` Role/Binding. Keep Fake GPU ServiceAccounts, DaemonSets, and namespaced RBAC.
-
-Then pin Fake DaemonSets to the simulated node (otherwise `device-plugin` schedules on the **real** GPU node):
+Discovery is `GET /api/v1/nodes?labelSelector=nvidia.com/gpu.present=true`. With Fake GPU gone, that is the compact L4 only.
 
 ```bash
-oc patch ds device-plugin -n gpu-operator --type merge -p '{
-  "spec":{"template":{"spec":{"nodeSelector":{"run.ai/simulated-gpu-node-pool":"default"}}}}
-}'
-oc patch ds nvidia-dcgm-exporter -n gpu-operator --type merge -p '{
-  "spec":{"template":{"spec":{"nodeSelector":{"run.ai/simulated-gpu-node-pool":"default"}}}}
-}'
-oc delete pod -n gpu-operator -l app=device-plugin --ignore-not-found
+git clone --depth 1 https://github.com/rhai-code/gpu-booking-app-plugin.git /tmp/gpu-booking-app-plugin
+helm upgrade -i gpu-booking-plugin /tmp/gpu-booking-app-plugin/chart/ \
+  -n gpu-booking-app-plugin --create-namespace --no-hooks
 ```
 
-If objects leaked into `my-first-model`, delete Fake GPU DS/Deploy/SA/CM/SVC there (do **not** delete NVIDIA `RuntimeClass` nvidia).
+`--no-hooks` is mandatory (`ose-cli:latest` ImagePullBackOff). If a previous Helm release hung, `helm uninstall gpu-booking-plugin -n gpu-booking-app-plugin --no-hooks` then re-install. Enable ConsolePlugin `gpu-booking-plugin` if it is not already in `.spec.plugins`.
 
-If Fake GPU pods CrashLoop on SCC, grant the Fake GPU SA privileged SCC in `gpu-operator`.
-
-Verify allocatable MIG/H200 **only** on the labeled CPU node, and that the NVIDIA-L4 (or real) node still has its original GPU Operator device plugin.
-
-## GPU Booking (Fake GPU + real NVIDIA)
-
-Upstream discovery is:
-
-```
-GET /api/v1/nodes?labelSelector=nvidia.com/gpu.present=true
-```
-
-Fake GPU Operator sets `nvidia.com/gpu.present=false` and the status-updater **reverts** `present=true` within seconds (so NVIDIA GPU Operator does not install drivers on the CPU worker). Discover therefore sees only the compact L4.
-
-This lab installs Booking with **discovery off** and a static config that unions:
-
-- nodes with `nvidia.com/gpu.present=true` (real L4)
-- nodes with `run.ai/fake.gpu=true` or `run.ai/simulated-gpu-node-pool` (Fake H200 + MIG)
-
-The UI keys cards by `type`. Real and Fake both advertise `nvidia.com/gpu`, so full GPUs are **one** card (count = sum). MIG types from Fake are extra cards.
-
-```bash
-bash manifests/apply-gpu-booking-hybrid.sh
-```
-
-`--no-hooks` remains mandatory (`ose-cli:latest` ImagePullBackOff). If a previous Helm release hung, `helm uninstall gpu-booking-plugin -n gpu-booking-app-plugin --no-hooks` then re-run the script.
-
-Do not apply GPU Config profile **gb300** (or similar) if you want the lab H200 topology from `manifests/fake-gpu-values.yaml`. The booking script always reads **live** allocatable, so a GB300 profile would show 8 Fake GPUs.
+Logs should show `gpu discovery: initial config applied` with `resources: 1`. Do not set `gpuDiscovery.enabled=false` or mount a static `gpu-config.json`.
 
 ## Authorino gRPC TLS (HTTP 500 on `/maas-api/v1/api-keys`)
 
@@ -155,7 +120,7 @@ oc get nodes -o json | jq -r '.items[] | [
 ] | @tsv'
 ```
 
-If product is not `NVIDIA-L4`, patch `spec.template.nodeSelector` (node name or `feature.node.kubernetes.io/pci-10de.present=true`). Never set `run.ai/simulated-gpu-node-pool` on this workload. Compact GPU masters are valid targets.
+If product is not `NVIDIA-L4`, patch `spec.template.nodeSelector` (node name or `feature.node.kubernetes.io/pci-10de.present=true`). Compact GPU masters are valid targets.
 
 Apply **in parallel** with Qwen:
 
@@ -228,4 +193,4 @@ bash manifests/fix-maas-gpu-utilization.sh
 
 Creates RHOBS `ServiceMonitor` + `PrometheusRule` (`monitoring.rhobs/v1`, not `monitoring.coreos.com`) in `redhat-ods-monitoring`. The platform Prometheus Operator does not scrape those CRs.
 
-Qwen is CPU → no DCGM join → No data for that model is expected. Filter to gpt-oss or All. Idle L4 is **0%**, not No data; generate chat completions to see a spike. Fake GPU is not scraped (collector only targets `nvidia-gpu-operator`).
+Qwen is CPU → no DCGM join → No data for that model is expected. Filter to gpt-oss or All. Idle L4 is **0%**, not No data; generate chat completions to see a spike. The collector targets `nvidia-gpu-operator` only.

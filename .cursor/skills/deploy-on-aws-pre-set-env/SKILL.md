@@ -23,7 +23,7 @@ Task Progress:
 - [ ] 7. ODHDashboardConfig
 - [ ] 8. Hardware profile CPU (+ nvidia-gpu)
 - [ ] 9. MaaS: GatewayClass, Kuadrant, Postgres, Gateway, modelsAsAService
-- [ ] 10. Fake GPU on CPU node + profiles + GPU Config Plugin
+- [ ] 10. Skip Fake GPU and GPU Config Plugin
 - [ ] 11. GPU Booking Plugin
 - [ ] 12. Delete my-first-model
 - [ ] 13. Model Catalog Qwen3-0.6B
@@ -33,7 +33,7 @@ Task Progress:
 - [ ] 17. Observability
 ```
 
-Gotchas (Authorino CSV copies, Kueue AllNamespaces, Fake GPU vs NVIDIA, Authorino gRPC TLS, GPU Booking hybrid config, GPU utilization recording rule, playground OGXServer): [reference.md](reference.md).
+Gotchas (Authorino CSV copies, Kueue AllNamespaces, skip Fake GPU / GPU Config, GPU Booking `--no-hooks`, Authorino gRPC TLS, GPU utilization recording rule, playground OGXServer): [reference.md](reference.md).
 
 ## Cluster facts (do not contradict)
 
@@ -44,6 +44,7 @@ Gotchas (Authorino CSV copies, Kueue AllNamespaces, Fake GPU vs NVIDIA, Authorin
 - RHOAI `rhods-operator.3.5.1` **OK**. Do **not** install `manifests/rhoai-operator.yaml`.
 - DSC `default-dsc` exists (`Ready=True`). OGXReady starts **PENDIENTE**. Pods `redhat-ods-applications` already Running.
 - Operators **OK, skip**: cert-manager, OpenShift Pipelines, Node Feature Discovery, NVIDIA GPU Operator.
+- **Do not** install Fake GPU Operator or GPU Configuration Plugin. Metrics stay on the real NVIDIA stack (DCGM). GPU Booking uses auto-discovery (`nvidia.com/gpu.present=true`) and sees only the L4.
 - Operators **PENDIENTE, install**: Connectivity Link, Leader Worker Set, Kueue.
 - **Kueue** is Red Hat build: channel `stable-v1.4`, CSV `kueue-operator.v1.4.2`. OperatorGroup **AllNamespaces** (`spec: {}`). OwnNamespace is unsupported.
 - Standalone **Authorino operator is installed** (often AllNamespaces, CSV copied to every ns). Uninstall it **before** Connectivity Link (Authorino returns via Kuadrant).
@@ -211,33 +212,32 @@ Order is mandatory:
 
 Wait `maas-api` / `maas-controller` Running.
 
-## 10. Fake GPU (CPU nodes only)
+## 10. Skip Fake GPU and GPU Config Plugin
 
-NFD + NVIDIA GPU Operator are **already OK**. Do **not** reinstall them. Never label the real GPU node (including a compact GPU master) with `run.ai/simulated-gpu-node-pool`.
+Do **not** install Fake GPU Operator, `manifests/hardware-profiles-fake.yaml`, or GPU Configuration Plugin. NFD + NVIDIA GPU Operator are already OK; leave them.
 
-1. Identify a **CPU** worker (`nvidia.com/gpu` empty/0). Prefer one of the new zone a/b/c nodes.
-2. Follow `content/modules/ROOT/pages/05-02-fake-gpu.adoc`: label, `gpu-operator` ns. **Always pass `-n gpu-operator`** — the current `oc project` may still be `my-first-model`.
-3. `helm upgrade` of Fake GPU **fails** here: ClusterRole `nvidia-device-plugin` is owned by the real NVIDIA GPU Operator. Use the filtered `helm template` apply in [reference.md](reference.md). Then pin Fake DaemonSets to `run.ai/simulated-gpu-node-pool=default`.
-4. Profiles:
-   ```bash
-   oc apply -f manifests/hardware-profiles-fake.yaml
-   ```
-5. GPU Config Plugin (Fake only) — namespace is **`gpu-config-plugin`**, not `gpu-booking-app-plugin`:
-   ```bash
-   helm upgrade -i gpu-config-plugin manifests/gpu-config-plugin/chart \
-     -n gpu-config-plugin --create-namespace \
-     -f manifests/gpu-config-plugin/values.yaml
-   ```
+Fake GPU fights the real NVIDIA stack (ClusterRole `nvidia-device-plugin`, `nvidia.com/gpu.present=false`, GB300 profiles) and breaks standard DCGM collection. This skill uses the compact L4 only.
+
+If a previous run left leftovers, remove **only** Fake / GPU Config (never `nvidia-gpu-operator` or ClusterRole `nvidia-device-plugin`): namespace `gpu-operator` (Fake), Helm release + ns `gpu-config-plugin`, ConsolePlugin `gpu-config-plugin`, hardwareprofiles `fake-h200*` / `unreserved-*`, ClusterRoles `fake-*` / `mig-faker` / `gpu-config-plugin-*`, and Fake labels on CPU workers (`run.ai/fake.gpu`, `run.ai/simulated-gpu-node-pool`, fake `nvidia.com/gpu.product`). Then reinstall GPU Booking with discovery on (step 11).
 
 ## 11. GPU Booking Plugin
 
-Requires Kueue. Do **not** use upstream auto-discovery: it only lists `nvidia.com/gpu.present=true`, and Fake GPU forces `present=false` (status-updater reverts any patch).
+Requires Kueue. Use **auto-discovery** (default): it lists nodes with `nvidia.com/gpu.present=true` — the real L4. Do **not** run `manifests/apply-gpu-booking-hybrid.sh` (that is for Fake GPU).
 
 ```bash
-bash manifests/apply-gpu-booking-hybrid.sh
+git clone --depth 1 https://github.com/rhai-code/gpu-booking-app-plugin.git /tmp/gpu-booking-app-plugin
+helm upgrade -i gpu-booking-plugin /tmp/gpu-booking-app-plugin/chart/ \
+  -n gpu-booking-app-plugin --create-namespace --no-hooks
 ```
 
-That clones the chart, builds a static `gpu-config.json` from **real NVIDIA + Fake GPU** nodes, Helm-installs with `--no-hooks` and `gpuDiscovery.enabled=false`, and enables the ConsolePlugin. Verify pods and cards for full GPU (L4 + Fake) plus Fake MIG slices. Do not apply a GB300 (or other) GPU Config profile if you want the lab H200 topology.
+`--no-hooks` is mandatory: the post-install Job uses `ose-cli:latest` and ImagePullBackOffs. Enable the ConsolePlugin if it is not already listed:
+
+```bash
+oc patch consoles.operator.openshift.io cluster --type=json \
+  -p '[{"op":"add","path":"/spec/plugins/-","value":"gpu-booking-plugin"}]'
+```
+
+Skip the patch if `gpu-booking-plugin` is already in `.spec.plugins`. Verify one Full GPU card (L4).
 
 ## 12. Delete preinstalled Llama
 
@@ -269,7 +269,7 @@ Create **both** `LLMInferenceService` + `MaaSModelRef` objects, then wait. Do no
 Constraints:
 
 - Qwen stays on CPU image `registry.redhat.io/rhaii-early-access/vllm-cpu-rhel9:3.5.0-ea.2` (no `nvidia.com/gpu`).
-- gpt-oss-20b must schedule on the **NVIDIA** node, never on the Fake GPU node. Committed YAML pins `nvidia.com/gpu.product: NVIDIA-L4`. If this cluster’s product label differs, patch the nodeSelector to the real product (or node name).
+- gpt-oss-20b must schedule on the **NVIDIA** node. Committed YAML pins `nvidia.com/gpu.product: NVIDIA-L4`. If this cluster’s product label differs, patch the nodeSelector to the real product (or node name).
 - gpt-oss-20b must include vLLM tool calling: `--enable-auto-tool-choice` and `--tool-call-parser=openai`.
 
 Wait both Ready. Typical: Qwen ~5 min, gpt-oss ~8–15 min on L4.
@@ -330,7 +330,7 @@ The GPU utilization Perses panel queries `accelerator_gpu_utilization` (not DCGM
 
 - Prefer existing files under `manifests/` over generating new operators.
 - Wait for CSV/Ready between operator and CR steps.
-- Do not install Fake GPU on the real GPU node (including compact GPU masters).
+- Do not install Fake GPU Operator or GPU Configuration Plugin.
 - Do not create the workshop `admin` htpasswd user.
 - If `oc` is not logged in, stop.
 - Do not leak MaaS API keys in chat.
