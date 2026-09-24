@@ -89,6 +89,8 @@ spec:
         - name: mc
           image: quay.io/minio/mc:latest
           env:
+            - name: HOME
+              value: /tmp
             - name: MC_HOST_local
               value: http://minio:minio123@pipeline-minio.llm.svc.cluster.local:9000
           command:

@@ -133,6 +133,50 @@ done
 
 oc get evalhub,pods,route -n evalhub 2>/dev/null || oc get pods -n evalhub
 oc get mlflow mlflow -o jsonpath='{.status.conditions[?(@.type=="Available")].status}{"\n"}' 2>/dev/null || true
+
+echo "=== 6. Dashboard federated module evalHub (RHOAI 3.5) ==="
+# disableLMEval only enables the nav flag. The modular UI loads eval-hub-ui via
+# federation-config. If MODULE_FEDERATION_CONFIG is an inline `value` (FinOps
+# plugin), the operator cannot apply valueFrom and evalHub stays Disabled.
+if oc get dashboard default-dashboard >/dev/null 2>&1; then
+  PHASE=$(oc get dashboard default-dashboard -o jsonpath='{.status.moduleStatuses.evalHub.phase}' 2>/dev/null || true)
+  echo "evalHub module phase=${PHASE:-unknown}"
+  if [[ "${PHASE}" != "Deployed" ]]; then
+    python3 - <<'PY' || true
+import json, subprocess
+dep = json.loads(subprocess.check_output(
+    ["oc","get","deploy","rhods-dashboard","-n","redhat-ods-applications","-o","json"]))
+env = dep["spec"]["template"]["spec"]["containers"][0].get("env") or []
+idx = next((i for i,e in enumerate(env) if e.get("name")=="MODULE_FEDERATION_CONFIG"), None)
+if idx is None:
+    print("WARN: MODULE_FEDERATION_CONFIG missing on rhods-dashboard")
+    raise SystemExit(0)
+entry = env[idx]
+if entry.get("value") and not (entry.get("valueFrom") or {}).get("configMapKeyRef"):
+    patch = [{"op":"replace","path":f"/spec/template/spec/containers/0/env/{idx}","value":{
+        "name":"MODULE_FEDERATION_CONFIG",
+        "valueFrom":{"configMapKeyRef":{
+            "name":"federation-config",
+            "key":"module-federation-config.json"}}}}]
+    subprocess.check_call(["oc","patch","deploy","rhods-dashboard","-n","redhat-ods-applications",
+                           "--type=json","-p",json.dumps(patch)])
+    print("Switched MODULE_FEDERATION_CONFIG to valueFrom federation-config")
+else:
+    print("MODULE_FEDERATION_CONFIG already valueFrom")
+PY
+    oc annotate dashboard default-dashboard rhoai-setup/reconcile="$(date -u +%Y-%m-%dT%H:%M:%SZ)" --overwrite
+    for i in $(seq 1 24); do
+      PHASE=$(oc get dashboard default-dashboard -o jsonpath='{.status.moduleStatuses.evalHub.phase}' 2>/dev/null || true)
+      echo "try $i evalHub module=$PHASE"
+      [[ "$PHASE" == "Deployed" ]] && break
+      sleep 5
+    done
+  fi
+  oc rollout status deploy/eval-hub-ui -n redhat-ods-applications --timeout=180s || true
+  oc rollout restart deploy/rhods-dashboard -n redhat-ods-applications
+  oc rollout status deploy/rhods-dashboard -n redhat-ods-applications --timeout=180s || true
+fi
+
 echo
-echo "UI: hard-refresh dashboard → Develop & train → Evaluations"
+echo "UI: hard-refresh dashboard (Cmd+Shift+R) → proyecto llm → Develop & train → Evaluations"
 echo "Create an MLflow experiment in project ${DSP_NS}, then Start evaluation run."
