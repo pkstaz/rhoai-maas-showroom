@@ -1,0 +1,73 @@
+= Desplegar modelo — GPU
+
+vLLM *CUDA* en un nodo con GPU NVIDIA real. Fake GPU (módulo 5.2) *no* ejecuta este manifiesto.
+
+Requisitos: xref:05-01-nvidia-gpu.adoc[NVIDIA GPU Operator] + profile `nvidia-gpu`, MaaS (módulo 4), proyecto `llm` (lo crea xref:08-01-deploy-cpu.adoc[CPU] si aún no existe).
+
+Manifiesto: `manifests/llminferenceservice-gpt-oss-20b.yaml` (`openai/gpt-oss-20b`, tool calling).
+
+== Qué crea
+
+[cols="1,2"]
+|===
+|Recurso |Detalle
+
+|`LLMInferenceService/gpt-oss-20b`
+|Imagen `rhaii-early-access/vllm-cuda-rhel9:3.5.0-ea.2`, `nvidia.com/gpu: 1`, `--enable-auto-tool-choice`.
+
+|`MaaSModelRef/gpt-oss-20b`
+|Publica el modelo en MaaS.
+|===
+
+El YAML fija `nodeSelector` `nvidia.com/gpu.product: NVIDIA-L4`. Si tu nodo tiene otro product, cámbialo *antes* del apply.
+
+== Ajustar el nodo (si no es L4)
+
+[source,bash]
+----
+oc get nodes -o json | jq -r '
+  .items[]
+  | select(.status.allocatable["nvidia.com/gpu"] != null)
+  | "\(.metadata.name)\t\(.metadata.labels["nvidia.com/gpu.product"] // "-")"
+'
+# Si el product no es NVIDIA-L4:
+#   oc apply ...  y luego
+#   oc patch llminferenceservice gpt-oss-20b -n llm --type merge -p \
+#     '{"spec":{"template":{"nodeSelector":{"nvidia.com/gpu.product":"<PRODUCT>"}}}}'
+----
+
+== Instalar
+
+[source,bash]
+----
+oc apply -f manifests/hardware-profile-nvidia.yaml
+oc apply -f manifests/llminferenceservice-gpt-oss-20b.yaml
+oc wait --for=condition=Ready llminferenceservice/gpt-oss-20b -n llm --timeout=1800s
+----
+
+Primera vez: pull de pesos HF + imagen CUDA (10–20 min en L4).
+
+== Subscription
+
+El módulo 9 cubre Qwen. Para este modelo:
+
+[source,bash]
+----
+oc apply -f manifests/maas-subscription-gpt-oss-20b.yaml
+----
+
+Nombre de subscription para API keys: `gpt-oss-20b-authenticated`.
+
+En el chat usa `max_tokens` ≥ 256 (con 64 el reasoning se come el presupuesto y `content` sale vacío).
+
+== Verificar
+
+[source,bash]
+----
+oc get llminferenceservice,maasmodelref gpt-oss-20b -n llm
+oc get pods -n llm -o wide | grep -i gpt
+----
+
+== Siguiente
+
+xref:09-00-subscription.adoc[Suscripción] (Qwen y/o gpt-oss) o xref:08-03-deploy-external.adoc[modelo externo].

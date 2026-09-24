@@ -1,0 +1,71 @@
+= Desplegar modelo — externo (TMM)
+
+Registra un LLM *fuera* de este cluster (TMM u otro OpenAI-compatible) como `ExternalModel` + `MaaSModelRef`.
+No hace falta GPU aquí: la inferencia corre en el cluster remoto.
+
+El instructor entrega en *cada sala* tres valores. No los subas a git.
+
+[cols="1,2"]
+|===
+|Variable |Qué es
+
+|`MODEL_NAME` (o `TMM_MODEL_NAME`)
+|Id que espera el proveedor (`gpt-oss-20b`, `granite-…`, `publishers/…/models/…`).
+
+|`ENDPOINT` (o `TMM_ENDPOINT`)
+|URL OpenAI-compatible, p. ej. `https://maas.apps.tmm.example.com/v1`.
+
+|`API_KEY` (o `TMM_API_KEY`)
+|Bearer del proveedor TMM. Cambia por lab; re-ejecuta el script para rotarla.
+
+|`TOKENIZER` (opcional)
+|Repo HF para EvalHub HHH (módulo 12). El id MaaS *no* vale como tokenizer.
+|===
+
+CRD MaaS (`maas.opendatahub.io`): `provider`, `endpoint` (solo FQDN, sin `https://` ni path), `targetModel`, Secret con clave `api-key`.
+
+== Script (recomendado)
+
+[source,bash]
+----
+export MODEL_NAME='<lo que dé el instructor>'
+export ENDPOINT='https://<host>/v1'
+export API_KEY='<key de esta sala>'
+# export TOKENIZER='org/model'   # para el módulo 12
+
+bash manifests/apply-external-model.sh
+----
+
+Crea/actualiza Secret `tmm-api-key` en `llm` (y en `evalhub` si ya existe), el `ExternalModel`/`MaaSModelRef` `tmm-external`, y la subscription `tmm-authenticated`.
+
+Solo rotar la key (el CR ya está):
+
+[source,bash]
+----
+export API_KEY='<nueva>'
+MODE=key bash manifests/apply-external-model.sh
+----
+
+El script *no* imprime la key. YAML generado (sin secreto): `/tmp/rhoai-evalhub/external-model.yaml`.
+
+== Verificar
+
+[source,bash]
+----
+oc get secret tmm-api-key -n llm
+oc get externalmodel,maasmodelref tmm-external -n llm
+oc get maassubscription tmm-authenticated -n models-as-a-service
+----
+
+Smoke *directo* al TMM (no pasa por el gateway de *este* cluster): el script lo lanza contra `ENDPOINT` + `MODEL_NAME`.
+
+EvalHub / Garak (módulos 12 / 12.1) usan ese mismo Secret y URL: evalúas un modelo con más capacidad aunque este lab sea CPU-only.
+
+== Playground vía MaaS (opcional)
+
+Tras la subscription, mint una API key MaaS (`tmm-authenticated`) como en el módulo 10.
+Eso exige IPP / ruteo externo sano. Si el `MaaSModelRef` no pasa a `Ready`, el smoke directo y EvalHub siguen valiendo.
+
+== Siguiente
+
+xref:09-00-subscription.adoc[Suscripción] de los modelos *in-cluster* que hayas desplegado, luego inferencia (10) y EvalHub (12) con las variables que imprimió el script.

@@ -9,6 +9,7 @@ www/
 .env
 .env.local
 .env.*.local
+manifests/routing/tmm.env
 secrets.json
 package-lock.json
 yarn.lock

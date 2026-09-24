@@ -1,73 +1,29 @@
-= Desplegar Qwen3-0.6B (llm-d, CPU, MaaS)
+= Desplegar modelo
 
-Despliega Qwen en *CPU* con un manifiesto limpio (sin wizard): `LLMInferenceService` + `MaaSModelRef`.
-Queda visible en el AI Hub / Gen AI Studio (*AI asset endpoints*) y publicado en MaaS.
+Publica un modelo en MaaS. Elige *una o más* rutas (como el módulo 5):
 
-Requisitos: MaaS encendido (módulo 4), profile `cpu-workshop` (módulo 3), gateway `maas-default-gateway`.
-Manifiesto: `manifests/llminferenceservice-qwen3-06b.yaml`.
+* xref:08-01-deploy-cpu.adoc[CPU] — `{qwen-model}` con llm-d / vLLM CPU. *Camino por defecto del lab.*
+* xref:08-02-deploy-gpu.adoc[GPU] — vLLM CUDA en GPU NVIDIA real (módulo 5 NVIDIA). Fake GPU *no* sirve para inferencia.
+* xref:08-03-deploy-external.adoc[Modelo externo] — OpenAI-compatible fuera del cluster (TMM u otro). Name, endpoint y API key los da el instructor *en cada sala*.
 
-== Qué crea el manifiesto
+== Qué instalar según tu cluster
 
 [cols="1,2"]
 |===
-|Recurso |Detalle
+|Situación |Qué hacer
 
-|Namespace `llm`
-|Proyecto de Data Science + acceso al gateway MaaS.
+|OpenTLC / CPU only
+|xref:08-01-deploy-cpu.adoc[CPU]. Luego módulo 9.
 
-|`LLMInferenceService/qwen3-06b`
-|llm-d + imagen `rhaii-early-access/vllm-cpu-rhel9:3.5.0-ea.2`, `max-model-len=2048`, label `opendatahub.io/genai-asset=true`.
+|Hay GPU NVIDIA (módulo 5.1)
+|CPU *y/o* xref:08-02-deploy-gpu.adoc[GPU].
 
-|`MaaSModelRef/qwen3-06b`
-|Publica el modelo en Models as a Service.
+|Vas a evaluar / red-team sin GPU local
+|xref:08-03-deploy-external.adoc[Modelo externo] (TMM). EvalHub (12) apunta a ese endpoint.
 |===
 
-== Instalar por terminal
+Las tres rutas crean o reutilizan el proyecto `llm` y un `MaaSModelRef`. La subscription (módulo 9) es *por modelo*.
 
-Desde la raíz del repo:
+== Siguiente
 
-[source,bash]
-----
-oc apply -f manifests/llminferenceservice-qwen3-06b.yaml
-----
-
-NOTE: El tag GA `rhaiis/vllm-cpu-rhel9:3.5.0` *no* está publicado (`manifest unknown`).
-El lab usa Early Access `rhaii-early-access/vllm-cpu-rhel9:3.5.0-ea.2`
-(https://docs.redhat.com/en/documentation/red_hat_ai_inference/3.5/html/release_notes/rhaii-350-ea2-release-notes_release-notes[RHAI 3.5.0-ea.2]).
-El cluster debe poder pull de `registry.redhat.io` (pull secret global / entitled).
-
-== Esperar Ready
-
-[source,bash]
-----
-printf '%-36s %-12s %s\n' "RECURSO" "ESTADO" "DETALLE"
-printf '%-36s %-12s %s\n' "------------------------------------" "------------" "----------------"
-
-oc wait --for=condition=Ready llminferenceservice/qwen3-06b -n llm --timeout=900s >/dev/null 2>&1 && \
-  printf '%-36s %-12s %s\n' "LLMInferenceService/qwen3-06b" "OK" "Ready" || \
-  printf '%-36s %-12s %s\n' "LLMInferenceService/qwen3-06b" "PENDIENTE" "$(oc get llminferenceservice qwen3-06b -n llm -o jsonpath='{.status.conditions[?(@.type=="Ready")].reason}' 2>/dev/null || echo '?')"
-
-img=$(oc get deploy -n llm -o jsonpath='{range .items[*]}{.spec.template.spec.containers[0].image}{"\n"}{end}' 2>/dev/null | grep -m1 vllm || true)
-echo "$img" | grep -q 'vllm-cpu' && \
-  printf '%-36s %-12s %s\n' "Imagen serving" "OK" "vllm-cpu" || \
-  printf '%-36s %-12s %s\n' "Imagen serving" "REVISAR" "${img:-sin deploy}"
-
-oc get maasmodelref qwen3-06b -n llm --no-headers 2>/dev/null | grep -qi Ready && \
-  printf '%-36s %-12s %s\n' "MaaSModelRef/qwen3-06b" "OK" "Ready" || \
-  printf '%-36s %-12s %s\n' "MaaSModelRef/qwen3-06b" "PENDIENTE" "espera subscription (módulo 9) o reconciliación"
-----
-
-== Verificar en UI
-
-* *Gen AI Studio* → *AI asset endpoints* (proyecto `llm`): debe listar el modelo (`opendatahub.io/genai-asset=true`).
-* *Models as a Service*: el `MaaSModelRef` `qwen3-06b` (pasa a `Ready` tras la subscription del módulo 9).
-
-[source,bash]
-----
-oc get llminferenceservice -n llm
-oc get pods -n llm
-oc get maasmodelref -n llm -o wide
-oc get llminferenceservice qwen3-06b -n llm -o jsonpath='{.metadata.labels.opendatahub\.io/genai-asset}{"\n"}'
-----
-
-NOTE: El vLLM CPU del lab usa `max_model_len=2048`. En Playground / chat usa `max_tokens` ≤ 1024 y `/no_think`.
+Haz *al menos* CPU o externo. Luego xref:09-00-subscription.adoc[suscripción MaaS].

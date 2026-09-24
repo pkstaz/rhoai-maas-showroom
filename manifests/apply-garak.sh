@@ -62,10 +62,20 @@ curl -sk "${EVALHUB_URL}/api/v1/evaluations/providers/garak" \
     (.benchmarks // [])[]? | "  \(.id)\t\(.name // "")"
   ' 2>/dev/null || echo "  (list after the pod restarts — hard-refresh Evaluations)"
 
-# MaaS model + secret from module 12
-API_KEY_SECRET="${API_KEY_SECRET:-maas-eval-api-key}"
+# MaaS / TMM: prefer instructor external model (module 8.3)
+API_KEY_SECRET="${API_KEY_SECRET:-}"
+if [[ -z "${API_KEY_SECRET}" ]]; then
+  if oc get secret tmm-api-key -n "${DSP_NS}" >/dev/null 2>&1; then
+    API_KEY_SECRET="tmm-api-key"
+  else
+    API_KEY_SECRET="maas-eval-api-key"
+  fi
+fi
 if [[ -z "${MODEL_ID:-}" ]]; then
-  if oc get secret "${API_KEY_SECRET}" -n "${DSP_NS}" >/dev/null 2>&1; then
+  if [[ "${API_KEY_SECRET}" == "tmm-api-key" ]]; then
+    MODEL_ID="${TMM_MODEL_NAME:-}"
+    ENDPOINT="${ENDPOINT:-${TMM_ENDPOINT:-}}"
+  elif oc get secret "${API_KEY_SECRET}" -n "${DSP_NS}" >/dev/null 2>&1; then
     KEY=$(oc get secret "${API_KEY_SECRET}" -n "${DSP_NS}" -o jsonpath='{.data.OPENAI_API_KEY}' | base64 -d)
     MODEL_ID=$(curl -sk "${MAAS_URL}/v1/models" -H "Authorization: Bearer ${KEY}" | jq -r '.data[0].id // empty')
   fi
@@ -154,6 +164,12 @@ submit_job() {
 if [[ "${SUBMIT}" == "1" ]]; then
   if [[ "${MODE}" == "art" ]]; then
     oc get dspa dspa -n "${DSP_NS}" >/dev/null
+    # kube-rbac-proxy on ds-pipeline returns 401 unless the EvalHub job SA
+    # can call datasciencepipelinesapplications/api.
+    oc -n "${DSP_NS}" create rolebinding evalhub-dspa-user-access \
+      --role=ds-pipeline-user-access-dspa \
+      --serviceaccount="${DSP_NS}:evalhub-evalhub-job" \
+      --dry-run=client -o yaml | oc apply -f -
     submit_job "${ART_JSON}"
   else
     submit_job "${QUICK_JSON}"

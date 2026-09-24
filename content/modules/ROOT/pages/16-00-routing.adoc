@@ -6,35 +6,18 @@ Un gateway MaaS (`maas-default-gateway`) puede publicar *varios* `MaaSModelRef`.
 
 == Qué ya tienes
 
-* Un modelo in-cluster: `qwen3-06b` (llm-d CPU)
+* Uno o más modelos del módulo 8: CPU `qwen3-06b`, GPU `gpt-oss-20b`, y/o TMM `tmm-external`
 * Una o más subscriptions (módulos 9 y 13)
 
 == Segundo modelo (elige una)
 
 === A. Otro LLMInferenceService (mismo patrón que el 8)
 
-Copia `manifests/llminferenceservice-qwen3-06b.yaml`, cambia `metadata.name` y el `MaaSModelRef`. En GPU usa imagen CUDA + profile `nvidia-gpu`.
+Copia el manifiesto CPU o GPU del módulo 8, cambia `metadata.name` y el `MaaSModelRef`.
 
-=== B. External model (OpenAI-compatible)
+=== B. External model
 
-Manifiesto: `manifests/routing/external-model.yaml`.
-
-[source,bash]
-----
-# Edita url + api-key (Azure, TMM, otro vLLM)
-oc apply -f manifests/routing/external-model.yaml
-----
-
-NOTE: Si `oc apply` rechaza `ExternalModel`, ejecuta `oc explain externalmodel` y ajusta el manifiesto al CRD de tu cluster (el grupo es `maas.opendatahub.io`).
-
-Flag opcional:
-
-[source,bash]
-----
-oc patch odhdashboardconfig odh-dashboard-config -n redhat-ods-applications --type merge -p '{
-  "spec":{"dashboardConfig":{"externalModels":true}}
-}'
-----
+Ya está en xref:08-03-deploy-external.adoc[módulo 8.3] (`apply-external-model.sh`). Aquí solo comprueba que el gateway lista *varios* ids.
 
 == Verificar ruteo
 

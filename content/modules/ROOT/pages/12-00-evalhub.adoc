@@ -2,7 +2,7 @@
 
 CAUTION: *WIP* (Work in Progress). Este módulo aún se valida en lab; los pasos pueden cambiar.
 
-Prueba de calidad tras xref:11-00-observabilidad.adoc[observabilidad MaaS]. Modelo *Running* y suscripción MaaS del módulo 9.
+Prueba de calidad tras xref:11-00-observabilidad.adoc[observabilidad MaaS]. Preferido: modelo TMM del xref:08-03-deploy-external.adoc[módulo 8.3]. Fallback: Qwen CPU (módulo 8.1) + subscription del módulo 9.
 
 Este módulo deja *Develop & train → Evaluations* usable desde la web (TrustyAI + MLflow + EvalHub).
 
@@ -101,9 +101,34 @@ El YAML fija:
 
 Sin el sufijo `/mlflow`, CreateEvaluationJob falla con `Workspace context is required`.
 
-== Valores para el formulario (external / MaaS)
+== Valores para el formulario (TMM primero)
 
-Secret con la API key MaaS (clave `OPENAI_API_KEY`) y variables para pegar en la UI:
+Si corriste xref:08-03-deploy-external.adoc[modelo externo], EvalHub llama al TMM (mejor modelo, sin GPU en *este* cluster). Reusa el Secret `tmm-api-key`.
+
+[source,bash]
+----
+# Tras apply-external-model.sh (o re-exporta lo que imprimió):
+export MODEL_ID="${MODEL_ID:-${TMM_MODEL_NAME}}"
+export ENDPOINT="${ENDPOINT:-${TMM_ENDPOINT}}"
+export API_KEY_SECRET="${API_KEY_SECRET:-tmm-api-key}"
+export TOKENIZER="${TOKENIZER:-${TMM_TOKENIZER:-}}"
+
+printf '\n'
+printf '┌──────────────────────────────────────────────────────────────┐\n'
+printf '│  EvalHub — External (TMM / instructor)                       │\n'
+printf '├──────────────────────────────────────────────────────────────┤\n'
+printf '│ MODEL_ID       = %-44s │\n' "${MODEL_ID}"
+printf '│ ENDPOINT       = %-44s │\n' "${ENDPOINT}"
+printf '│ API_KEY_SECRET = %-44s │\n' "${API_KEY_SECRET}"
+printf '│ TOKENIZER      = %-44s │\n' "${TOKENIZER:-<HF repo, no el id MaaS>}"
+printf '└──────────────────────────────────────────────────────────────┘\n'
+----
+
+Rotar la key de esta sala: `MODE=key API_KEY='…' bash manifests/apply-external-model.sh`.
+
+=== Fallback — Qwen MaaS local
+
+Solo si *no* hay TMM. Secret con la API key MaaS (clave `OPENAI_API_KEY`):
 
 [source,bash]
 ----
@@ -139,7 +164,7 @@ printf '│ API_KEY_SECRET = %-44s │\n' "${API_KEY_SECRET}"
 printf '└──────────────────────────────────────────────────────────────┘\n'
 ----
 
-En el formulario: *Model name* = `MODEL_ID` (id MaaS, p. ej. `publishers/llm/models/qwen3-06b`), *Endpoint URL* = `ENDPOINT`, *API key secret name* = `API_KEY_SECRET` (nombre del Secret, no el `sk-oai-…`).
+En el formulario: *Model name* = `MODEL_ID`, *Endpoint URL* = `ENDPOINT`, *API key secret name* = `API_KEY_SECRET` (nombre del Secret, no el valor de la key).
 
 == UI — lanzar la evaluación
 
@@ -163,11 +188,11 @@ Hard refresh del dashboard tras ver el ConfigMap.
 
 [source,json]
 ----
-{"limit": 5, "num_fewshot": 0, "tokenizer": "Qwen/Qwen3-0.6B"}
+{"limit": 5, "num_fewshot": 0, "tokenizer": "<TOKENIZER o Qwen/Qwen3-0.6B si evalúas Qwen local>"}
 ----
 
 . *MLflow experiment*: el que creaste
-. *Source*: external / MaaS — usa `MODEL_ID`, `ENDPOINT` y `API_KEY_SECRET` de arriba
+. *Source*: external — usa `MODEL_ID`, `ENDPOINT` y `API_KEY_SECRET` (TMM del 8.3, o Qwen local)
 . *Evaluate*
 
 La UI puede quedarse en *Pending* unos minutos la *primera* vez: el pod descarga `odh-ta-lmes-job` (~7 GB). Luego pasa a *Running* / *Completed* (smoke ~5–15 min en OpenTLC). *Experiments (MLflow)* para ver métricas.

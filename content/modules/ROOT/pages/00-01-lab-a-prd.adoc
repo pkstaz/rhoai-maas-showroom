@@ -50,7 +50,7 @@ En *Lab* usamos un cluster efímero y un modelo pequeño en CPU. En *Prd* el mis
 | Model Catalog + {qwen-model}
 
 | Serving
-| `LLMInferenceService` con llm-d en CPU
+| xref:08-00-deploy.adoc[Módulo 8]: CPU (Qwen), GPU (vLLM CUDA) y/o modelo externo TMM
 
 | AI Gateway / MaaS
 | GatewayClass, Kuadrant, Postgres, gateway, subscriptions, auth policies
@@ -94,7 +94,7 @@ En *Lab* usamos un cluster efímero y un modelo pequeño en CPU. En *Prd* el mis
 | Clusters dedicados dev / staging / prod
 
 | Modelo
-| HF directo, Qwen 0.6B CPU
+| HF Qwen 0.6B CPU; GPU y/o TMM externo (módulo 8)
 | Modelos validados, versionados, firmados
 
 | Credenciales

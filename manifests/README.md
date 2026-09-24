@@ -20,9 +20,13 @@ Run `oc apply` / scripts from the **repo root**.
 | `hardware-profile-cpu.yaml` | CPU hardware profile `cpu-workshop` (module 3)
 | `hardware-profile-nvidia.yaml` | GPU profile `nvidia-gpu` (module 5 NVIDIA)
 | `fake-gpu-dashboard/` | DCGM Grafana dashboard + ServiceMonitor for Fake GPU (module 5)
-| `llminferenceservice-qwen3-06b.yaml` | llm-d CPU + MaaSModelRef |
+| `llminferenceservice-qwen3-06b.yaml` | llm-d CPU + MaaSModelRef (module 8.1) |
+| `llminferenceservice-gpt-oss-20b.yaml` | llm-d GPU + MaaSModelRef (module 8.2) |
+| `apply-external-model.sh` | TMM ExternalModel from MODEL_NAME / ENDPOINT / API_KEY (module 8.3) |
+| `routing/external-model.yaml` | Template (no secrets; prefer the script) |
 | `patch-llmisvc-cpu.sh` | Force vLLM CPU after wizard |
-| `maas-subscription.yaml` | Auth policy + subscription |
+| `maas-subscription.yaml` | Auth policy + subscription (Qwen) |
+| `maas-subscription-gpt-oss-20b.yaml` | Auth policy + subscription (GPU) |
 | `fix-maas-authorino-ca.sh` | Authorino + service CA |
 | `fix-maas-authorino-grpc-tls.sh` | Authorino gRPC TLS (HTTP 500 en `/maas-api/v1/api-keys`) |
 | `apply-gpu-booking-hybrid.sh` | GPU Booking with Fake + real NVIDIA (discovery off) |
@@ -39,7 +43,6 @@ Run `oc apply` / scripts from the **repo root**.
 | `apply-guardrails.sh` | TrustyAI + NemoGuardrails (`MODE=maas` opcional) |
 | `registry/` | Postgres + ModelRegistry workshop (module 15) |
 | `apply-registry.sh` | Model Registry installer |
-| `routing/external-model.yaml` | External OpenAI-compatible model (module 16) |
 | `pipelines/` | MinIO + DSPA AutoML/AutoRAG (modules 17–18) |
 | `apply-pipelines.sh` | Pipeline server |
 | `autorag/` | pgvector + vector-stores ConfigMap (module 18) |

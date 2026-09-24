@@ -3,7 +3,8 @@
 Para consumir el modelo por el gateway hacen falta *subscription* y *authorization policy*.
 Sin las dos, la `MaaSModelRef` no queda `Ready`.
 
-Este lab usa el modelo `qwen3-06b` del manifiesto CLI (módulo 8).
+Este lab usa el modelo in-cluster del módulo 8 (por defecto `qwen3-06b` CPU).
+Si desplegaste GPU o TMM, aplica *también* su subscription.
 
 == Qué se crea
 
@@ -48,4 +49,13 @@ phase=$(oc get maasmodelref qwen3-06b -n llm -o jsonpath='{.status.phase}' 2>/de
   || printf '%-42s %-12s\n' "MaaSModelRef/qwen3-06b" "${phase:-PENDIENTE}"
 ----
 
-IMPORTANT: El nombre `qwen-authenticated` es el que usa el módulo 10 al pedir la API key.
+IMPORTANT: El nombre `qwen-authenticated` es el que usa el módulo 10 al pedir la API key de Qwen.
+
+== Otras rutas (módulo 8)
+
+[source,bash]
+----
+# GPU (gpt-oss-20b)
+oc apply -f manifests/maas-subscription-gpt-oss-20b.yaml
+# TMM / externo — ya lo crea apply-external-model.sh (tmm-authenticated)
+----

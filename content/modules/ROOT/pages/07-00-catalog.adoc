@@ -39,3 +39,7 @@ oc get configmap model-catalog-sources -n rhoai-model-registries -o yaml
 ----
 
 En el dashboard: *Catalog* / AI Hub → filtro `Qwen3` → debe aparecer *Qwen3-0.6B*.
+
+== Siguiente
+
+xref:08-00-deploy.adoc[Desplegar modelo]: CPU, GPU o externo.
